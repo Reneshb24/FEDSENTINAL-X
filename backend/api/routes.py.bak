@@ -1,0 +1,378 @@
+"""
+FedSentinel REST API routes.
+
+This module exposes the operational security control plane through
+HTTP endpoints.
+
+The routes are intentionally thin:
+    HTTP request
+        ↓
+    Pydantic validation
+        ↓
+    RoundOrchestrator
+        ↓
+    existing FedSentinel services
+
+No L0-L5 detection logic belongs in this module.
+"""
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+
+from backend.api.dependencies import get_orchestrator
+from backend.core.types import RoundStatus
+from backend.schemas.events import EventBatch, SecurityEvent
+from backend.schemas.incidents import (
+    IncidentEvidence,
+    IncidentListResponse,
+    IncidentResponse,
+)
+from backend.schemas.rounds import (
+    RoundListResponse,
+    RoundMetrics,
+    RoundResponse,
+)
+from backend.services.round_orchestrator import RoundOrchestrator
+
+
+router = APIRouter(
+    prefix="/api/v1",
+    tags=["FedSentinel"],
+)
+
+
+# ------------------------------------------------------------------
+# Health
+# ------------------------------------------------------------------
+
+
+@router.get(
+    "/health",
+    summary="Check API health",
+)
+def health() -> dict[str, str]:
+    """
+    Return basic API health information.
+    """
+
+    return {
+        "status": "ok",
+        "service": "FedSentinel",
+    }
+
+
+# ------------------------------------------------------------------
+# Rounds
+# ------------------------------------------------------------------
+
+
+def _round_to_response(
+    managed_round,
+) -> RoundResponse:
+    """
+    Convert an internal ManagedRound into the public API schema.
+
+    Metrics are populated only from information that the current
+    round manager actually exposes.
+    """
+
+    metrics = RoundMetrics(
+        participating_clients=managed_round.target_clients,
+    )
+
+    return RoundResponse(
+        round_id=managed_round.round_id,
+        status=managed_round.status,
+        target_clients=managed_round.target_clients,
+        created_at=managed_round.created_at,
+        started_at=managed_round.started_at,
+        completed_at=managed_round.completed_at,
+        metrics=metrics,
+        global_model_hash=None,
+    )
+
+
+@router.get(
+    "/rounds",
+    response_model=RoundListResponse,
+    summary="List federated learning rounds",
+)
+def list_rounds(
+    orchestrator: RoundOrchestrator = Depends(get_orchestrator),
+) -> RoundListResponse:
+    """
+    Return all managed rounds.
+
+    The current RoundManager stores rounds in memory.
+    """
+
+    rounds = orchestrator.round_manager.list_rounds()
+
+    responses = [
+        _round_to_response(item)
+        for item in rounds
+    ]
+
+    return RoundListResponse(
+        rounds=responses,
+        total=len(responses),
+    )
+
+
+@router.post(
+    "/rounds",
+    response_model=RoundResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a federated learning round",
+)
+def create_round(
+    round_id: str = Query(
+        ...,
+        min_length=1,
+        max_length=64,
+        description="Unique round identifier",
+    ),
+    target_clients: int = Query(
+        20,
+        ge=1,
+        description="Expected number of participating clients",
+    ),
+    orchestrator: RoundOrchestrator = Depends(get_orchestrator),
+) -> RoundResponse:
+    """
+    Create a new security round.
+
+    Execution is deliberately separate from creation.
+
+    The resulting round remains in CREATED state until the execution
+    workflow is invoked.
+    """
+
+    try:
+        managed_round = orchestrator.create_round(
+            round_id=round_id,
+            target_clients=target_clients,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(exc),
+        ) from exc
+
+    return _round_to_response(managed_round)
+
+
+@router.get(
+    "/rounds/{round_id}",
+    response_model=RoundResponse,
+    summary="Get a federated learning round",
+)
+def get_round(
+    round_id: str,
+    orchestrator: RoundOrchestrator = Depends(get_orchestrator),
+) -> RoundResponse:
+    """
+    Return one managed round.
+    """
+
+    try:
+        managed_round = orchestrator.get_round(
+            round_id
+        )
+    except KeyError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+
+    return _round_to_response(managed_round)
+
+
+# ------------------------------------------------------------------
+# Events
+# ------------------------------------------------------------------
+
+
+def _event_to_response(
+    event,
+) -> SecurityEvent:
+    """
+    Convert an internal SecurityEventRecord to the public schema.
+    """
+
+    return SecurityEvent(
+        event_id=event.event_id,
+        event_type=event.event_type,
+        timestamp=event.timestamp,
+        round_id=event.round_id,
+        client_id=event.client_id,
+        update_id=event.data.get("update_id"),
+        message=event.message,
+        payload=event.data,
+    )
+
+
+@router.get(
+    "/events",
+    response_model=EventBatch,
+    summary="List security events",
+)
+def list_events(
+    round_id: str | None = Query(
+        default=None,
+        max_length=64,
+    ),
+    client_id: str | None = Query(
+        default=None,
+        max_length=64,
+    ),
+    orchestrator: RoundOrchestrator = Depends(get_orchestrator),
+) -> EventBatch:
+    """
+    Return security events with optional round/client filtering.
+    """
+
+    events = orchestrator.get_events(
+        round_id=round_id,
+        client_id=client_id,
+    )
+
+    responses = [
+        _event_to_response(event)
+        for event in events
+    ]
+
+    return EventBatch(
+        events=responses,
+        total=len(responses),
+    )
+
+
+@router.get(
+    "/rounds/{round_id}/events",
+    response_model=EventBatch,
+    summary="List events for a round",
+)
+def list_round_events(
+    round_id: str,
+    orchestrator: RoundOrchestrator = Depends(get_orchestrator),
+) -> EventBatch:
+    """
+    Return all security events belonging to a specific round.
+    """
+
+    try:
+        orchestrator.get_round(round_id)
+    except KeyError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+
+    events = orchestrator.get_events(
+        round_id=round_id,
+    )
+
+    responses = [
+        _event_to_response(event)
+        for event in events
+    ]
+
+    return EventBatch(
+        events=responses,
+        total=len(responses),
+    )
+
+
+# ------------------------------------------------------------------
+# Incidents
+# ------------------------------------------------------------------
+
+
+def _incident_to_response(
+    incident,
+) -> IncidentResponse:
+    """
+    Convert an internal ManagedIncident into the public API schema.
+
+    The current IncidentManager does not persist risk_score and
+    confidence as incident fields. Therefore this adapter exposes
+    conservative values instead of inventing security measurements.
+
+    Future persistence can enrich these fields directly from the
+    original TrustDecision.
+    """
+
+    evidence = IncidentEvidence(
+        client_ids=list(incident.affected_clients),
+        round_ids=[incident.round_id],
+        evidence_items=list(incident.evidence),
+    )
+
+    return IncidentResponse(
+        incident_id=incident.incident_id,
+        title=incident.title,
+        description=incident.description,
+        threat_level=incident.severity,
+        threat_hypothesis=incident.hypothesis,
+        created_at=incident.created_at,
+        updated_at=incident.updated_at,
+        status=incident.status,
+        recommended_action=incident.recommended_action,
+        risk_score=0.0,
+        confidence=0.0,
+        evidence=evidence,
+        assigned_to=None,
+        resolved_at=incident.resolved_at,
+        resolution_notes=incident.resolution,
+    )
+
+
+@router.get(
+    "/incidents",
+    response_model=IncidentListResponse,
+    summary="List security incidents",
+)
+def list_incidents(
+    orchestrator: RoundOrchestrator = Depends(get_orchestrator),
+) -> IncidentListResponse:
+    """
+    Return all security incidents.
+    """
+
+    incidents = orchestrator.get_incidents()
+
+    responses = [
+        _incident_to_response(incident)
+        for incident in incidents
+    ]
+
+    return IncidentListResponse(
+        incidents=responses,
+        total=len(responses),
+    )
+
+
+@router.get(
+    "/incidents/{incident_id}",
+    response_model=IncidentResponse,
+    summary="Get a security incident",
+)
+def get_incident(
+    incident_id: str,
+    orchestrator: RoundOrchestrator = Depends(get_orchestrator),
+) -> IncidentResponse:
+    """
+    Return one security incident.
+    """
+
+    try:
+        incident = orchestrator.incident_manager.get_incident(
+            incident_id
+        )
+    except KeyError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+
+    return _incident_to_response(incident)
