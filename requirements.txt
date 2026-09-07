@@ -1,0 +1,31 @@
+# ==========================================
+# FedSentinel - Python Dependencies
+# ==========================================
+
+# Backend
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+
+# Scientific computing
+numpy
+scipy
+pandas
+
+# Machine learning
+scikit-learn
+torch
+torchvision
+
+# Configuration / utilities
+PyYAML
+python-multipart
+
+# HTTP / WebSocket
+httpx
+websockets
+
+# Testing
+pytest
+pytest-asyncio

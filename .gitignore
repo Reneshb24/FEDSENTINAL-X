@@ -1,0 +1,65 @@
+# ==========================================
+# FedSentinel - Git Ignore
+# ==========================================
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.coverage.*
+
+# Python build
+build/
+dist/
+*.egg-info/
+
+# Data
+data/raw/
+data/processed/
+
+# Generated ML artifacts
+artifacts/
+*.safetensors
+*.npz
+
+# Unsafe serialized model formats
+*.pt
+*.pth
+*.pkl
+*.pickle
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+
+# Node
+node_modules/
+
+# Frontend builds
+frontend/dist/
+frontend/build/
+
+# OS
+.DS_Store
+Thumbs.db
