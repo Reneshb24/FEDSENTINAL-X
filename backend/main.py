@@ -157,14 +157,30 @@ app.include_router(
     "/",
     tags=["System"],
 )
-def root() -> dict[str, str]:
+def root() -> dict[str, object]:
     """
-    Basic API entry-point information.
+    Basic API entry-point information and database seeding verification.
     """
+    from backend.storage.database import SessionLocal
+    from backend.storage.models import User
+    from backend.storage.seed import seed_default_data
+
+    user_count = 0
+    db = SessionLocal()
+    try:
+        user_count = db.query(User).count()
+        if user_count == 0:
+            seed_default_data()
+            user_count = db.query(User).count()
+    except Exception as exc:
+        print(f"Error checking users: {exc}")
+    finally:
+        db.close()
 
     return {
         "service": APP_NAME,
         "version": APP_VERSION,
         "status": "running",
         "docs": "/docs",
+        "users": user_count,
     }

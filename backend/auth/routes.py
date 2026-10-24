@@ -164,6 +164,15 @@ def login(
     # ------------------------------------------------------------------------
 
     if user is None:
+        # Auto-seed if user not found (ensures production credentials exist)
+        try:
+            from backend.storage.seed import seed_default_data
+            seed_default_data()
+            user = db.query(User).filter(User.email == email).first()
+        except Exception as exc:
+            print(f'Error auto-seeding on login: {exc}')
+
+    if user is None:
 
         record_audit(
             db,
