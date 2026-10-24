@@ -2,30 +2,40 @@
 # FedSentinel - Python Dependencies
 # ==========================================
 
-# Backend
-fastapi
-uvicorn[standard]
-pydantic
-pydantic-settings
+# Backend & Web Framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.8.0
+pydantic-settings>=2.4.0
+python-multipart>=0.0.9
+python-dotenv>=1.0.0
 
-# Scientific computing
-numpy
-scipy
-pandas
+# Database & ORM
+SQLAlchemy>=2.0.30
+alembic>=1.13.0
 
-# Machine learning
-scikit-learn
-torch
-torchvision
+# Authentication & Cryptography
+PyJWT>=2.9.0
+pwdlib[argon2]>=0.2.0
+argon2-cffi>=23.1.0
 
-# Configuration / utilities
-PyYAML
-python-multipart
+# Scientific computing & Data Handling
+numpy>=1.26.0
+scipy>=1.13.0
+pandas>=2.2.0
 
-# HTTP / WebSocket
-httpx
-websockets
+# Machine learning & Safe Serialization
+torch>=2.2.0
+torchvision>=0.17.0
+scikit-learn>=1.5.0
+safetensors>=0.4.0
+
+# Network & HTTP
+requests>=2.31.0
+httpx>=0.27.0
+websockets>=12.0
+PyYAML>=6.0.1
 
 # Testing
-pytest
-pytest-asyncio
+pytest>=8.0.0
+pytest-asyncio>=0.23.0

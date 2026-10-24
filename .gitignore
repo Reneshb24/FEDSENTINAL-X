@@ -33,6 +33,8 @@ dist/
 # Data
 data/raw/
 data/processed/
+data/mnist/
+data/hospital_datasets/
 
 # Generated ML artifacts
 artifacts/
@@ -55,10 +57,18 @@ artifacts/
 
 # Node
 node_modules/
+frontend/node_modules/
 
 # Frontend builds
 frontend/dist/
 frontend/build/
+
+# Backups and temporary exports
+*.bak
+*.bak*
+*.backup
+*.before-*
+stitch-export-*/
 
 # OS
 .DS_Store

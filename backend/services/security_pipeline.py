@@ -278,6 +278,10 @@ class SecurityPipeline:
         # Quarantine L2 outliers
         # -----------------------------------------------------
 
+        # -----------------------------------------------------
+        # Initial L2 quarantine
+        # -----------------------------------------------------
+
         quarantined: list[ModelUpdate] = []
         accepted: list[ModelUpdate] = []
 
@@ -292,34 +296,14 @@ class SecurityPipeline:
 
                 result.quarantined = True
 
-                results[update.client_id].evidence_items.append(
-                    "L2 outlier quarantined before aggregation."
+                result.evidence_items.append(
+                    "L2 outlier quarantined before behavioral analysis."
                 )
-
             else:
                 accepted.append(update)
 
         # -----------------------------------------------------
-        # Safe aggregation
-        # -----------------------------------------------------
-
-        if not accepted:
-            raise RuntimeError(
-                "No valid updates remain after security filtering."
-            )
-
-        # FedAvg returns an aggregated MODEL DELTA.
-        aggregated_delta = fedavg(accepted)
-
-        # Convert the aggregated delta into the actual next
-        # global model state.
-        new_global_state = apply_model_delta(
-            global_state,
-            aggregated_delta,
-        )
-
-        # -----------------------------------------------------
-        # L3
+        # L3 ? Influence
         # -----------------------------------------------------
 
         influence_analyzer = InfluenceAnalyzer(
@@ -344,7 +328,7 @@ class SecurityPipeline:
                 )
 
         # -----------------------------------------------------
-        # L4
+        # L4 ? Counterfactual
         # -----------------------------------------------------
 
         counterfactual_analyzer = CounterfactualAnalyzer(
@@ -515,8 +499,51 @@ class SecurityPipeline:
                 trust_evidence
             )
 
+            # -------------------------------------------------
+            # Final security decision
+            # -------------------------------------------------
+
             if result.trust.action.value == "QUARANTINE":
+
                 result.quarantined = True
+
+                if update not in quarantined:
+                    quarantined.append(update)
+
+                if update in accepted:
+                    accepted.remove(update)
+
+                result.evidence_items.append(
+                    "Trust Engine quarantined update before aggregation."
+                )
+
+        # -----------------------------------------------------
+        # Final aggregation eligibility
+        # -----------------------------------------------------
+
+        accepted = [
+            update
+            for update in accepted
+            if not results[update.client_id].quarantined
+        ]
+
+        if not accepted:
+            raise RuntimeError(
+                "No valid updates remain after security filtering."
+            )
+
+        # -----------------------------------------------------
+        # Safe aggregation
+        #
+        # FedAvg happens only AFTER L0-L5 + Trust decisions.
+        # -----------------------------------------------------
+
+        aggregated_delta = fedavg(accepted)
+
+        new_global_state = apply_model_delta(
+            global_state,
+            aggregated_delta,
+        )
 
         completed_at = datetime.now(timezone.utc)
 
