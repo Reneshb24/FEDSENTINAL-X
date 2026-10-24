@@ -368,42 +368,6 @@ python scripts/test_complete_lifecycle.py
 
 ---
 
-## Cloud Deployment Guide (Step-by-Step for Render & Vercel)
-
-### Step 1: Deploy Backend API on Render (100% Free)
-1. Go to [dashboard.render.com](https://dashboard.render.com) and log in with GitHub.
-2. Click **New +** $\to$ **Web Service**.
-3. Select your repository: **`Reneshb24/FEDSENTINAL-X`**.
-4. Configure service settings:
-   * **Name**: `fedsentinel-api`
-   * **Region**: Oregon (US West) or closest region
-   * **Runtime**: `Python 3`
-   * **Build Command**: `pip install -r requirements.txt`
-   * **Start Command**: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
-   * **Instance Type**: `Free`
-5. Expand **Environment Variables** and add:
-   * `PYTHON_VERSION`: `3.11.9`
-   * `ENVIRONMENT`: `production`
-   * `JWT_SECRET_KEY`: `fedsentinel-production-secret-key-min-32-chars`
-   * `CORS_ORIGINS`: `*`
-   * `DATABASE_URL`: `sqlite:///./fedsentinel.db`
-6. Click **Create Web Service**.
-7. Once the build completes (~2 minutes), copy your live backend URL (e.g., `https://fedsentinel-api.onrender.com`).
-
-### Step 2: Deploy Frontend on Vercel (100% Free)
-1. Go to [vercel.com/new](https://vercel.com/new) and log in with GitHub.
-2. Select and import **`Reneshb24/FEDSENTINAL-X`**.
-3. In the project setup screen:
-   * **Framework Preset**: `Vite`
-   * **Root Directory**: Click "Edit" and choose **`frontend`**
-   * **Build Command**: `npm run build`
-   * **Output Directory**: `dist`
-4. Expand **Environment Variables** and add:
-   * `VITE_API_BASE_URL`: Paste your Render backend URL from Step 1 (e.g., `https://fedsentinel-api.onrender.com`)
-   * `VITE_FEDERATION_ID`: `413ef0b3-a947-4a02-a652-d963ef14b8da`
-5. Click **Deploy**. Vercel will build and launch your application in ~30 seconds with an instant production link (e.g., `https://fedsentinal-x.vercel.app`).
-
----
 
 ## Future Improvements
 
