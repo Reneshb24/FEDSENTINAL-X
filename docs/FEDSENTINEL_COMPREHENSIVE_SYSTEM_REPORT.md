@@ -1,21 +1,10 @@
-# FedSentinel-X — Complete System Architecture, Security Engines & Operational Runbook
+# FEDSENTINEL-X — COMPLETE SYSTEM ARCHITECTURE, SECURITY ENGINES & OPERATIONAL RUNBOOK
 
-<div align="center">
-
-```
-  ███████╗███████╗██████╗ ███████╗███████╗███╗   ██╗████████╗██╗███╗   ██╗███████╗██╗     
-  ██╔════╝██╔════╝██╔══██╗██╔════╝██╔════╝████╗  ██║╚══██╔══╝██║████╗  ██║██╔════╝██║     
-  █████╗  █████╗  ██║  ██║███████╗█████╗  ██╔██╗ ██║   ██║   ██║██╔██╗ ██║█████╗  ██║     
-  ██╔══╝  ██╔══╝  ██║  ██║╚════██║██╔══╝  ██║╚██╗██║   ██║   ██║██║╚██╗██║██╔══╝  ██║     
-  ██║     ███████╗██████╔╝███████║███████╗██║ ╚████║   ██║   ██║██║ ╚████║███████╗███████╗
-  ╚═╝     ╚══════╝╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚═╝╚═╝  ╚═══╝╚══════╝╚══════╝
-                                             - X -                                         
-```
-
-**Master Architectural Specification, Forensic Engine Algorithms, and Operator Reference**  
+**Production URL:** https://fedsentinel-x.vercel.app  
+**API Backend:** https://fedsentinel-api.onrender.com  
+**Database:** Enclave SQLite (Persistent Enclave Storage)  
+**Repository:** https://github.com/Reneshb24/FEDSENTINAL-X  
 **Version:** 1.0.0 Institutional Release | **Author:** Renesh B ([@Reneshb24](https://github.com/Reneshb24))
-
-</div>
 
 ---
 
