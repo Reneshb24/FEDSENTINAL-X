@@ -1,6 +1,6 @@
 # FEDSENTINEL-X — COMPLETE SYSTEM ARCHITECTURE, SECURITY ENGINES & OPERATIONAL RUNBOOK
 
-**Production URL:** https://fedsentinel-x.vercel.app  
+**Production URL:** https://fedsentinal-x.vercel.app  
 **API Backend:** https://fedsentinel-api.onrender.com  
 **Database:** Enclave SQLite (Persistent Enclave Storage)  
 **Repository:** https://github.com/Reneshb24/FEDSENTINAL-X  
@@ -59,10 +59,10 @@ FedSentinel-X introduces an autonomous **6-Layer Defense-in-Depth Pipeline (L0 t
 
 | Service / Component | Cloud Platform | Live Production URL | Operational Status |
 | :--- | :--- | :--- | :--- |
-| **SOC Control Plane** | Vercel Edge CDN | [https://fedsentinel-x.vercel.app](https://fedsentinel-x.vercel.app) | 🟢 Live / Protected |
-| **Hospital Clinical Enclave** | Vercel Edge CDN | [https://fedsentinel-x.vercel.app/hospital/login](https://fedsentinel-x.vercel.app/hospital/login) | 🟢 Live / Active |
-| **Interactive Round Replay** | Vercel Edge CDN | [https://fedsentinel-x.vercel.app/replay](https://fedsentinel-x.vercel.app/replay) | 🟢 Live / Operational |
-| **Executive Attestation Dossier** | Vercel Edge CDN | [https://fedsentinel-x.vercel.app/reports](https://fedsentinel-x.vercel.app/reports) | 🟢 Live / Certified |
+| **SOC Control Plane** | Vercel Edge CDN | [https://fedsentinal-x.vercel.app](https://fedsentinal-x.vercel.app) | 🟢 Live / Protected |
+| **Hospital Clinical Enclave** | Vercel Edge CDN | [https://fedsentinal-x.vercel.app/hospital/login](https://fedsentinal-x.vercel.app/hospital/login) | 🟢 Live / Active |
+| **Interactive Round Replay** | Vercel Edge CDN | [https://fedsentinal-x.vercel.app/replay](https://fedsentinal-x.vercel.app/replay) | 🟢 Live / Operational |
+| **Executive Attestation Dossier** | Vercel Edge CDN | [https://fedsentinal-x.vercel.app/reports](https://fedsentinal-x.vercel.app/reports) | 🟢 Live / Certified |
 | **FastAPI Security Engine** | Render Cloud PaaS | [https://fedsentinel-api.onrender.com](https://fedsentinel-api.onrender.com) | 🟢 Healthy (`200 OK`) |
 | **Interactive API Specs** | Render Cloud PaaS | [https://fedsentinel-api.onrender.com/docs](https://fedsentinel-api.onrender.com/docs) | 🟢 Swagger UI Live |
 | **Database & Evidence Store** | SQLite / SQLAlchemy | `sqlite:///./fedsentinel.db` (Enclave Encrypted) | 🟢 Connected |
@@ -378,7 +378,7 @@ $$\text{Threat}_k = 0.30 \cdot S_{\text{L2}} + 0.25 \cdot S_{\text{L3}} + 0.30 \
 ## 11. Step-by-Step Operator Runbook
 
 ### Scenario A: Hospital Self-Registration & Onboarding
-1. Navigate to the live application at [https://fedsentinel-x.vercel.app](https://fedsentinel-x.vercel.app).
+1. Navigate to the live application at [https://fedsentinal-x.vercel.app](https://fedsentinal-x.vercel.app).
 2. Select the **Register Hospital** tab on the access screen.
 3. Enter Facility Name (e.g., `City Memorial Health`), Hospital ID (e.g., `H40`), Admin Email (`admin@citymemorial.local`), and Password (`Hospital123!`).
 4. Click **Complete Hospital Registration**.
@@ -400,7 +400,7 @@ $$\text{Threat}_k = 0.30 \cdot S_{\text{L2}} + 0.25 \cdot S_{\text{L3}} + 0.30 \
 5. The local PyTorch engine runs backward passes on private data, serializes gradients into `.safetensors`, and transmits the update to the SOC Control Plane.
 
 ### Scenario D: Admin Multi-Layer Security Intake & Containment
-1. Switch to the Admin Control Plane at [https://fedsentinel-x.vercel.app](https://fedsentinel-x.vercel.app) using `admin@fedsentinel.local` / `Admin123!`.
+1. Switch to the Admin Control Plane at [https://fedsentinal-x.vercel.app](https://fedsentinal-x.vercel.app) using `admin@fedsentinel.local` / `Admin123!`.
 2. Navigate to **Update Intake** to inspect newly submitted updates.
 3. Click on any client update to review its L0–L5 metrics.
 4. If an update exhibits anomalous norm or counterfactual harm, click **Isolate & Quarantine**.

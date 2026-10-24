@@ -35,7 +35,8 @@ import {
   X,
 } from 'lucide-react'
 
-const HOSPITAL_API = (import.meta.env && import.meta.env.VITE_API_BASE_URL) || 'http://127.0.0.1:8000'
+const rawHospitalApi = (import.meta.env && import.meta.env.VITE_API_BASE_URL) || 'http://127.0.0.1:8000'
+const HOSPITAL_API = rawHospitalApi.replace(/\/+$/, '')
 const HOSPITAL_FEDERATION_ID =
   (import.meta.env && import.meta.env.VITE_FEDERATION_ID) || '413ef0b3-a947-4a02-a652-d963ef14b8da'
 

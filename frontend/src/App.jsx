@@ -48,7 +48,8 @@ import AuditTrailPage from './pages/AuditTrailPage'
 import RoundReplayPage from './pages/RoundReplayPage'
 import ReportsPage from './pages/ReportsPage'
 
-const API = (import.meta.env && import.meta.env.VITE_API_BASE_URL) || 'http://127.0.0.1:8000'
+const rawApi = (import.meta.env && import.meta.env.VITE_API_BASE_URL) || 'http://127.0.0.1:8000'
+const API = rawApi.replace(/\/+$/, '')
 const FEDERATION_ID = (import.meta.env && import.meta.env.VITE_FEDERATION_ID) || '413ef0b3-a947-4a02-a652-d963ef14b8da'
 
 const navGroups = [
@@ -146,7 +147,7 @@ function goTo(path) {
 function Login({ onLogin, portal = 'admin' }) {
   const isHospital = portal === 'hospital'
 
-  const [authMode, setAuthMode] = useState('login') // 'login' | 'signup'
+  const [authMode, setAuthMode] = useState('login') // 'login' | 'signup' (only used in hospital portal)
   const [email, setEmail] = useState(
     isHospital ? 'admin@h21.local' : 'admin@fedsentinel.local',
   )
@@ -157,7 +158,7 @@ function Login({ onLogin, portal = 'admin' }) {
   const [successMsg, setSuccessMsg] = useState('')
   const [loading, setLoading] = useState(false)
 
-  // Registration Form State
+  // Registration Form State (Hospital Enclave Onboarding)
   const [regForm, setRegForm] = useState({
     code: '',
     name: '',
@@ -183,13 +184,13 @@ function Login({ onLogin, portal = 'admin' }) {
       const response = await fetch(`${API}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.detail || 'Authentication failed')
+        throw new Error(data.detail || 'Authentication failed. Please verify credentials.')
       }
 
       const role = String(
@@ -268,7 +269,7 @@ function Login({ onLogin, portal = 'admin' }) {
         throw new Error(regData.detail || 'Hospital registration failed.')
       }
 
-      setSuccessMsg('Hospital onboarded & authorized! Authenticating session...')
+      setSuccessMsg('Hospital registered & cohort enrolled! Signing in...')
 
       // Automatically authenticate with new credentials
       const authResp = await fetch(`${API}/api/auth/login`, {
@@ -282,7 +283,7 @@ function Login({ onLogin, portal = 'admin' }) {
 
       const authData = await authResp.json()
       if (!authResp.ok) {
-        throw new Error('Hospital registered, but auto-login failed. Please sign in manually.')
+        throw new Error('Hospital registered successfully! Please sign in with your new credentials.')
       }
 
       localStorage.setItem('fedsentinel_token', authData.access_token)
@@ -320,47 +321,57 @@ function Login({ onLogin, portal = 'admin' }) {
           </div>
         </div>
 
-        {/* Tab switcher between Sign In & Hospital Registration */}
-        <div style={{ display: 'flex', gap: 8, marginTop: 18, borderBottom: '1px solid var(--line)', paddingBottom: 12 }}>
-          <button
-            type="button"
-            className={authMode === 'login' ? 'primary-button' : 'ghost-button'}
-            style={{ flex: 1, height: 36, margin: 0, justifyContent: 'center' }}
-            onClick={() => { setAuthMode('login'); setError(''); setSuccessMsg(''); }}
-          >
-            SIGN IN
-          </button>
-          <button
-            type="button"
-            className={authMode === 'signup' ? 'primary-button' : 'ghost-button'}
-            style={{ flex: 1, height: 36, margin: 0, justifyContent: 'center' }}
-            onClick={() => { setAuthMode('signup'); setError(''); setSuccessMsg(''); }}
-          >
-            REGISTER HOSPITAL
-          </button>
-        </div>
+        {/* Tab switcher: ONLY visible on Hospital Portal for Login vs Register */}
+        {isHospital && (
+          <div style={{ display: 'flex', gap: 8, marginTop: 18, borderBottom: '1px solid var(--line)', paddingBottom: 12 }}>
+            <button
+              type="button"
+              className={authMode === 'login' ? 'primary-button' : 'ghost-button'}
+              style={{ flex: 1, height: 36, margin: 0, justifyContent: 'center' }}
+              onClick={() => { setAuthMode('login'); setError(''); setSuccessMsg(''); }}
+            >
+              HOSPITAL SIGN IN
+            </button>
+            <button
+              type="button"
+              className={authMode === 'signup' ? 'primary-button' : 'ghost-button'}
+              style={{ flex: 1, height: 36, margin: 0, justifyContent: 'center' }}
+              onClick={() => { setAuthMode('signup'); setError(''); setSuccessMsg(''); }}
+            >
+              REGISTER HOSPITAL
+            </button>
+          </div>
+        )}
 
+        {/* Headline & Description */}
         <div className="login-copy" style={{ padding: '20px 0 16px' }}>
           <div className="eyebrow">
-            {authMode === 'login' ? 'AUTHORIZED ACCESS' : 'ENCLAVE ONBOARDING'}
+            {isHospital
+              ? (authMode === 'signup' ? 'ENCLAVE REGISTRATION' : 'INSTITUTIONAL ACCESS')
+              : 'AUTHORIZED ACCESS'}
           </div>
 
-          <h1 style={{ fontSize: authMode === 'signup' ? 26 : 34 }}>
-            {authMode === 'login' ? (
+          <h1 style={{ fontSize: isHospital && authMode === 'signup' ? 24 : 34 }}>
+            {!isHospital ? (
               <>Federated AI.<br /><em>Defended.</em></>
-            ) : (
+            ) : authMode === 'signup' ? (
               <>Register Clinical<br /><em>Enclave Node.</em></>
+            ) : (
+              <>Hospital Clinical<br /><em>Enclave Portal.</em></>
             )}
           </h1>
 
           <p style={{ fontSize: 12 }}>
-            {authMode === 'login'
+            {!isHospital
               ? 'Security telemetry, privacy-safe update verification and model defense.'
-              : 'Join the federated learning security perimeter. Raw patient data never departs your hospital.'}
+              : authMode === 'signup'
+                ? 'Join the federated learning cohort. Raw patient data never departs your institution.'
+                : 'Manage local EHR/imaging datasets, run in situ PyTorch training, and submit verified model updates.'}
           </p>
         </div>
 
-        {authMode === 'login' ? (
+        {/* Form Body */}
+        {(!isHospital || authMode === 'login') ? (
           <form onSubmit={submitLogin}>
             {/* Quick Demo Fill Chips */}
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
@@ -405,7 +416,7 @@ function Login({ onLogin, portal = 'admin' }) {
             </div>
 
             <label>
-              {isHospital ? 'HOSPITAL ACCOUNT' : 'ADMINISTRATOR'}
+              {isHospital ? 'HOSPITAL ADMIN ACCOUNT' : 'ADMINISTRATOR EMAIL'}
               <input
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -438,6 +449,20 @@ function Login({ onLogin, portal = 'admin' }) {
                   : 'ENTER CONTROL PLANE'}
               <span>&rarr;</span>
             </button>
+
+            {/* In Hospital mode, offer a direct text link to switch to signup */}
+            {isHospital && (
+              <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--muted)', marginTop: 8 }}>
+                Don't have an enclave account?{' '}
+                <button
+                  type="button"
+                  style={{ background: 'none', border: 'none', color: '#00e5ff', textDecoration: 'underline', cursor: 'pointer', padding: 0, font: 'inherit' }}
+                  onClick={() => { setAuthMode('signup'); setError(''); }}
+                >
+                  Register new hospital &rarr;
+                </button>
+              </div>
+            )}
           </form>
         ) : (
           <form onSubmit={submitSignup}>
@@ -518,30 +543,48 @@ function Login({ onLogin, portal = 'admin' }) {
               {loading ? 'ONBOARDING ENCLAVE...' : 'REGISTER & ENTER PORTAL'}
               <span>&rarr;</span>
             </button>
+
+            <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--muted)', marginTop: 8 }}>
+              Already registered?{' '}
+              <button
+                type="button"
+                style={{ background: 'none', border: 'none', color: '#00e5ff', textDecoration: 'underline', cursor: 'pointer', padding: 0, font: 'inherit' }}
+                onClick={() => { setAuthMode('login'); setError(''); }}
+              >
+                Sign in to existing account &rarr;
+              </button>
+            </div>
           </form>
         )}
 
-        <div className="login-directory">
-          <span>
+        {/* Portal Switcher Link directly below */}
+        <div className="login-directory" style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--line)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 11, color: 'var(--muted)' }}>
             {isHospital
-              ? 'FedSentinel administrator?'
-              : 'Are you a hospital?'}
+              ? 'FedSentinel platform administrator or security analyst?'
+              : 'Are you a participating healthcare facility or research clinic?'}
           </span>
 
           <button
             type="button"
-            onClick={() =>
-              goTo(
-                isHospital
-                  ? '/admin/login'
-                  : '/hospital/login',
-              )
-            }
+            className="ghost-button"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              color: isHospital ? 'var(--text)' : '#00e5ff',
+              borderColor: isHospital ? 'var(--line-bright)' : 'rgba(0, 229, 255, 0.4)',
+              background: isHospital ? 'transparent' : 'rgba(0, 229, 255, 0.05)',
+              fontSize: 12,
+              fontWeight: 600,
+              padding: '8px 16px',
+              borderRadius: 4,
+              cursor: 'pointer'
+            }}
+            onClick={() => goTo(isHospital ? '/admin/login' : '/hospital/login')}
           >
-            <span>↗</span>
-            {isHospital
-              ? 'Administrator Control Plane'
-              : 'Hospital Portal Login'}
+            <span>{isHospital ? '← Back to Admin Control Plane' : '🏥 Hospital Portal (Login & Registration)'}</span>
+            <span>&rarr;</span>
           </button>
         </div>
 
@@ -556,391 +599,7 @@ function Login({ onLogin, portal = 'admin' }) {
   )
 }
 
-function Sidebar({ active, onNavigate, onLogout }) {
-  return (
-    <aside className="sidebar">
-      <div className="sidebar-brand">
-        <div className="brand-mark small">
-          <span />
-          <span />
-          <span />
-        </div>
 
-        <div>
-          <strong>FED SENTINEL</strong>
-          <small>SECURITY CONTROL PLANE</small>
-        </div>
-      </div>
-
-      <div className="system-state">
-        <span className="pulse" />
-
-        <div>
-          <strong>SYSTEM OPERATIONAL</strong>
-          <small>ALL CORE SERVICES ONLINE</small>
-        </div>
-      </div>
-
-      <nav>
-        {navGroups.map((group) => (
-          <div className="nav-group" key={group.label}>
-            <div className="nav-label">{group.label}</div>
-
-            {group.items.map((item) => (
-              <button
-                key={item.id}
-                className={`nav-item ${active === item.id ? 'active' : ''}`}
-                onClick={() => onNavigate(item.id)}
-              >
-                <span className="nav-icon"><NavIcon name={item.icon} /></span>
-                <span>{item.label}</span>
-              </button>
-            ))}
-          </div>
-        ))}
-      </nav>
-
-      <div className="sidebar-bottom">
-        <div className="operator">
-          <div className="avatar">SA</div>
-
-          <div>
-            <strong>SUPER ADMIN</strong>
-            <small>CONTROL ACCESS</small>
-          </div>
-        </div>
-
-        <button className="logout" onClick={onLogout}>
-          Sign out <span>&rarr;</span>
-        </button>
-      </div>
-    </aside>
-  )
-}
-
-function Metric({ label, value, detail, warning }) {
-  return (
-    <div className={`metric ${warning ? 'warning' : ''}`}>
-      <div className="metric-label">{label}</div>
-      <div className="metric-value">{value}</div>
-      <div className="metric-detail">{detail}</div>
-    </div>
-  )
-}
-
-function getRoundStatus(round) {
-  if (!round) return 'NO ROUND'
-  return String(round.status || 'UNKNOWN').replaceAll('_', ' ')
-}
-
-function Pipeline({ round, security }) {
-  const total = round?.participating_clients ?? 0
-  const evidence = security?.evidence_count ?? 0
-  const quarantined = round?.quarantined_updates ?? 0
-
-  const stages = [
-    ['L0', 'VERIFY', total],
-    ['L1', 'INSPECT', total],
-    ['L2', 'CORRELATE', total],
-    ['L3', 'INFLUENCE', total],
-    ['L4', 'SIMULATE', total],
-    ['L5', 'ATTRIBUTE', total],
-  ]
-
-  return (
-    <>
-      <div className="pipeline">
-        {stages.map(([code, label, count], index) => (
-          <div className="pipeline-stage" key={code}>
-            <div className="pipeline-node">
-              <span>{code}</span>
-              <b>{count}</b>
-            </div>
-
-            <div className="pipeline-label">{label}</div>
-
-            {index < stages.length - 1 && (
-              <div className="pipeline-line" />
-            )}
-          </div>
-        ))}
-      </div>
-
-      <div className="pipeline-result">
-        <div>
-          <span className="result-good">&#10003; {round?.accepted_updates ?? 0}</span>
-          <small>SAFE UPDATES</small>
-        </div>
-
-        <div className="result-divider" />
-
-        <div>
-          <span className="result-danger">
-            &#10005; {quarantined}
-          </span>
-          <small>QUARANTINED</small>
-        </div>
-
-        <div className="result-divider" />
-
-        <div>
-          <span>{total}</span>
-          <small>UPDATES PROCESSED</small>
-        </div>
-
-        <div className="result-divider" />
-
-        <div>
-          <span>{evidence}</span>
-          <small>EVIDENCE RECORDS</small>
-        </div>
-      </div>
-    </>
-  )
-}
-
-function HospitalTopology({ hospitals, incidents }) {
-  const activeHospitals = hospitals.filter(
-    (hospital) => hospital.status === 'ACTIVE',
-  )
-
-  const incidentHospitalIds = new Set(
-    incidents
-      .map((incident) => incident.hospital_id)
-      .filter(Boolean),
-  )
-
-  const visibleHospitals = activeHospitals.slice(0, 24)
-
-  if (!visibleHospitals.length) {
-    return (
-      <div className="empty-state">
-        <span>&#9675;</span>
-        <strong>No active hospitals</strong>
-        <p>
-          No active federation members are currently available.
-        </p>
-      </div>
-    )
-  }
-
-  return (
-    <div className="topology">
-      <div className="topology-ring ring-one" />
-      <div className="topology-ring ring-two" />
-
-      <div className="central-node">
-        <span className="core-glow" />
-        <strong>FED</strong>
-        <small>SECURITY</small>
-      </div>
-
-      {visibleHospitals.map((hospital, index) => {
-        const angle =
-          (index / visibleHospitals.length) * Math.PI * 2 -
-          Math.PI / 2
-
-        const radius = visibleHospitals.length > 12 ? 40 : 37
-        const x = 50 + Math.cos(angle) * radius
-        const y = 50 + Math.sin(angle) * radius
-
-        const hasIncident = incidentHospitalIds.has(hospital.id)
-        const securityStatus = String(
-          hospital.security_status || '',
-        ).toUpperCase()
-
-        const isThreat =
-          hasIncident ||
-          securityStatus === 'QUARANTINED' ||
-          securityStatus === 'REVOKED'
-
-        return (
-          <div
-            key={hospital.id}
-            className={`command-hospital-node ${isThreat ? 'threat' : ''}`}
-            style={{
-              left: `${x}%`,
-              top: `${y}%`,
-            }}
-            title={`${hospital.code || hospital.name} - ${
-              hospital.security_status || hospital.status
-            }`}
-          >
-            <span />
-            <small>{hospital.code || `H${index + 1}`}</small>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-function IncidentPanel({ incident }) {
-  if (!incident) {
-    return (
-      <section className="panel incident-panel">
-        <div className="panel-heading">
-          <div>
-            <div className="panel-kicker">ACTIVE INCIDENT</div>
-            <h2>Threat intelligence</h2>
-          </div>
-
-          <span className="severity-safe">CLEAR</span>
-        </div>
-
-        <div className="empty-state">
-          <span>&#10003;</span>
-          <strong>No active incidents</strong>
-          <p>
-            The federation currently has no persisted security incidents.
-          </p>
-        </div>
-      </section>
-    )
-  }
-
-  const risk = Number(incident.risk_score || 0)
-  const confidence = Number(incident.confidence || 0)
-
-  const severity = String(
-    incident.severity || 'UNKNOWN',
-  ).toUpperCase()
-
-  const severityClass =
-    severity === 'CRITICAL'
-      ? 'severity-critical'
-      : severity === 'HIGH'
-        ? 'severity-high'
-        : severity === 'MEDIUM'
-          ? 'severity-medium'
-          : 'severity-safe'
-
-  return (
-    <section className="panel incident-panel">
-      <div className="panel-heading">
-        <div>
-          <div className="panel-kicker">ACTIVE INCIDENT</div>
-          <h2>Threat intelligence</h2>
-        </div>
-
-        <span className={severityClass}>{severity}</span>
-      </div>
-
-      <div className="incident-title">
-        <span className="threat-symbol">!</span>
-
-        <div>
-          <strong>{incident.title}</strong>
-          <small>{incident.incident_id}</small>
-        </div>
-      </div>
-
-      <div className="risk-display">
-        <div>
-          <span>RISK SCORE</span>
-          <strong>{risk.toFixed(2)}</strong>
-        </div>
-
-        <div className="risk-bar">
-          <span
-            style={{
-              width: `${Math.min(100, Math.max(0, risk))}%`,
-            }}
-          />
-        </div>
-      </div>
-
-      <div className="incident-grid">
-        <div>
-          <span>HYPOTHESIS</span>
-          <strong>
-            {incident.threat_hypothesis || 'UNCLASSIFIED'}
-          </strong>
-        </div>
-
-        <div>
-          <span>CONFIDENCE</span>
-          <strong>{Math.round(confidence * 100)}%</strong>
-        </div>
-
-        <div>
-          <span>RECOMMENDATION</span>
-          <strong>
-            {incident.recommended_action || 'REVIEW'}
-          </strong>
-        </div>
-
-        <div>
-          <span>STATUS</span>
-          <strong>{incident.status || 'UNKNOWN'}</strong>
-        </div>
-      </div>
-
-      <div className="incident-note">
-        <span>i</span>
-        Risk-based operational decision. Not proof of maliciousness.
-      </div>
-    </section>
-  )
-}
-
-function ModelLineage({ latestRound, previousRound }) {
-  const currentVersion =
-    latestRound?.global_model_version || '-'
-
-  const previousVersion =
-    previousRound?.global_model_version || 'INITIAL MODEL'
-
-  const previousRoundNumber =
-    previousRound?.round_number || 'BASE'
-
-  const currentRoundNumber =
-    latestRound?.round_number || '-'
-
-  return (
-    <section className="panel">
-      <div className="panel-heading compact">
-        <div>
-          <div className="panel-kicker">MODEL LINEAGE</div>
-          <h2>Global model</h2>
-        </div>
-
-        <span className="pipeline-round">
-          {latestRound ? `R${currentRoundNumber}` : '-'}
-        </span>
-      </div>
-
-      <div className="model-lineage">
-        <div className="model-node">
-          <span>
-            {previousRoundNumber === 'BASE'
-              ? 'BASE'
-              : `R${previousRoundNumber}`}
-          </span>
-
-          <strong>{previousVersion}</strong>
-
-          <small>
-            Previous verified model
-          </small>
-        </div>
-
-        <div className="lineage-arrow">&rarr;</div>
-
-        <div className="model-node current">
-          <span>R{currentRoundNumber}</span>
-
-          <strong>{currentVersion}</strong>
-
-          <small>
-            {latestRound?.accepted_updates ?? 0}{' '}
-            safe updates aggregated
-          </small>
-        </div>
-      </div>
-    </section>
-  )
-}
 
 function CommandCenter({ data }) {
   const latestRound = data.rounds?.[0]

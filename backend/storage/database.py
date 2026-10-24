@@ -47,3 +47,9 @@ def init_database():
     from backend.storage import models  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
+
+    try:
+        from backend.storage.seed import seed_default_data
+        seed_default_data()
+    except Exception as exc:
+        print(f"Warning: Failed to auto-seed default database records: {exc}")

@@ -13,10 +13,10 @@ The platform bridges dark-slate cyber-defense SOC aesthetics with mathematical r
 
 | Service | Platform | Live URL | Status |
 | :--- | :--- | :--- | :--- |
-| **Super Admin SOC Control Plane** | Vercel | [https://fedsentinel-x.vercel.app](https://fedsentinel-x.vercel.app) | Protected / Live |
-| **Hospital Clinical Enclave** | Vercel | [https://fedsentinel-x.vercel.app/hospital/login](https://fedsentinel-x.vercel.app/hospital/login) | Protected / Live |
-| **Interactive Round Replay** | Vercel | [https://fedsentinel-x.vercel.app/replay](https://fedsentinel-x.vercel.app/replay) | Operational |
-| **Executive Attestation Dossier** | Vercel | [https://fedsentinel-x.vercel.app/reports](https://fedsentinel-x.vercel.app/reports) | Certified / Live |
+| **Super Admin SOC Control Plane** | Vercel | [https://fedsentinal-x.vercel.app](https://fedsentinal-x.vercel.app) | Protected / Live |
+| **Hospital Clinical Enclave** | Vercel | [https://fedsentinal-x.vercel.app/hospital/login](https://fedsentinal-x.vercel.app/hospital/login) | Protected / Live |
+| **Interactive Round Replay** | Vercel | [https://fedsentinal-x.vercel.app/replay](https://fedsentinal-x.vercel.app/replay) | Operational |
+| **Executive Attestation Dossier** | Vercel | [https://fedsentinal-x.vercel.app/reports](https://fedsentinal-x.vercel.app/reports) | Certified / Live |
 | **API Backend Server** | Render | [https://fedsentinel-api.onrender.com](https://fedsentinel-api.onrender.com) | Healthy (200 OK) |
 | **Interactive API Documentation** | Render | [https://fedsentinel-api.onrender.com/docs](https://fedsentinel-api.onrender.com/docs) | Swagger UI Live |
 | **Database & Evidence Store** | Enclave SQLite | `sqlite:///./fedsentinel.db` | Connected |
@@ -105,11 +105,11 @@ You can test all portals and roles immediately using these credentials:
 
 | Experience | Portal Link | Username / Email | Password | Capabilities |
 | :--- | :--- | :--- | :--- | :--- |
-| **Platform Super Admin** | [/](https://fedsentinel-x.vercel.app) | `admin@fedsentinel.local` | `Admin123!` | Complete control: trigger federation rounds, inspect L0–L5 forensic gates, execute manual quarantine overrides, scrub round replay, and generate official compliance reports. |
-| **Hospital Administrator (H21)** | [/hospital/login](https://fedsentinel-x.vercel.app/hospital/login) | `admin@h21.local` | `Hospital123!` | Demo Research Hospital: view cohort membership, upload local .NPZ datasets, link external record URLs, run local PyTorch training, and submit weights. |
-| **Hospital Administrator (H01)** | [/hospital/login](https://fedsentinel-x.vercel.app/hospital/login) | `admin@demohospital.local` | `Hospital123!` | Demo General Hospital: manage clinical imaging hub, inspect local dataset tensors, execute model updates, and monitor enclave telemetry. |
-| **Hospital Administrator (H30)** | [/hospital/login](https://fedsentinel-x.vercel.app/hospital/login) | `admin@apollo.local` | `Hospital123!` | Apollo Health Network: real-time dataset linking, enclave training, and model update submission. |
-| **Hospital Self-Registration** | [/](https://fedsentinel-x.vercel.app) $\to$ **Register Hospital** | *User Defined* | *User Defined* | Self-service registration: automatically enrolls new hospital node into active federation, provisions default clinical imaging dataset, and launches dedicated enclave portal. |
+| **Platform Super Admin** | [/](https://fedsentinal-x.vercel.app) | `admin@fedsentinel.local` | `Admin123!` | Complete control: trigger federation rounds, inspect L0–L5 forensic gates, execute manual quarantine overrides, scrub round replay, and generate official compliance reports. |
+| **Hospital Administrator (H21)** | [/hospital/login](https://fedsentinal-x.vercel.app/hospital/login) | `admin@h21.local` | `Hospital123!` | Demo Research Hospital: view cohort membership, upload local .NPZ datasets, link external record URLs, run local PyTorch training, and submit weights. |
+| **Hospital Administrator (H01)** | [/hospital/login](https://fedsentinal-x.vercel.app/hospital/login) | `admin@demohospital.local` | `Hospital123!` | Demo General Hospital: manage clinical imaging hub, inspect local dataset tensors, execute model updates, and monitor enclave telemetry. |
+| **Hospital Administrator (H30)** | [/hospital/login](https://fedsentinal-x.vercel.app/hospital/login) | `admin@apollo.local` | `Hospital123!` | Apollo Health Network: real-time dataset linking, enclave training, and model update submission. |
+| **Hospital Self-Registration** | [/](https://fedsentinal-x.vercel.app) $\to$ **Register Hospital** | *User Defined* | *User Defined* | Self-service registration: automatically enrolls new hospital node into active federation, provisions default clinical imaging dataset, and launches dedicated enclave portal. |
 
 ---
 
@@ -250,7 +250,7 @@ FedSentinel-X/
 ## Target Workflow & System Walkthrough
 
 ### Phase 1: Hospital Self-Registration & Enclave Onboarding
-1. Navigate to the live web application at [https://fedsentinel-x.vercel.app](https://fedsentinel-x.vercel.app).
+1. Navigate to the live web application at [https://fedsentinal-x.vercel.app](https://fedsentinal-x.vercel.app).
 2. Click the **Register Hospital** tab on the login screen.
 3. Fill in Facility Name (e.g. `City Memorial Health`), Hospital ID (`H40`), and Administrator Credentials.
 4. Click **Complete Hospital Registration**. The backend automatically creates the hospital node, enrolls it into the active federation cohort, seeds a local clinical dataset, and navigates directly into the hospital enclave.
@@ -268,7 +268,7 @@ FedSentinel-X/
 4. The local PyTorch engine executes backward passes over private tensors, packages gradients into `.safetensors`, and submits the update with zero patient data transmission.
 
 ### Phase 4: Administrative Round Orchestration & Intake
-1. Access the Admin Control Plane at [https://fedsentinel-x.vercel.app](https://fedsentinel-x.vercel.app) with `admin@fedsentinel.local` / `Admin123!`.
+1. Access the Admin Control Plane at [https://fedsentinal-x.vercel.app](https://fedsentinal-x.vercel.app) with `admin@fedsentinel.local` / `Admin123!`.
 2. Inspect the **Command Center** HUD and navigate to **Update Intake**.
 3. Review newly submitted client gradient updates awaiting gate evaluation.
 
@@ -405,7 +405,7 @@ python scripts/test_complete_lifecycle.py
 4. Expand **Environment Variables** and add:
    * `VITE_API_BASE_URL`: Paste your Render backend URL from Step 1 (e.g., `https://fedsentinel-api.onrender.com`)
    * `VITE_FEDERATION_ID`: `413ef0b3-a947-4a02-a652-d963ef14b8da`
-5. Click **Deploy**. Vercel will build and launch your application in ~30 seconds with an instant production link (e.g., `https://fedsentinel-x.vercel.app`).
+5. Click **Deploy**. Vercel will build and launch your application in ~30 seconds with an instant production link (e.g., `https://fedsentinal-x.vercel.app`).
 
 ---
 
