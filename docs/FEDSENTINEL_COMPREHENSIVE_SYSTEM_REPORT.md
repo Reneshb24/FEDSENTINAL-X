@@ -1,4 +1,4 @@
-# FEDSENTINEL-X — COMPLETE SYSTEM ARCHITECTURE, SECURITY ENGINES & OPERATIONAL RUNBOOK
+# FEDSENTINEL-X  -  COMPLETE SYSTEM ARCHITECTURE, SECURITY ENGINES & OPERATIONAL RUNBOOK
 
 **Production URL:** https://fedsentinal-x.vercel.app  
 **API Backend:** https://fedsentinel-api.onrender.com  
@@ -18,7 +18,7 @@
 6. [Full-Stack Architecture & Cloud Topology](#6-full-stack-architecture--cloud-topology)
 7. [Technology Stack & Dependency Matrix](#7-technology-stack--dependency-matrix)
 8. [Database Architecture & Relational Data Models](#8-database-architecture--relational-data-models)
-9. [Core Analytical & Security Program Logic (L0–L5)](#9-core-analytical--security-program-logic-l0l5)
+9. [Core Analytical & Security Program Logic (L0-L5)](#9-core-analytical--security-program-logic-l0l5)
    - [L0: Artifact & Structural Verification](#l0-artifact--structural-verification)
    - [L1: Privacy-Preserving 128-Dim Fingerprint](#l1-privacy-preserving-128-dim-fingerprint)
    - [L2: Robust Anomaly Detection (Median + MAD)](#l2-robust-anomaly-detection-median--mad)
@@ -109,7 +109,7 @@ Pre-configured credentials for immediate evaluation across both local and live c
 
 | Role / Experience | Portal Path | Email / Username | Password | Operational Capabilities |
 | :--- | :--- | :--- | :--- | :--- |
-| **Platform Super Admin** | `/` | `admin@fedsentinel.local` | `Admin123!` | Complete SOC control: initiate rounds, inspect L0–L5 evidence gates, trigger node quarantine, execute overrides, replay rounds, and generate compliance reports. |
+| **Platform Super Admin** | `/` | `admin@fedsentinel.local` | `Admin123!` | Complete SOC control: initiate rounds, inspect L0-L5 evidence gates, trigger node quarantine, execute overrides, replay rounds, and generate compliance reports. |
 | **Hospital Administrator (H21)** | `/hospital/login` | `admin@h21.local` | `Hospital123!` | Demo Research Hospital: view cohort membership, upload local .NPZ datasets, link external record URLs, run local PyTorch training, and submit weights. |
 | **Hospital Administrator (H01)** | `/hospital/login` | `admin@demohospital.local` | `Hospital123!` | Demo General Hospital: manage clinical imaging hub, inspect local dataset tensors, execute model updates, and monitor enclave telemetry. |
 | **Hospital Administrator (H30)** | `/hospital/login` | `admin@apollo.local` | `Hospital123!` | Apollo Health Network: real-time dataset linking, enclave training, and model update submission. |
@@ -275,7 +275,7 @@ erDiagram
 
 ---
 
-## 9. Core Analytical & Security Program Logic (L0–L5)
+## 9. Core Analytical & Security Program Logic (L0-L5)
 
 ```text
 CANDIDATE MODEL UPDATE
@@ -353,7 +353,7 @@ $$\text{Threat}_k = 0.30 \cdot S_{\text{L2}} + 0.25 \cdot S_{\text{L3}} + 0.30 \
 1. **Command Center (`/`)**: High-altitude telemetry HUD displaying active nodes, running rounds, system health, and containment alerts.
 2. **Federation Overview (`/overview`)**: Cohort directory with interactive status toggles and participation eligibility rules.
 3. **Update Intake (`/updates`)**: Central gate evaluating all arriving candidate weight tensors.
-4. **L0–L5 Forensic Workbenches**: Dedicated visual diagnostic consoles for each defense layer:
+4. **L0-L5 Forensic Workbenches**: Dedicated visual diagnostic consoles for each defense layer:
    - `L0 Verify`: Structural tensor viewer and checksum ledger.
    - `L1 Inspect`: 128-dimensional projection radar chart.
    - `L2 Correlate`: Robust outlier scatter plot and MAD deviation curves.
@@ -402,7 +402,7 @@ $$\text{Threat}_k = 0.30 \cdot S_{\text{L2}} + 0.25 \cdot S_{\text{L3}} + 0.30 \
 ### Scenario D: Admin Multi-Layer Security Intake & Containment
 1. Switch to the Admin Control Plane at [https://fedsentinal-x.vercel.app](https://fedsentinal-x.vercel.app) using `admin@fedsentinel.local` / `Admin123!`.
 2. Navigate to **Update Intake** to inspect newly submitted updates.
-3. Click on any client update to review its L0–L5 metrics.
+3. Click on any client update to review its L0-L5 metrics.
 4. If an update exhibits anomalous norm or counterfactual harm, click **Isolate & Quarantine**.
 5. The update is excluded from aggregation, and an incident ticket is generated in the Audit Trail.
 
@@ -498,6 +498,6 @@ npm run dev
 ---
 
 <div align="center">
-<b>FedSentinel-X — Transforming Federated Learning into a High-Assurance Security Plane</b><br>
+<b>FedSentinel-X  -  Transforming Federated Learning into a High-Assurance Security Plane</b><br>
 Document compiled and verified for Institutional Release 1.0.0.
 </div>

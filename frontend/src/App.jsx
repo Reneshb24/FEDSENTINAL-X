@@ -230,6 +230,7 @@ function Login({ onLogin, portal = 'admin' }) {
       }
 
       onLogin(data.access_token)
+      goTo(isHospital ? '/hospital' : '/admin')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -295,6 +296,7 @@ function Login({ onLogin, portal = 'admin' }) {
 
       setTimeout(() => {
         onLogin(authData.access_token)
+        goTo('/hospital')
       }, 500)
     } catch (err) {
       setError(err.message)
@@ -583,7 +585,7 @@ function Login({ onLogin, portal = 'admin' }) {
             }}
             onClick={() => goTo(isHospital ? '/admin/login' : '/hospital/login')}
           >
-            <span>{isHospital ? '← Back to Admin Control Plane' : '🏥 Hospital Portal (Login & Registration)'}</span>
+            <span>{isHospital ? '&larr; Back to Admin Control Plane' : 'Hospital Portal (Login & Registration)'}</span>
             <span>&rarr;</span>
           </button>
         </div>
@@ -599,7 +601,391 @@ function Login({ onLogin, portal = 'admin' }) {
   )
 }
 
+function Sidebar({ active, onNavigate, onLogout }) {
+  return (
+    <aside className="sidebar">
+      <div className="sidebar-brand">
+        <div className="brand-mark small">
+          <span />
+          <span />
+          <span />
+        </div>
 
+        <div>
+          <strong>FED SENTINEL</strong>
+          <small>SECURITY CONTROL PLANE</small>
+        </div>
+      </div>
+
+      <div className="system-state">
+        <span className="pulse" />
+
+        <div>
+          <strong>SYSTEM OPERATIONAL</strong>
+          <small>ALL CORE SERVICES ONLINE</small>
+        </div>
+      </div>
+
+      <nav>
+        {navGroups.map((group) => (
+          <div className="nav-group" key={group.label}>
+            <div className="nav-label">{group.label}</div>
+
+            {group.items.map((item) => (
+              <button
+                key={item.id}
+                className={`nav-item ${active === item.id ? 'active' : ''}`}
+                onClick={() => onNavigate(item.id)}
+              >
+                <span className="nav-icon"><NavIcon name={item.icon} /></span>
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </div>
+        ))}
+      </nav>
+
+      <div className="sidebar-bottom">
+        <div className="operator">
+          <div className="avatar">SA</div>
+
+          <div>
+            <strong>SUPER ADMIN</strong>
+            <small>CONTROL ACCESS</small>
+          </div>
+        </div>
+
+        <button className="logout" onClick={onLogout}>
+          Sign out <span>&rarr;</span>
+        </button>
+      </div>
+    </aside>
+  )
+}
+
+function Metric({ label, value, detail, warning }) {
+  return (
+    <div className={`metric ${warning ? 'warning' : ''}`}>
+      <div className="metric-label">{label}</div>
+      <div className="metric-value">{value}</div>
+      <div className="metric-detail">{detail}</div>
+    </div>
+  )
+}
+
+function getRoundStatus(round) {
+  if (!round) return 'NO ROUND'
+  return String(round.status || 'UNKNOWN').replaceAll('_', ' ')
+}
+
+function Pipeline({ round, security }) {
+  const total = round?.participating_clients ?? 0
+  const evidence = security?.evidence_count ?? 0
+  const quarantined = round?.quarantined_updates ?? 0
+
+  const stages = [
+    ['L0', 'VERIFY', total],
+    ['L1', 'INSPECT', total],
+    ['L2', 'CORRELATE', total],
+    ['L3', 'INFLUENCE', total],
+    ['L4', 'SIMULATE', total],
+    ['L5', 'ATTRIBUTE', total],
+  ]
+
+  return (
+    <>
+      <div className="pipeline">
+        {stages.map(([code, label, count], index) => (
+          <div className="pipeline-stage" key={code}>
+            <div className="pipeline-node">
+              <span>{code}</span>
+              <b>{count}</b>
+            </div>
+
+            <div className="pipeline-label">{label}</div>
+
+            {index < stages.length - 1 && (
+              <div className="pipeline-line" />
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="pipeline-result">
+        <div>
+          <span className="result-good">&#10003; {round?.accepted_updates ?? 0}</span>
+          <small>SAFE UPDATES</small>
+        </div>
+
+        <div className="result-divider" />
+
+        <div>
+          <span className="result-danger">
+            &#10005; {quarantined}
+          </span>
+          <small>QUARANTINED</small>
+        </div>
+
+        <div className="result-divider" />
+
+        <div>
+          <span>{total}</span>
+          <small>UPDATES PROCESSED</small>
+        </div>
+
+        <div className="result-divider" />
+
+        <div>
+          <span>{evidence}</span>
+          <small>EVIDENCE RECORDS</small>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function HospitalTopology({ hospitals, incidents }) {
+  const activeHospitals = hospitals.filter(
+    (hospital) => hospital.status === 'ACTIVE',
+  )
+
+  const incidentHospitalIds = new Set(
+    incidents
+      .map((incident) => incident.hospital_id)
+      .filter(Boolean),
+  )
+
+  const visibleHospitals = activeHospitals.slice(0, 24)
+
+  if (!visibleHospitals.length) {
+    return (
+      <div className="empty-state">
+        <span>&#9675;</span>
+        <strong>No active hospitals</strong>
+        <p>
+          No active federation members are currently available.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="topology">
+      <div className="topology-ring ring-one" />
+      <div className="topology-ring ring-two" />
+
+      <div className="central-node">
+        <span className="core-glow" />
+        <strong>FED</strong>
+        <small>SECURITY</small>
+      </div>
+
+      {visibleHospitals.map((hospital, index) => {
+        const angle =
+          (index / visibleHospitals.length) * Math.PI * 2 -
+          Math.PI / 2
+
+        const radius = visibleHospitals.length > 12 ? 40 : 37
+        const x = 50 + Math.cos(angle) * radius
+        const y = 50 + Math.sin(angle) * radius
+
+        const hasIncident = incidentHospitalIds.has(hospital.id)
+        const securityStatus = String(
+          hospital.security_status || '',
+        ).toUpperCase()
+
+        const isThreat =
+          hasIncident ||
+          securityStatus === 'QUARANTINED' ||
+          securityStatus === 'REVOKED'
+
+        return (
+          <div
+            key={hospital.id}
+            className={`command-hospital-node ${isThreat ? 'threat' : ''}`}
+            style={{
+              left: `${x}%`,
+              top: `${y}%`,
+            }}
+            title={`${hospital.code || hospital.name} - ${
+              hospital.security_status || hospital.status
+            }`}
+          >
+            <span />
+            <small>{hospital.code || `H${index + 1}`}</small>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function IncidentPanel({ incident }) {
+  if (!incident) {
+    return (
+      <section className="panel incident-panel">
+        <div className="panel-heading">
+          <div>
+            <div className="panel-kicker">ACTIVE INCIDENT</div>
+            <h2>Threat intelligence</h2>
+          </div>
+
+          <span className="severity-safe">CLEAR</span>
+        </div>
+
+        <div className="empty-state">
+          <span>&#10003;</span>
+          <strong>No active incidents</strong>
+          <p>
+            The federation currently has no persisted security incidents.
+          </p>
+        </div>
+      </section>
+    )
+  }
+
+  const risk = Number(incident.risk_score || 0)
+  const confidence = Number(incident.confidence || 0)
+
+  const severity = String(
+    incident.severity || 'UNKNOWN',
+  ).toUpperCase()
+
+  const severityClass =
+    severity === 'CRITICAL'
+      ? 'severity-critical'
+      : severity === 'HIGH'
+        ? 'severity-high'
+        : severity === 'MEDIUM'
+          ? 'severity-medium'
+          : 'severity-safe'
+
+  return (
+    <section className="panel incident-panel">
+      <div className="panel-heading">
+        <div>
+          <div className="panel-kicker">ACTIVE INCIDENT</div>
+          <h2>Threat intelligence</h2>
+        </div>
+
+        <span className={severityClass}>{severity}</span>
+      </div>
+
+      <div className="incident-title">
+        <span className="threat-symbol">!</span>
+
+        <div>
+          <strong>{incident.title}</strong>
+          <small>{incident.incident_id}</small>
+        </div>
+      </div>
+
+      <div className="risk-display">
+        <div>
+          <span>RISK SCORE</span>
+          <strong>{risk.toFixed(2)}</strong>
+        </div>
+
+        <div className="risk-bar">
+          <span
+            style={{
+              width: `${Math.min(100, Math.max(0, risk))}%`,
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="incident-grid">
+        <div>
+          <span>HYPOTHESIS</span>
+          <strong>
+            {incident.threat_hypothesis || 'UNCLASSIFIED'}
+          </strong>
+        </div>
+
+        <div>
+          <span>CONFIDENCE</span>
+          <strong>{Math.round(confidence * 100)}%</strong>
+        </div>
+
+        <div>
+          <span>RECOMMENDATION</span>
+          <strong>
+            {incident.recommended_action || 'REVIEW'}
+          </strong>
+        </div>
+
+        <div>
+          <span>STATUS</span>
+          <strong>{incident.status || 'UNKNOWN'}</strong>
+        </div>
+      </div>
+
+      <div className="incident-note">
+        <span>i</span>
+        Risk-based operational decision. Not proof of maliciousness.
+      </div>
+    </section>
+  )
+}
+
+function ModelLineage({ latestRound, previousRound }) {
+  const currentVersion =
+    latestRound?.global_model_version || '-'
+
+  const previousVersion =
+    previousRound?.global_model_version || 'INITIAL MODEL'
+
+  const previousRoundNumber =
+    previousRound?.round_number || 'BASE'
+
+  const currentRoundNumber =
+    latestRound?.round_number || '-'
+
+  return (
+    <section className="panel">
+      <div className="panel-heading compact">
+        <div>
+          <div className="panel-kicker">MODEL LINEAGE</div>
+          <h2>Global model</h2>
+        </div>
+
+        <span className="pipeline-round">
+          {latestRound ? `R${currentRoundNumber}` : '-'}
+        </span>
+      </div>
+
+      <div className="model-lineage">
+        <div className="model-node">
+          <span>
+            {previousRoundNumber === 'BASE'
+              ? 'BASE'
+              : `R${previousRoundNumber}`}
+          </span>
+
+          <strong>{previousVersion}</strong>
+
+          <small>
+            Previous verified model
+          </small>
+        </div>
+
+        <div className="lineage-arrow">&rarr;</div>
+
+        <div className="model-node current">
+          <span>R{currentRoundNumber}</span>
+
+          <strong>{currentVersion}</strong>
+
+          <small>
+            {latestRound?.accepted_updates ?? 0}{' '}
+            safe updates aggregated
+          </small>
+        </div>
+      </div>
+    </section>
+  )
+}
 
 function CommandCenter({ data }) {
   const latestRound = data.rounds?.[0]
