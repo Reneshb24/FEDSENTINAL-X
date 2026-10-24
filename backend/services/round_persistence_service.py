@@ -366,10 +366,7 @@ class RoundPersistenceService:
                         signal="hypothesis",
                         score=None,
                         explanation=(
-                            "L5 hypothesis: "
-                            f"{RoundPersistenceService._enum_value(
-                                layer5.hypothesis
-                            )}"
+                            f"L5 hypothesis: {RoundPersistenceService._enum_value(layer5.hypothesis)}"
                         ),
                     ),
                     UpdateEvidence(
@@ -439,10 +436,7 @@ class RoundPersistenceService:
                         signal="decision",
                         score=None,
                         explanation=(
-                            "Trust decision: "
-                            f"{RoundPersistenceService._enum_value(
-                                trust.action
-                            )}"
+                            f"Trust decision: {RoundPersistenceService._enum_value(trust.action)}"
                         ),
                     ),
                     UpdateEvidence(
