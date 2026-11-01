@@ -168,7 +168,7 @@ FedSentinel-X is designed for real-world enterprise healthcare AI defense:
 Access control is strictly enforced on the backend via stateless 256-bit JWT access tokens with Argon2id password hashing, database-backed active session checks, and tenant isolation:
 
 1. **Initial Super Admin**: Initialized securely on first application startup via environment variables:
-   * `ADMIN_EMAIL` (default: `admin@fedsentinel.org` or configured value)
+   * `ADMIN_EMAIL` (default: `admin@fedsentinel.local` or configured value)
    * `ADMIN_PASSWORD` (default: `Admin123!` or configured value)
 2. **Hospital Enclave Registration**: Healthcare facilities submit an institutional application via the registration form on the portal login screen.
 3. **Application Review**: Global administrators inspect credentials in the **Registration Requests** view and approve the institution, granting active federation access.
