@@ -1,11 +1,11 @@
-# FEDSENTINEL-X - UNIFIED FEDERATED AI SECURITY CONTROL PLANE, ROLE-BASED PORTALS & ENCLAVE CLUSTER OPERATIONS PLATFORM
+# FEDSENTINEL-X — FEDERATED AI SECURITY CONTROL PLANE & HEALTHCARE ENCLAVE CLUSTER PLATFORM
 
-FedSentinel-X is an enterprise-grade cybersecurity control plane and distributed cluster operations platform designed specifically for **Federated Machine Learning (FL)** and collaborative healthcare AI consortiums. Built as a single, cohesive high-assurance web application, it orchestrates two distinct operational experiences:
+FedSentinel-X is an enterprise-grade cybersecurity control plane and distributed cluster operations platform designed specifically for **Federated Machine Learning (FL)** in healthcare AI consortiums. Built as a high-assurance, defense-in-depth web application, it orchestrates two distinct operational experiences:
 
-* **Super Admin SOC Control Plane (`/`)**  -  Mission control for security analysts, platform operators, and chief medical information officers (CMIOs) to initiate aggregation rounds, inspect incoming weight gradients across an autonomous 6-layer defense-in-depth pipeline (L0-L5), isolate Byzantine adversaries with automated quarantine containment, scrub rounds via an interactive 10-stage forensic replay scrubber, and certify global model weights with cryptographic attestation dossiers.
-* **Hospital Clinical Enclave Portal (`/hospital/login`)**  -  Dedicated enclave portal for member healthcare institutions (such as Demo Research Hospital, Apollo Health Network, and general hospital networks) to manage local patient data cohorts, import datasets via direct `.NPZ` upload or remote record URL streaming, execute local PyTorch model training directly in situ, and submit privacy-preserving model updates without leaking private patient data.
+* **Global Administrator Security Control Plane (`/`)** — Mission control for platform security officers, chief medical information officers (CMIOs), and ML engineers. Features include live round configuration (Simulation vs. Hospital Mode), institutional registration intake review, 3D orbital radar network topology, multi-tier L0–L5 defense analysis, human-in-the-loop quarantine adjudication, safe aggregation (FedAvg, Coordinate-Median, Trimmed-Mean), cryptographic model lineage, tamper-evident audit trails, and publication-grade attestation dossiers.
+* **Hospital Clinical Enclave Portal (`/hospital/login`)** — Dedicated enclave workspace for member healthcare institutions. Member facilities manage in situ patient data cohorts, import datasets via local uploads (.zip, .tar.gz, .csv, .parquet, .npz) or verified remote URL streams/online dataset repositories (Hugging Face, GitHub, Zenodo, Kaggle, Mendeley) with strict SSRF protection, run authentic PyTorch CNN training locally on private hardware, manage enclave staff and operator accounts, and submit `.safetensors` model updates without ever exposing patient EHR or imaging records.
 
-The platform bridges dark-slate cyber-defense SOC aesthetics with mathematical rigour, backed by FastAPI, PyTorch 2.2+, SQLAlchemy ORM, React 18, Vite 8, and automated deployment architectures on Render and Vercel.
+The platform unites modern dark-slate SOC aesthetics with mathematical rigor, backed by **FastAPI**, **PyTorch 2.2+**, **SQLAlchemy ORM**, **React 19**, **Vite 8**, **Three.js / React Three Fiber**, and automated deployment on **Render** and **Vercel**.
 
 ---
 
@@ -13,15 +13,14 @@ The platform bridges dark-slate cyber-defense SOC aesthetics with mathematical r
 
 | Service | Platform | Live URL | Status |
 | :--- | :--- | :--- | :--- |
-| **Super Admin SOC Control Plane** | Vercel | [https://fedsentinal-x.vercel.app/admin/login](https://fedsentinal-x.vercel.app/admin/login) | Protected / Live |
-| **Hospital Clinical Enclave** | Vercel | [https://fedsentinal-x.vercel.app/hospital/login](https://fedsentinal-x.vercel.app/hospital/login) | Protected / Live |
+| **Global Administrator Control Plane** | Vercel | [https://fedsentinal-x.vercel.app](https://fedsentinal-x.vercel.app) | Protected / Live |
+| **Hospital Clinical Enclave Portal** | Vercel | [https://fedsentinal-x.vercel.app/hospital/login](https://fedsentinal-x.vercel.app/hospital/login) | Protected / Live |
 | **Interactive Round Replay** | Vercel | [https://fedsentinal-x.vercel.app/replay](https://fedsentinal-x.vercel.app/replay) | Operational |
 | **Executive Attestation Dossier** | Vercel | [https://fedsentinal-x.vercel.app/reports](https://fedsentinal-x.vercel.app/reports) | Certified / Live |
 | **API Backend Server** | Render | [https://fedsentinel-api.onrender.com](https://fedsentinel-api.onrender.com) | Healthy (200 OK) |
 | **Interactive API Documentation** | Render | [https://fedsentinel-api.onrender.com/docs](https://fedsentinel-api.onrender.com/docs) | Swagger UI Live |
-| **Database & Evidence Store** | Enclave SQLite | sqlite:///./fedsentinel.db | Connected & Auto-Seeded |
 | **Master Architectural Specification** | GitHub | [FEDSENTINEL_COMPREHENSIVE_SYSTEM_REPORT.md](docs/FEDSENTINEL_COMPREHENSIVE_SYSTEM_REPORT.md) | Read Full Spec |
-| **Operator Runbook & System Manual** | GitHub | [OPERATOR_RUNBOOK_MANUAL.md](docs/OPERATOR_RUNBOOK_MANUAL.md) | Full A-Z Manual |
+| **Complete Operator Runbook Manual** | GitHub | [OPERATOR_RUNBOOK_MANUAL.md](docs/OPERATOR_RUNBOOK_MANUAL.md) | End-to-End Walkthrough |
 
 ---
 
@@ -29,9 +28,9 @@ The platform bridges dark-slate cyber-defense SOC aesthetics with mathematical r
 
 Modern distributed machine learning and clinical AI consortiums suffer from critical structural vulnerabilities:
 
-* **Blind Model Update Ingestion**: Traditional federated averaging algorithms (such as standard FedAvg) blindly calculate the weighted mean of candidate client models ($\theta_{\text{global}} = \sum_{k=1}^K \frac{n_k}{N} \theta_k$). A single malicious participant submitting scaled adversarial gradients (+25.0 scale backdoor) poisons the entire global model consensus.
+* **Blind Model Update Ingestion**: Traditional federated averaging algorithms (such as standard FedAvg) calculate the weighted mean of candidate client models ($\theta_{\text{global}} = \sum_{k=1}^K \frac{n_k}{N} \theta_k$). A single malicious participant submitting scaled adversarial gradients (+25.0 scale backdoor) poisons the entire global consensus model.
 * **Naive Metric Equivalence (`ANOMALY == MALICIOUS`)**: Naive anomaly detection algorithms automatically classify statistical outliers as malicious attacks. In clinical environments, specialized healthcare centers treating rare patient demographics naturally exhibit non-IID variations; falsely isolating them degrades diagnostic utility.
-* **Data Privacy Perimeter Breaches**: Naive attempts to verify model updates by transferring sample raw client data violate strict healthcare regulations, including HIPAA Safe Harbor (45 CFR § 164.514) and GDPR Article 25.
+* **Data Privacy Perimeter Breaches**: Attempts to verify model updates by transferring raw client data violate strict healthcare regulations, including HIPAA Safe Harbor (45 CFR § 164.514) and GDPR Article 25.
 * **Absence of Counterfactual & Holdout Testing**: Standard aggregators commit model weights without simulating "what-if" inclusion vs. exclusion harm ($\Delta \text{Accuracy} = \text{Acc}_{\text{with}} - \text{Acc}_{\text{without}}$) against a calibrated holdout validation surface.
 * **Lack of Tamper-Evident Forensic Auditability**: Regulated healthcare environments (FDA 21 CFR Part 11) require an immutable audit trail of participant identity, model weight lineage, and administrator override rationale.
 
@@ -39,281 +38,137 @@ Modern distributed machine learning and clinical AI consortiums suffer from crit
 
 ## Why FedSentinel-X?
 
-FedSentinel-X is designed to simulate a real-world enterprise healthcare AI defense operation:
+FedSentinel-X is designed for real-world enterprise healthcare AI defense:
 
-* **Unified Domain & Seamless Navigation**: Security administrators and hospital operators access their respective interfaces through a unified portal switcher available on the login screen with one-click demo login chips and strict fail-closed route guards.
-* **Strict Server-Enforced RBAC**: Every administrative or clinical endpoint is protected by stateless JWT verification, Argon2id password hashing, database-backed account active checks, and automated tenant scoping.
+* **Strict Institutional Onboarding & Lifecycle**: New healthcare facilities register through the institutional onboarding flow. Newly registered hospitals enter a `SUBMITTED / PENDING` state and can log in to view institutional application status, but are strictly quarantined from federation rounds and model training until vetted and approved by global administrators.
+* **Tenant-Isolated Hospital Enclaves**: Hospital accounts are strictly isolated by `hospital_id` in the backend API layer. Enclave administrators manage authorized local operators, update institutional profiles, and control datasets locally.
 * **Core Security Axioms**:
-  1. `RISK != VERDICT`  -  Anomaly score is evidence, not an automatic conviction.
-  2. `DON'T TRUST THE UPDATE. VERIFY IT.`  -  Candidate updates are untrusted until attested across L0-L5 defense gates.
-  3. `DATASET != MODEL UPDATE`  -  Raw patient data never leaves local hospital enclaves.
-* **Autonomous 6-Layer Defense-in-Depth Pipeline (L0-L5)**: Combines structural float checks, 128-dimensional deterministic privacy projections, robust MAD coordinate-wise z-scores, holdout loss trajectory profiling, counterfactual harm testing, and Bayesian threat attribution.
-* **True Local PyTorch Enclave Training**: Real PyTorch backward passes and weight optimization run directly in situ on hospital hardware; only `.safetensors` gradient parameters cross the network.
-* **Interactive 10-Stage Scrubber & Gate Inspector**: Allows forensic investigators to scrub backward and forward through any historical round, inspecting node topology orbs and layer-by-layer gate verdicts.
-* **Publication-Grade Attestation Dossier / Report**: Generates formal compliance reports with double cyan cyber-borders, cryptographic SHA-256 digital seals, and tripartite signature attestations.
+  1. `RISK != VERDICT` — Anomaly score is evidence, not an automatic conviction.
+  2. `DON'T TRUST THE UPDATE. VERIFY IT.` — Candidate updates are untrusted until attested across L0–L5 defense gates.
+  3. `DATASET != MODEL UPDATE` — Raw patient data never leaves local hospital enclaves.
+* **Autonomous 6-Layer Defense-in-Depth Pipeline (L0–L5)**: Combines structural float checks, 128-dimensional deterministic privacy projections, robust MAD coordinate-wise z-scores, holdout loss trajectory profiling, counterfactual harm testing, and Bayesian threat attribution.
+* **3D Visualizations with Graceful WebGL Fallbacks**:
+  * **3D Orbital Radar Network Topology** (`HospitalNetwork3D`): Interactive Three.js/R3F orbital mesh of hospital nodes with live status halos, ping beams, and click inspection.
+  * **3D Neural Architecture Explorer** (`NeuralModel3D`): Interactive layer visualization of `FedSentinelCNN` feature maps, synaptic weight lines, and output class logits.
+  * **3D Multi-Tier Defense Pipeline** (`SecurityPipeline3D`): Visualizes model update trajectories passing through L0–L5 gates, the red quarantine diversion chute, and the safe aggregation core.
+* **Enterprise Ingestion Security (SSRF & Path Traversal Prevention)**: Remote dataset imports strictly validate hostnames and resolve DNS to block loopback, RFC-1918 private subnets, link-local, and AWS metadata addresses (`169.254.169.254`). Local paths are restricted to permitted directory boundaries.
+
+---
+
+## System Architecture
+
+```text
+                                  +---------------------------------------+
+                                  |   Global Administrator SOC Plane      |
+                                  |   (Registration, Security, Lineage)  |
+                                  +-------------------+-------------------+
+                                                      |
+                                                      v
+                                  +---------------------------------------+
+                                  |   Autonomous L0-L5 Defense Engine     |
+                                  |  L0: Hash & SafeTensors Validation    |
+                                  |  L1: Shape, NaN & Privacy Projection  |
+                                  |  L2: Robust Coordinate MAD Outlier    |
+                                  |  L3: Gradient Influence & Backdoor    |
+                                  |  L4: Counterfactual Shadow Simulation |
+                                  |  L5: Dynamic Trust & Reputation       |
+                                  +---------+-------------------+---------+
+                                            |                   |
+                         Pass All Gates     v                   v   Adversarial Threat Flagged
+                     +---------------------------+     +---------------------------+
+                     | Safe Aggregation Core     |     | Forensic Quarantine Vault |
+                     | (FedAvg, Coord-Median)    |     | (Isolated from Consensus) |
+                     +-------------+-------------+     +---------------------------+
+                                   |
+                                   v
+                     +---------------------------+
+                     | Global Model Registry     |
+                     | FedSentinelCNN SafeTensors|
+                     +---------------------------+
+                                   ^
+                                   | Verified Model Parameters Only
+                                   | (Zero Raw Data Transferred)
+          +------------------------+------------------------+
+          |                                                 |
++---------+-----------------------+     +-------------------+-------------------+
+| Hospital Enclave A (Mayo)       |     | Hospital Enclave B (Johns Hopkins)    |
+| - Private Patient Data In Situ  |     | - Private Patient Data In Situ        |
+| - Local PyTorch SGD Training    |     | - Local PyTorch SGD Training          |
+| - Staff & Operator Management   |     | - Staff & Operator Management         |
++---------------------------------+     +---------------------------------------+
+```
 
 ---
 
 ## Key Features
 
-### 1. Unified Multi-Role Portal Switcher & Access Control
-The application features a unified entrance with tab switching between Sign In and Register Hospital, equipped with one-click demo access chips for immediate testing across Super Admin and Hospital roles (H01, H21, H30).
+### 1. Global Administrator Security Control Plane
+* **Registration Requests Queue**: Review incoming healthcare institution applications, inspect legal contact information, mark under review, approve (auto-enrolling into active federation membership), or reject with a mandatory justification.
+* **Hospital Directory**: Real-time directory of verified production hospitals with interactive 3D Orbital Radar topology.
+* **Hospital Lifecycle Management**: Authoritative controls to suspend, restore, quarantine, release, or revoke hospital nodes with permanent audit log entries.
+* **Federation Cohort Management**: Orchestrate federation clusters, inspect member join dates, and assign approved hospitals.
+* **Round Configuration**: True separation of **Simulation Mode** (using isolated synthetic nodes for adversarial stress testing) vs. **Hospital Mode** (coordinating real approved hospital enclaves).
+* **Live Round & Telemetry**: Real-time round progress monitoring via REST and WebSocket streaming (`/ws/events`).
+* **Update Intake & L0–L5 Gate Telemetry**: Deep forensic inspection of candidate updates across all 6 analytical gates.
+* **Human-in-the-Loop Overrides**: Authoritative adjudications for quarantined updates with logged justification notes.
+* **Model Lineage & 3D Neural Explorer**: Sequential model lineage tree showing accuracy deltas, participant attributions, and interactive 3D layer visualization.
+* **Forensic Round Replay & Reports**: 10-stage timeline scrubber and publication-grade executive attestation reports with print-to-PDF support.
 
-### 2. Dynamic Dataset Ingestion & Tensor Shape Validation
-The Hospital Portal's Dataset Hub enables healthcare institutions to either upload a local `.NPZ` array or link an external record URL or local file path (`http://`, `file://`, local disk) with automated streaming download, SHA-256 fingerprinting, finite numerical checking, and CNN input shape validation `(N, 1, 28, 28)`.
-
-### 3. Enclave-Bound PyTorch Training & SafeTensors Serialization
-Hospitals train models locally on private hardware using real PyTorch optimizers (SGD/Adam). Gradient weights are packaged using `safetensors` to eliminate arbitrary code execution vulnerabilities common in Python pickle serialization.
-
-### 4. Autonomous 6-Layer Security Engine (L0-L5)
-* **L0 Verify**: Structural integrity, parameter length validation ($105,866$ floats for `FedSentinelCNN`), and floating-point finiteness checks (`isnan`/`isinf`).
-* **L1 Inspect**: 128-dimensional deterministic projection ($seed=42$) generating a privacy-preserving gradient fingerprint.
-* **L2 Correlate**: Robust Coordinate-Wise Median and Median Absolute Deviation ($\text{MAD}$) z-score analysis ($threshold=3.0$).
-* **L3 Influence**: Directional alignment against a consensus validation loss trajectory.
-* **L4 Simulate**: Counterfactual harm simulation calculating real-world accuracy degradation ($\Delta \text{Acc}$).
-* **L5 Attribute**: Bayesian evidence fusion combining signals into an empirical threat hypothesis.
-
-### 5. Multi-Signal Bayesian Trust Engine & Containment Gates
-The Trust Engine fuses multi-layer evidence into an autonomous operational posture:
-* $\ge 3$ Strong Signals or Integrity Failure $\to$ **QUARANTINE** (Excluded from consensus model).
-* $2$ Strong Signals $\to$ **SUSPICIOUS** (Held for analyst review).
-* $1$ Strong Signal $\to$ **REVIEW** (Logged with audit notice; benign non-IID tolerated).
-* Otherwise $\to$ **TRUSTED** (Admitted into robust aggregation).
-
-### 6. Interactive Visual Round Replay & 10-Stage Scrubber
-Platform investigators can replay any completed or running federation round:
-* 10 discrete execution stages from initialization to safe model commit.
-* Variable playback controls ($1\times, 2\times, 4\times$) and timeline scrubber.
-* Orbital node topology with live status orbs (`ACTIVE`, `PENDING`, `ACCEPTED`, `QUARANTINED`).
-* Interactive Gate Inspector drawer displaying L0-L5 metrics for any selected hospital.
-
-### 7. Publication-Grade Executive Compliance Dossier / Report
-Generates formal attestation documents featuring:
-* Institutional double cyber-borders (`border: 4px double #00e5ff`).
-* Dynamic cryptographic SHA-256 seal verified against round model artifacts.
-* Participant disposition registry, active incident log, and global model lineage metrics.
-* Tripartite signature attestations (CMIO, AI Security Architect, Autonomous Control Plane).
-* Fully optimized `@media print` layout for print-to-PDF regulatory reporting.
-
-### 8. Append-Only Forensic Audit Trail & Regulatory Ledger
-Every security event, human override, quarantine decision, and round finalization is permanently logged with timestamps, operator IDs, and cryptographic hashes, fulfilling FDA 21 CFR Part 11 and HIPAA Security Rule compliance requirements.
+### 2. Hospital Clinical Enclave Portal
+* **Application Status Monitoring**: Unapproved hospitals see an institutional status screen with submitted details, current review state, or rejection reasons, with training strictly disabled until approved.
+* **My Hospital Enclave Profile**: Update contact phone, email, official website, address, country, and institutional description via `PATCH /api/v1/hospital/profile`.
+* **Team & Access Management**: Enclave administrators can list staff members, invite operators (`POST /api/v1/hospital/staff`), and toggle active status (`PATCH /api/v1/hospital/staff/{id}`).
+* **Dataset Management Hub**: Ingest datasets via multi-format file uploads (.zip image archives, .tar.gz, .csv, .parquet, .npz) or external URLs/online repositories with automated shape validation `(N, 1, 28, 28)` and strict SSRF blocking.
+* **Local In Situ Training**: Real PyTorch training runs locally on hospital hardware using server-verified global models; generates `.safetensors` update packages.
+* **Submitted Updates Ledger**: Real-time view of submitted updates and security dispositions from `/api/v1/hospital/updates`.
 
 ---
 
-## 🔑 Test Accounts & Team Mate Credentials
+## Authentication & Access Control
 
-You can test all portals and roles immediately using these credentials:
+Access control is strictly enforced on the backend via stateless 256-bit JWT access tokens with Argon2id password hashing, database-backed active session checks, and tenant isolation:
 
-| Experience | Portal Link | Username / Email | Password | Capabilities |
-| :--- | :--- | :--- | :--- | :--- |
-| **Platform Super Admin** | [/](https://fedsentinal-x.vercel.app) | `admin@fedsentinel.local` | `Admin123!` | Complete control: trigger federation rounds, inspect L0-L5 forensic gates, execute manual quarantine overrides, scrub round replay, and generate official compliance reports. |
-| **Hospital Administrator (H21)** | [/hospital/login](https://fedsentinal-x.vercel.app/hospital/login) | `admin@h21.local` | `Hospital123!` | Demo Research Hospital: view cohort membership, upload local .NPZ datasets, link external record URLs, run local PyTorch training, and submit weights. |
-| **Hospital Administrator (H01)** | [/hospital/login](https://fedsentinal-x.vercel.app/hospital/login) | `admin@demohospital.local` | `Hospital123!` | Demo General Hospital: manage clinical imaging hub, inspect local dataset tensors, execute model updates, and monitor enclave telemetry. |
-| **Hospital Administrator (H30)** | [/hospital/login](https://fedsentinal-x.vercel.app/hospital/login) | `admin@apollo.local` | `Hospital123!` | Apollo Health Network: real-time dataset linking, enclave training, and model update submission. |
-| **Hospital Self-Registration** | [/](https://fedsentinal-x.vercel.app) $\to$ **Register Hospital** | *User Defined* | *User Defined* | Self-service registration: automatically enrolls new hospital node into active federation, provisions default clinical imaging dataset, and launches dedicated enclave portal. |
+1. **Initial Super Admin**: Initialized securely on first application startup via environment variables:
+   * `ADMIN_EMAIL` (default: `admin@fedsentinel.org` or configured value)
+   * `ADMIN_PASSWORD` (default: `Admin123!` or configured value)
+2. **Hospital Enclave Registration**: Healthcare facilities submit an institutional application via the registration form on the portal login screen.
+3. **Application Review**: Global administrators inspect credentials in the **Registration Requests** view and approve the institution, granting active federation access.
+4. **Local Fixtures (Development/Testing)**: Run `python scripts/seed_dev_fixtures.py` to seed isolated local test fixtures without polluting production databases.
 
 ---
 
 ## Technology Stack
 
-### Frontend
-* **Framework**: React 18 (`react`, `react-dom`)
-* **Build Tool**: Vite 8 (Hot Module Replacement, fast bundling)
-* **Language**: JavaScript / JSX
-* **Routing**: React Router-style state navigation with persistent URL views
-* **Styling**: Vanilla CSS3 (Custom design system, CSS Grid, Flexbox, responsive breakpoints)
+### Frontend SPA
+* **Framework**: React 19 (`react`, `react-dom`)
+* **3D Visualizations**: Three.js (`three`), React Three Fiber (`@react-three/fiber`), Drei (`@react-three/drei`)
+* **Build Tool**: Vite 8 with Rollup bundling
 * **Icons**: Lucide React
-* **Typography**: Inter (UI elements) and JetBrains Mono (hashes, tensors, logs)
-* **Hosting**: Vercel (Global Edge CDN, automatic HTTPS, SPA rewrites via `vercel.json`)
+* **Typography**: Inter (UI elements) and JetBrains Mono (cryptographic hashes, tensors)
+* **Hosting**: Vercel (Edge CDN, automatic HTTPS, SPA rewrites)
 
 ### Backend API
 * **Runtime**: Python 3.11 / 3.12 / 3.13
-* **Framework**: FastAPI with asynchronous route handlers & WebSockets
-* **ASGI Server**: Uvicorn with HTTP/2 protocol support
-* **Security & Auth**:
-  * `PyJWT`: Stateless 256-bit signed JWT authentication
-  * `pwdlib[argon2]`: Password hashing with 12 memory-hard rounds
-  * `python-multipart`: Streaming file and dataset ingestion
-* **Validation**: Pydantic v2 (Runtime payload parsing and strict schema validation)
-* **Hosting**: Render (Web Service container with health check monitoring)
+* **Framework**: FastAPI with asynchronous endpoints & WebSockets
+* **ASGI Server**: Uvicorn
+* **Security & Auth**: PyJWT, Argon2id (`pwdlib`), HTTPBearer with database session verification
+* **Validation**: Pydantic v2
+* **Database & ORM**: SQLite / PostgreSQL with SQLAlchemy 2.0
+* **Hosting**: Render (Web Service container with automated health checks)
 
-### Machine Learning & Data Pipeline
-* **Deep Learning Framework**: PyTorch 2.2+ (`torch`, `torchvision`) CPU/CUDA
+### ML & Security Pipeline
+* **Deep Learning Framework**: PyTorch 2.2+ (`torch`, `torchvision`)
 * **Model Architecture**: `FedSentinelCNN` (Exact 105,866 parameters)
-* **Safe Serialization**: `safetensors` (zero-pickle security format) and verified `.npz` buffers
-* **Data Processing**: NumPy, SciPy, Pandas, Scikit-Learn
-
-### Database & ORM
-* **Database Engine**: SQLite development / PostgreSQL production compatible
-* **ORM**: SQLAlchemy 2.0 with strongly typed declarative models
-* **Migrations**: Alembic 1.13+
+* **Serialization**: `safetensors` (zero-pickle security format) and verified `.npz` buffers
+* **Data Processing**: NumPy, SciPy, Scikit-Learn
 
 ---
 
-## Project Structure
-
-```text
-FedSentinel-X/
-├── frontend/                               # React 18 + Vite Frontend SPA
-│   ├── public/                             # Static favicon and icon assets
-│   │   ├── favicon.svg                     # FedSentinel cyber-shield emblem
-│   │   └── icons.svg                       # Platform sprite sheet
-│   ├── src/
-│   │   ├── assets/                         # Visual assets & hero graphics
-│   │   ├── pages/                          # SOC Control Plane Subsystems
-│   │   │   ├── AuditTrailPage.jsx          # Tamper-evident regulatory security log
-│   │   │   ├── GlobalModelPage.jsx         # SafeTensors model lineage & deployment
-│   │   │   ├── IncidentsPage.jsx           # Active threat containment & overrides
-│   │   │   ├── L0VerifyPage.jsx            # Structural & numerical integrity gate
-│   │   │   ├── L1InspectPage.jsx           # 128-dim privacy fingerprint gate
-│   │   │   ├── L2CorrelatePage.jsx         # Robust MAD outlier detection gate
-│   │   │   ├── L3InfluencePage.jsx         # Validation loss influence gate
-│   │   │   ├── L4SimulatePage.jsx          # Counterfactual delta impact gate
-│   │   │   ├── L5AttributePage.jsx         # Bayesian threat attribution gate
-│   │   │   ├── QuarantinePage.jsx          # Node containment & quarantine gate
-│   │   │   ├── ReportsPage.jsx             # Official Executive Attestation Dossier
-│   │   │   ├── RoundReplayPage.jsx         # Visual 10-stage scrubber & inspector
-│   │   │   ├── SafeAggregationPage.jsx     # Robust Byzantine-safe aggregator
-│   │   │   ├── TrustEnginePage.jsx         # Multi-signal trust scoring console
-│   │   │   ├── UpdateIntakePage.jsx        # Candidate gradient evaluation gate
-│   │   │   ├── pages.css                   # Specialized sub-page & report styles
-│   │   │   └── securityUtils.jsx           # API clients, token interceptors, badges
-│   │   ├── App.jsx                         # Super Admin SOC Application Root
-│   │   ├── App.css                         # Dark SOC theme styling & animations
-│   │   ├── HospitalPortal.jsx              # Clinical Enclave Application Root
-│   │   ├── index.css                       # Global styles & JetBrains typography
-│   │   └── main.jsx                        # React application DOM entry point
-│   ├── vercel.json                         # Vercel SPA routing rewrites
-│   └── package.json                        # Frontend dependencies & Vite scripts
-│
-├── backend/                                # FastAPI High-Performance Backend API
-│   ├── api/                                # REST & WebSocket Route Controllers
-│   │   ├── audit_routes.py                 # Forensic audit trail API endpoints
-│   │   ├── dependencies.py                 # Dependency injection & orchestrators
-│   │   ├── federation_routes.py            # Cohort, federation & round routes
-│   │   ├── hospital_dataset_routes.py      # Dataset upload & link import routes
-│   │   ├── hospital_portal_routes.py       # Enclave local training API endpoints
-│   │   ├── hospital_routes.py              # Node lifecycle & quarantine routes
-│   │   ├── routes.py                       # Core routes index
-│   │   ├── security_routes.py              # L0-L5 forensic gate endpoints
-│   │   └── websocket.py                    # Live telemetry streaming socket
-│   ├── auth/                               # JWT, Argon2id & RBAC Security Module
-│   │   ├── dependencies.py                 # Token decode & user role guards
-│   │   ├── roles.py                        # System role enumerations
-│   │   ├── routes.py                       # Login, refresh, registration routes
-│   │   ├── schemas.py                      # Pydantic auth validation schemas
-│   │   └── security.py                     # Argon2 password hasher & JWT tokens
-│   ├── core/                               # System Configurations & Constants
-│   │   ├── config.py                       # Environment settings & CORS policy
-│   │   ├── constants.py                    # Platform metadata & defaults
-│   │   └── types.py                        # Domain enumerations & event types
-│   ├── schemas/                            # Pydantic Schemas for Strict Typing
-│   │   ├── audit.py                        # Audit log validation schemas
-│   │   ├── dataset.py                      # Ingestion & link import schemas
-│   │   ├── federation.py                   # Federation configuration schemas
-│   │   ├── federation_round.py             # Round execution & lifecycle schemas
-│   │   ├── hospital.py                     # Node profile & enrollment schemas
-│   │   └── hospital_training.py            # Enclave training parameter schemas
-│   ├── services/                           # Business Logic & Security Engines
-│   │   ├── dataset_service.py              # Tensor file & remote URL import engine
-│   │   ├── federation_service.py           # Multi-node cohort coordinator
-│   │   ├── hospital_service.py             # Enclave auto-enrollment service
-│   │   ├── hospital_training_service.py    # In situ PyTorch training executor
-│   │   ├── round_orchestrator.py           # Multi-round lifecycle pipeline
-│   │   └── security_pipeline.py            # Autonomous L0-L5 analytical engine
-│   └── storage/                            # Database Engine & SQLAlchemy Models
-│       ├── database.py                     # SQLite / PostgreSQL session factory
-│       └── models.py                       # Declarative ORM models
-│
-├── docs/                                   # Platform Documentation
-│   └── FEDSENTINEL_COMPREHENSIVE_SYSTEM_REPORT.md # Master architectural specification
-├── scripts/                                # Automation, Seeding & Lifecycle Scripts
-│   ├── create_admin.py                     # Initial admin & hospital cohort seeder
-│   ├── simulate_full_flow.py               # Complete non-IID FL simulation
-│   ├── simulate_hospital_training.py       # Client local training simulator
-│   ├── test_complete_lifecycle.py          # End-to-end integration lifecycle test
-│   ├── test_hospital_api.py                # API verification utility
-│   └── test_logins.py                      # Credential & RBAC verification
-├── tests/                                  # 84-Item Pytest Verification Suite
-│   ├── integration/                        # FastAPI & WebSocket integration tests
-│   └── unit/                               # Schema, ingestion & security unit tests
-├── Dockerfile                              # Production Linux Container Definition
-├── Procfile                                # Cloud PaaS Process Orchestration
-├── render.yaml                             # Render Infrastructure-as-Code Blueprint
-├── vercel.json                             # Root Vercel SPA Fallback Configuration
-├── requirements.txt                        # Production Python Dependencies
-├── LICENSE                                 # MIT Open Source License
-└── README.md                               # Root System Showcase & Guide
-```
-
----
-
-## Target Workflow & System Walkthrough
-
-### Phase 1: Hospital Self-Registration & Enclave Onboarding
-1. Navigate to the live web application at [https://fedsentinal-x.vercel.app](https://fedsentinal-x.vercel.app).
-2. Click the **Register Hospital** tab on the login screen.
-3. Fill in Facility Name (e.g. `City Memorial Health`), Hospital ID (`H40`), and Administrator Credentials.
-4. Click **Complete Hospital Registration**. The backend automatically creates the hospital node, enrolls it into the active federation cohort, seeds a local clinical dataset, and navigates directly into the hospital enclave.
-
-### Phase 2: Dynamic Dataset Ingestion & Tensor Shape Validation
-1. In the Hospital Portal, open the **Datasets** tab.
-2. Select **Link Record URL / Path** to link external EHR/imaging records (or select **Upload File** for `.NPZ`).
-3. Enter record URL or local path (`https://storage.googleapis.com/.../clinical_sample.npz`).
-4. Click **Import & Validate Dataset Record**. The engine streams the record, verifies `(N, 1, 28, 28)` shapes, computes SHA-256 fingerprints, and confirms enclave ingestion.
-
-### Phase 3: Enclave Local Training & Cryptographic Fingerprinting
-1. In the Hospital Portal, navigate to **Local Training**.
-2. Select the active round and configure hyperparameters (Epochs: `1`, Batch Size: `32`, LR: `0.001`).
-3. Click **Start Enclave Training**.
-4. The local PyTorch engine executes backward passes over private tensors, packages gradients into `.safetensors`, and submits the update with zero patient data transmission.
-
-### Phase 4: Administrative Round Orchestration & Intake
-1. Access the Admin Control Plane at [https://fedsentinal-x.vercel.app](https://fedsentinal-x.vercel.app) with `admin@fedsentinel.local` / `Admin123!`.
-2. Inspect the **Command Center** HUD and navigate to **Update Intake**.
-3. Review newly submitted client gradient updates awaiting gate evaluation.
-
-### Phase 5: Autonomous Multi-Layer Defense Evaluation (L0-L5) & Containment
-1. Updates pass through **L0 Verify** (structural sanity) and **L1 Inspect** (128-dim fingerprint).
-2. The engine computes **L2 Correlate** (MAD z-score) and tests holdout impact in **L3 Influence** and **L4 Simulate**.
-3. The **Trust Engine** evaluates the multi-signal matrix. Updates triggering $\ge 3$ adverse signals are automatically quarantined with incident tickets dispatched to the Audit Trail.
-
-### Phase 6: Safe Global Aggregation & Model Registry Commit
-1. In the Admin Panel, navigate to **Safe Aggregation**.
-2. Select robust aggregation scheme (Coordinate Median, Trimmed-Mean, or Trust-Weighted Avg).
-3. Finalize the round. The aggregated global model is cryptographically committed to the **Global Model Registry** as `FedSentinelCNN v{round}`.
-
-### Phase 7: Interactive Forensic Round Replay & Gate Inspection
-1. Navigate to **Round Replay** (`/replay`).
-2. Select the completed round and use the **10-stage timeline scrubber** to examine round progression.
-3. Click on any hospital orb in the live topology view to open the **Gate Inspector Drawer** and examine forensic evidence.
-
-### Phase 8: Executive Attestation Dossier Generation & Export
-1. Navigate to **Reports** (`/reports`).
-2. Select the finalized round to inspect the complete compliance dossier with double borders, cryptographic SHA-256 seal, and participant disposition registry.
-3. Click **Print Dossier / Export PDF** to generate an official attestation document for compliance records.
-
----
-
-## Step-by-Step Operator Runbook & Playbooks
-
-For complete, exhaustive end-to-end operational playbooks, troubleshooting flows, mathematical proofs, and incident responses, consult the dedicated manual:  
-👉 **[docs/OPERATOR_RUNBOOK_MANUAL.md](docs/OPERATOR_RUNBOOK_MANUAL.md)**
-
-### Standard Operational Scenarios:
-* **Playbook Alpha: Standard Federated Training & Global Model Advancement** - Full lifecycle from round orchestration to multi-node SafeTensors aggregation.
-* **Playbook Bravo: Real-Time Mitigation of a Byzantine Gradient Poisoning Attack** - Autonomous containment via L1 Frobenius norms, L2 cosine inversion, and Bayesian risk triggers.
-* **Playbook Charlie: Neutralizing a Backdoor Trojan via L3/L4 Simulation** - Isolating stealth Trojans using counterfactual loss degradation before central model commit.
-* **Playbook Delta: Hospital Node Onboarding with Isolated EHR Link Ingestion** - Enclave registration and dataset streaming without cross-tenant leakage.
-* **Playbook Echo: Regulatory Compliance Audit & Dossier Extraction** - Generating HIPAA / FDA 21 CFR Part 11 cryptographic attestation certificates.
----
-
-## Setup and Installation Guide
+## Local Setup & Development
 
 ### 1. Prerequisites
-Ensure the following tools are installed on your workstation:
-* **Python**: 3.11, 3.12, or 3.13 (`python --version`)
-* **Node.js**: v18.0.0 or higher & `npm` (`node -v`, `npm -v`)
+* **Python**: 3.11+ (`python --version`)
+* **Node.js**: v18+ & `npm` (`node -v`, `npm -v`)
 * **Git**: (`git --version`)
 
 ### 2. Clone the Repository
@@ -322,12 +177,11 @@ git clone https://github.com/Reneshb24/FEDSENTINAL-X.git
 cd FEDSENTINAL-X
 ```
 
-### 3. Backend Setup & Local Server
+### 3. Backend Setup
 ```bash
-# Create Python virtual environment
+# Create and activate virtual environment
 python -m venv .venv
 
-# Activate environment:
 # On Windows:
 .venv\Scripts\activate
 # On Linux / macOS:
@@ -336,16 +190,13 @@ source .venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Seed initial Super Admin and Hospital cohort
-python scripts/create_admin.py
-
 # Start FastAPI backend server (Port 8000)
 uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
 ```
-API Documentation will be available at: `http://127.0.0.1:8000/docs`
+API Documentation is available at: `http://127.0.0.1:8000/docs`
 
-### 4. Frontend Setup & Development Server
-Open a second terminal window:
+### 4. Frontend Setup
+In a second terminal window:
 ```bash
 cd frontend
 
@@ -355,23 +206,49 @@ npm install
 # Start Vite dev server (Port 5173)
 npm run dev
 ```
-Open your browser at `http://localhost:5173` to access FedSentinel-X locally.
+Open `http://localhost:5173` in your browser.
 
-### 5. Running the Verification Test Suite
+### 5. Running the Complete Verification Test Suite
 ```bash
-# Run complete 84-item Pytest suite
+# Run complete 89-item Pytest suite
 pytest tests/ -v
-
-# Run End-to-End Lifecycle Simulation
-python scripts/test_complete_lifecycle.py
 ```
 
 ---
 
+## Cloud Deployment Guide
+
+### Deploy Backend API on Render
+1. Go to [dashboard.render.com](https://dashboard.render.com) and click **New +** $\\to$ **Web Service**.
+2. Connect repository **Reneshb24/FEDSENTINAL-X**.
+3. Configure:
+   * **Runtime**: Python 3
+   * **Build Command**: pip install -r requirements.txt
+   * **Start Command**: uvicorn backend.main:app --host 0.0.0.0 --port 
+   * **Environment Variables**:
+     * ENVIRONMENT: production
+     * JWT_SECRET_KEY: <secure-random-32-chars-key>
+     * DATABASE_URL: sqlite:///./fedsentinel.db
+4. Deploy and copy your Render URL (e.g. https://fedsentinel-api.onrender.com).
+
+### Deploy Frontend on Vercel
+1. Go to [vercel.com/new](https://vercel.com/new) and import **Reneshb24/FEDSENTINAL-X**.
+2. Configure:
+   * **Framework Preset**: Vite
+   * **Root Directory**: rontend
+   * **Build Command**: 
+pm run build
+   * **Output Directory**: dist
+   * **Environment Variables**:
+     * VITE_API_BASE_URL: <your-render-backend-url>
+     * VITE_FEDERATION_ID: 413ef0b3-a947-4a02-a652-d963ef14b8da
+3. Click **Deploy**. Vercel launches the application with instant edge delivery.
+
+---
 
 ## Future Improvements
 
-* **Differential Privacy ($\epsilon, \delta$) Budget Tracker**: Client-side calibrated Gaussian noise injection with formal RDP privacy accounting.
+* **Differential Privacy ($\\epsilon, \\delta$) Budget Tracker**: Client-side calibrated Gaussian noise injection with formal RDP privacy accounting.
 * **Hardware Enclave (TEE) Attestation**: Remote cryptographic attestation for Intel SGX and AWS Nitro Enclaves to verify execution integrity.
 * **Homomorphic Encryption (CKKS)**: Encrypted coordinate aggregation allowing mathematical sum and median computation over encrypted ciphertexts.
 * **Automated Neural Watermarking**: Embedding non-invasive cryptographic watermarks into global model weights to trace unauthorized weight exfiltration.
@@ -380,8 +257,8 @@ python scripts/test_complete_lifecycle.py
 
 ## Author
 
-**Renesh B** - [@Reneshb24](https://github.com/Reneshb24)  
+**Renesh B** — [@Reneshb24](https://github.com/Reneshb24)  
 Project Repository: [https://github.com/Reneshb24/FEDSENTINAL-X](https://github.com/Reneshb24/FEDSENTINAL-X)
 
-For detailed relational schemas, mathematical derivations, API contracts, and operator runbooks, consult the master document:  
+For in-depth mathematical formulations, threat model taxonomy, relational database schemas, and L0–L5 algorithmic specifications, consult:  
 👉 [**docs/FEDSENTINEL_COMPREHENSIVE_SYSTEM_REPORT.md**](docs/FEDSENTINEL_COMPREHENSIVE_SYSTEM_REPORT.md)

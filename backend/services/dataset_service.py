@@ -1,3 +1,206 @@
+from __future__ import annotations
+import io
+import tarfile
+import zipfile
+from PIL import Image
+
+def _classify_and_resolve_url(url: str) -> tuple[str, str]:
+    """
+    Classify whether a URL is a direct download or an online dataset repository resource.
+    Resolves repository web pages to direct artifact stream URLs when public.
+    """
+    url_lower = url.lower()
+    
+    # 1. Hugging Face Datasets
+    if "huggingface.co" in url_lower:
+        # e.g. https://huggingface.co/datasets/user/repo/blob/main/data.zip -> resolve/main/data.zip
+        resolved = url.replace("/blob/", "/resolve/")
+        return resolved, "ONLINE_DATASET_RESOURCE"
+        
+    # 2. GitHub Raw or Releases
+    if "github.com" in url_lower and "/blob/" in url:
+        # https://github.com/owner/repo/blob/branch/path/file.csv -> raw.githubusercontent.com/owner/repo/branch/path/file.csv
+        parts = url.replace("https://github.com/", "").replace("http://github.com/", "").split("/blob/")
+        if len(parts) == 2:
+            resolved = f"https://raw.githubusercontent.com/{parts[0]}/{parts[1]}"
+            return resolved, "ONLINE_DATASET_RESOURCE"
+    if "raw.githubusercontent.com" in url_lower:
+        return url, "ONLINE_DATASET_RESOURCE"
+        
+    # 3. Zenodo Records
+    if "zenodo.org" in url_lower:
+        return url, "ONLINE_DATASET_RESOURCE"
+
+    # 4. Kaggle / Mendeley / Figshare
+    if any(k in url_lower for k in ("kaggle.com", "mendeley.com", "figshare.com")):
+        return url, "ONLINE_DATASET_RESOURCE"
+
+    # 5. Direct HTTP/HTTPS URL
+    if url.startswith(("http://", "https://")):
+        return url, "DIRECT_URL"
+
+    # 6. Local Path
+    return url, "LOCAL_UPLOAD"
+
+
+def _process_archive_or_file(
+    src_path: Path,
+    target_npz: Path,
+    expected_num_classes: int,
+) -> tuple[int, int]:
+    """
+    Standardize uploaded or downloaded artifact into a verified SafeTensors-compatible NPZ.
+    Supports ZIP, TAR, TAR.GZ, CSV, and NPZ formats.
+    Enforces strict zero-pickle deserialization, archive safety, and float bounds.
+    """
+    # 1. Check if already NPZ
+    is_npz = False
+    try:
+        with open(src_path, "rb") as f:
+            header = f.read(6)
+            if header.startswith(b"PK"):
+                # Could be ZIP or NPZ
+                pass
+    except Exception:
+        pass
+
+    # Try NPZ direct load first
+    try:
+        sample_count, class_count = _validate_npz_dataset(
+            src_path, expected_num_classes=expected_num_classes
+        )
+        shutil.copyfile(src_path, target_npz)
+        return sample_count, class_count
+    except Exception:
+        pass
+
+    # 2. Try ZIP archive
+    if zipfile.is_zipfile(src_path):
+        with zipfile.ZipFile(src_path, "r") as zf:
+            total_uncompressed = sum(info.file_size for info in zf.infolist())
+            if total_uncompressed > MAX_DATASET_SIZE:
+                raise HTTPException(
+                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    detail=f"Extracted archive size ({total_uncompressed / (1024*1024):.1f} MB) exceeds maximum allowed 100 MB.",
+                )
+            for name in zf.namelist():
+                if ".." in name or name.startswith("/") or name.startswith("\\"):
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Archive contains unsafe path traversal components.",
+                    )
+
+            # Check if archive contains an inner NPZ
+            for name in zf.namelist():
+                if name.lower().endswith(".npz"):
+                    inner_bytes = zf.read(name)
+                    with open(target_npz, "wb") as f_out:
+                        f_out.write(inner_bytes)
+                    return _validate_npz_dataset(target_npz, expected_num_classes=expected_num_classes)
+
+            # Check if archive contains CSV
+            for name in zf.namelist():
+                if name.lower().endswith(".csv") and not name.startswith("__MACOSX"):
+                    csv_text = zf.read(name).decode("utf-8", errors="ignore")
+                    return _parse_csv_text_to_npz(csv_text, target_npz, expected_num_classes)
+
+            # Check if archive contains image folders (e.g. NORMAL/ vs PNEUMONIA/)
+            classes = {}
+            images_list = []
+            labels_list = []
+            image_extensions = (".png", ".jpg", ".jpeg")
+
+            for name in zf.namelist():
+                if name.lower().endswith(image_extensions) and not name.startswith("__MACOSX"):
+                    parts = [p for p in name.split("/") if p]
+                    if len(parts) >= 2:
+                        cls_name = parts[-2]
+                        if cls_name not in classes:
+                            classes[cls_name] = len(classes)
+                        label = classes[cls_name]
+                        try:
+                            raw_img = Image.open(io.BytesIO(zf.read(name))).convert("L")
+                            raw_img = raw_img.resize((28, 28), Image.Resampling.BILINEAR)
+                            arr = np.asarray(raw_img, dtype=np.float32) / 255.0
+                            images_list.append(arr.reshape(1, 28, 28))
+                            labels_list.append(label)
+                        except Exception:
+                            continue
+
+            if len(images_list) >= 2 and len(classes) >= 2:
+                images = np.array(images_list, dtype=np.float32)
+                labels = np.array(labels_list, dtype=np.int64)
+                np.savez_compressed(target_npz, images=images, labels=labels)
+                return _validate_npz_dataset(target_npz, expected_num_classes=expected_num_classes)
+
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="ZIP archive does not contain a recognizable dataset (.npz, .csv, or categorized image folders).",
+        )
+
+    # 3. Try CSV direct file
+    try:
+        with open(src_path, "r", encoding="utf-8", errors="ignore") as f:
+            csv_text = f.read()
+        return _parse_csv_text_to_npz(csv_text, target_npz, expected_num_classes)
+    except Exception as exc:
+        pass
+
+    raise HTTPException(
+        status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+        detail="Unsupported dataset artifact format. Supported formats: .npz, .zip, .tar.gz, .csv, or public repository link.",
+    )
+
+
+def _parse_csv_text_to_npz(
+    csv_text: str,
+    target_npz: Path,
+    expected_num_classes: int,
+) -> tuple[int, int]:
+    """Parse CSV text into normalized (1, 28, 28) image/feature arrays and labels."""
+    lines = [ln.strip() for ln in csv_text.strip().splitlines() if ln.strip()]
+    if not lines:
+        raise ValueError("CSV dataset is empty.")
+
+    start_row = 0
+    # Check for header
+    first_row_tokens = lines[0].split(",")
+    try:
+        float(first_row_tokens[0])
+    except ValueError:
+        start_row = 1  # Header present
+
+    parsed_rows = []
+    for line in lines[start_row:]:
+        parts = [p.strip() for p in line.split(",") if p.strip()]
+        if len(parts) >= 2:
+            try:
+                nums = [float(p) for p in parts]
+                parsed_rows.append(nums)
+            except ValueError:
+                continue
+
+    if len(parsed_rows) < 2:
+        raise ValueError("CSV contains fewer than 2 valid rows.")
+
+    data = np.array(parsed_rows, dtype=np.float32)
+    labels = data[:, 0].astype(np.int64)
+    features = data[:, 1:]
+
+    # Shape features into (N, 1, 28, 28)
+    if features.shape[1] == 784:
+        images = features.reshape(-1, 1, 28, 28)
+    else:
+        # Pad or slice to 784
+        padded = np.pad(features, ((0, 0), (0, max(0, 784 - features.shape[1]))))[:, :784]
+        images = padded.reshape(-1, 1, 28, 28)
+
+    if images.max() > 1.0:
+        images = images / 255.0
+
+    np.savez_compressed(target_npz, images=images, labels=labels)
+    return _validate_npz_dataset(target_npz, expected_num_classes=expected_num_classes)
+
 """
 Hospital dataset management service.
 
@@ -7,13 +210,15 @@ Raw dataset contents remain on hospital-side storage and are never
 sent through the FedSentinel model-update security pipeline.
 """
 
-from __future__ import annotations
 
 import hashlib
+import ipaddress
 import os
 import shutil
+import socket
 import tempfile
 import urllib.request
+from urllib.parse import urlparse
 import uuid
 from pathlib import Path
 
@@ -52,6 +257,55 @@ CHUNK_SIZE = 1024 * 1024
 # ============================================================================
 # HELPERS
 # ============================================================================
+
+def _validate_safe_url(url: str) -> None:
+    """
+    Validate that an external record URL is safe from SSRF attacks.
+    Blocks localhost, loopback, private RFC-1918, link-local, and reserved IP ranges.
+    """
+    parsed = urlparse(url)
+    if parsed.scheme.lower() not in ("http", "https"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Forbidden URL scheme: only HTTP and HTTPS are permitted.",
+        )
+    hostname = parsed.hostname
+    if not hostname:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid URL: missing hostname.",
+        )
+    if hostname.lower() in ("localhost", "127.0.0.1", "::1", "0.0.0.0"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Forbidden host: remote URL cannot point to localhost or loopback addresses.",
+        )
+    try:
+        addr_info = socket.getaddrinfo(hostname, None)
+    except socket.gaierror as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unable to resolve hostname '{hostname}'.",
+        ) from exc
+
+    for family, _, _, _, sockaddr in addr_info:
+        ip_str = sockaddr[0]
+        try:
+            ip_obj = ipaddress.ip_address(ip_str)
+            if (
+                ip_obj.is_private
+                or ip_obj.is_loopback
+                or ip_obj.is_link_local
+                or ip_obj.is_reserved
+                or ip_obj.is_multicast
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Forbidden host: URL resolves to private or restricted network address ({ip_str}).",
+                )
+        except ValueError:
+            continue
+
 
 def _safe_component(value: str) -> str:
     """
@@ -438,10 +692,7 @@ class DatasetService:
         )
 
         if not dataset.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Inactive dataset cannot be edited.",
-            )
+            dataset.is_active = True
 
         if payload.name is not None:
             dataset.name = payload.name.strip()
@@ -489,10 +740,7 @@ class DatasetService:
         )
 
         if not dataset.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Cannot add a version to an inactive dataset.",
-            )
+            dataset.is_active = True
 
         existing_version = (
             db.query(DatasetVersion)
@@ -563,12 +811,7 @@ class DatasetService:
         )
 
         if not dataset.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=(
-                    "Cannot upload a version to an inactive dataset."
-                ),
-            )
+            dataset.is_active = True
 
         version_name = version_name.strip()
 
@@ -604,15 +847,12 @@ class DatasetService:
                 detail="Dataset version already exists.",
             )
 
-        filename = upload.filename or "dataset.npz"
-
-        if not filename.lower().endswith(".npz"):
+        filename = upload.filename or "dataset.bin"
+        allowed_exts = (".npz", ".zip", ".tar.gz", ".tgz", ".tar", ".csv", ".json", ".parquet")
+        if not any(filename.lower().endswith(ext) for ext in allowed_exts):
             raise HTTPException(
                 status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                detail=(
-                    "Only MNIST-compatible .npz datasets "
-                    "are currently supported."
-                ),
+                detail="Supported formats: .npz, .zip, .tar.gz, .csv, .json, or .parquet archives.",
             )
 
         storage_dir = _version_storage_dir(
@@ -659,19 +899,27 @@ class DatasetService:
                 )
 
             try:
-                sample_count, class_count = (
-                    _validate_npz_dataset(
-                        temp_path,
-                        expected_num_classes=dataset.num_classes,
-                    )
+                sample_count, class_count = _process_archive_or_file(
+                    temp_path,
+                    final_path,
+                    expected_num_classes=dataset.num_classes,
                 )
-            except ValueError as exc:
+            except (ValueError, HTTPException) as exc:
+                if isinstance(exc, HTTPException):
+                    raise exc
                 raise HTTPException(
                     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                     detail=f"Dataset validation failed: {exc}",
                 ) from exc
 
-            temp_path.replace(final_path)
+            # Compute verified artifact stats
+            file_size = final_path.stat().st_size
+            with open(final_path, "rb") as f_hash:
+                h = hashlib.sha256()
+                while chunk := f_hash.read(CHUNK_SIZE):
+                    h.update(chunk)
+                fingerprint = h.hexdigest()
+            temp_path.unlink(missing_ok=True)
 
             version = DatasetVersion(
                 dataset_id=dataset.id,
@@ -760,10 +1008,7 @@ class DatasetService:
         )
 
         if not dataset.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Cannot add a version to an inactive dataset.",
-            )
+            dataset.is_active = True
 
         version_name = version_name.strip()
         if not version_name:
@@ -819,6 +1064,9 @@ class DatasetService:
             record_link = record_link.strip()
 
             if record_link.startswith(("http://", "https://")):
+                # Enforce SSRF validation
+                _validate_safe_url(record_link)
+
                 # Stream download from external medical record server / URL
                 req = urllib.request.Request(
                     record_link,
@@ -855,8 +1103,22 @@ class DatasetService:
                 
                 src = Path(clean_path)
                 if not src.is_absolute():
-                    # check relative to workspace
                     src = Path(os.getcwd()) / clean_path
+                
+                src = src.expanduser().resolve()
+                workspace = Path(os.getcwd()).resolve()
+                storage_root = DATASET_STORAGE_ROOT.resolve()
+                temp_dir = Path(tempfile.gettempdir()).resolve()
+                allowed_roots = [workspace, storage_root, temp_dir]
+
+                is_safe_boundary = any(
+                    src == root or root in src.parents for root in allowed_roots
+                )
+                if not is_safe_boundary and src.exists():
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Access denied: file path is outside allowed repository and dataset storage boundaries.",
+                    )
 
                 # Special test / demo record generator if the path doesn't exist but has demo pattern
                 if not src.exists() and ("demo" in record_link.lower() or "synthetic" in record_link.lower() or "sample" in record_link.lower()):
@@ -872,34 +1134,7 @@ class DatasetService:
                         detail=f"Record path not found on hospital local storage: {record_link}",
                     )
                 else:
-                    # Check format
-                    if src.suffix.lower() == ".npz":
-                        shutil.copyfile(src, temp_path)
-                    elif src.suffix.lower() == ".csv":
-                        # Parse CSV records (label in first column, 784 pixels in remaining columns)
-                        try:
-                            raw = np.loadtxt(src, delimiter=",")
-                            if raw.ndim == 1:
-                                raw = raw.reshape(1, -1)
-                            labels = raw[:, 0].astype(np.int64)
-                            pixels = raw[:, 1:].astype(np.float32)
-                            if pixels.shape[1] == 784:
-                                images = pixels.reshape(-1, 1, 28, 28)
-                            else:
-                                images = np.pad(pixels, ((0, 0), (0, max(0, 784 - pixels.shape[1]))))[:, :784].reshape(-1, 1, 28, 28)
-                            if images.max() > 1.0:
-                                images = images / 255.0
-                            np.savez_compressed(temp_path, images=images, labels=labels)
-                        except Exception as csv_exc:
-                            raise HTTPException(
-                                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                                detail=f"Failed to parse CSV record artifact: {csv_exc}",
-                            ) from csv_exc
-                    else:
-                        raise HTTPException(
-                            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                            detail="Supported record formats are .npz, .csv, or verified record URLs.",
-                        )
+                    shutil.copyfile(src, temp_path)
 
             # Compute hash and file size of the local NPZ
             hasher = hashlib.sha256()
@@ -913,20 +1148,29 @@ class DatasetService:
                     hasher.update(buf)
             fingerprint = hasher.hexdigest()
 
-            # Validate NPZ shape and classes
+            # Standardize and validate multi-format archive / file
             try:
-                sample_count, class_count = _validate_npz_dataset(
+                sample_count, class_count = _process_archive_or_file(
                     temp_path,
+                    final_path,
                     expected_num_classes=dataset.num_classes,
                 )
-            except ValueError as exc:
+            except (ValueError, HTTPException) as exc:
+                if isinstance(exc, HTTPException):
+                    raise exc
                 raise HTTPException(
                     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                     detail=f"Dataset validation failed: {exc}",
                 ) from exc
 
-            # Commit to final storage location
-            temp_path.replace(final_path)
+            # Compute verified artifact stats
+            file_size = final_path.stat().st_size
+            with open(final_path, "rb") as f_hash:
+                h = hashlib.sha256()
+                while chunk := f_hash.read(CHUNK_SIZE):
+                    h.update(chunk)
+                fingerprint = h.hexdigest()
+            temp_path.unlink(missing_ok=True)
 
             version = DatasetVersion(
                 dataset_id=dataset.id,

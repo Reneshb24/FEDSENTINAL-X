@@ -19,19 +19,27 @@ class HospitalProfileResponse(BaseModel):
     name: str
 
     status: str
+    application_status: str = "APPROVED"
     security_status: str
     is_eligible: bool
+    is_simulation: bool = False
 
-    contact_email: str | None
-    contact_phone: str | None
-    location: str | None
-    description: str | None
+    contact_email: str | None = None
+    contact_phone: str | None = None
+    address: str | None = None
+    location: str | None = None
+    country: str | None = None
+    region: str | None = None
+    website: str | None = None
+    institution_type: str | None = None
+    description: str | None = None
+    rejection_reason: str | None = None
 
     created_at: datetime
     updated_at: datetime
 
-    removed_at: datetime | None
-    removal_reason: str | None
+    removed_at: datetime | None = None
+    removal_reason: str | None = None
 
 
 # ============================================================================

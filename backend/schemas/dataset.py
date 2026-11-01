@@ -81,6 +81,27 @@ class DatasetVersionCreate(BaseModel):
         max_length=128,
     )
 
+    source_type: str = Field(
+        default="LOCAL_UPLOAD",
+        description="One of LOCAL_UPLOAD, DIRECT_URL, ONLINE_DATASET_RESOURCE",
+    )
+    version: str = Field(
+        min_length=1,
+        max_length=50,
+        pattern=r"^[A-Za-z0-9._-]+$",
+    )
+
+    sample_count: int = Field(
+        default=0,
+        ge=0,
+    )
+
+    fingerprint: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=128,
+    )
+
 
 # ============================================================================
 # LINK / IMPORT DATASET VERSION
@@ -110,6 +131,17 @@ class DatasetLinkImportRequest(BaseModel):
 # ============================================================================
 
 class DatasetVersionResponse(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+    id: str
+    dataset_id: str
+    version: str
+    sample_count: int
+    fingerprint: str | None
+    created_at: datetime
+    source_type: str = Field(default="LOCAL_UPLOAD", description="One of LOCAL_UPLOAD, DIRECT_URL, ONLINE_DATASET_RESOURCE")
     model_config = ConfigDict(
         from_attributes=True,
     )
@@ -154,4 +186,5 @@ class DatasetUploadResponse(BaseModel):
     num_classes: int
     storage_status: str
     validation_status: str
+    source_type: str = "LOCAL_UPLOAD"
     message: str

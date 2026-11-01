@@ -47,3 +47,9 @@ class RefreshResponse(BaseModel):
     token_type: str = "bearer"
 
     expires_in: int
+
+class ChangePasswordRequest(BaseModel):
+    """Payload to update the current user's password."""
+    current_password: str
+    new_password: str
+

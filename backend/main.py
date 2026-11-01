@@ -1,4 +1,4 @@
-﻿"""
+"""
 FedSentinel FastAPI application.
 
 Application entry point for the FedSentinel security control plane.
@@ -137,6 +137,11 @@ app.include_router(
 app.include_router(
     auth_router,
     prefix=settings.api_prefix,
+)
+
+app.include_router(
+    auth_router,
+    prefix="/api/v1",
 )
 
 

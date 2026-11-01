@@ -79,6 +79,48 @@ class Hospital(Base):
         nullable=True,
     )
 
+    address: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
+    country: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
+    region: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
+    website: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
+    institution_type: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
+    application_status: Mapped[str] = mapped_column(
+        String(50),
+        default="APPROVED",
+        nullable=False,
+    )
+
+    rejection_reason: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    is_simulation: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+
     # Federation eligibility
     is_eligible: Mapped[bool] = mapped_column(
         Boolean,
@@ -165,6 +207,11 @@ class User(Base):
     role: Mapped[str] = mapped_column(
         String(50),
         nullable=False,
+    )
+
+    full_name: Mapped[str | None] = mapped_column(
+        String(200),
+        nullable=True,
     )
 
     hospital_id: Mapped[str | None] = mapped_column(
@@ -424,6 +471,11 @@ class DatasetVersion(Base):
     fingerprint: Mapped[str | None] = mapped_column(
         String(128),
         nullable=True,
+    )
+    source_type: Mapped[str] = mapped_column(
+        String(30),
+        default="LOCAL_UPLOAD",
+        nullable=False,
     )
 
     created_at: Mapped[datetime] = mapped_column(

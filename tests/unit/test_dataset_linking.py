@@ -106,3 +106,50 @@ def test_import_version_from_local_npz_link(test_db):
         assert len(fingerprint) == 64
     finally:
         Path(tmp_name).unlink(missing_ok=True)
+
+
+def test_import_version_from_zip_archive(test_db):
+    import zipfile
+    import io
+    from PIL import Image
+
+    dataset = DatasetService.create_dataset(
+        test_db,
+        hospital_id="h-test-01",
+        actor_user_id="u-test-01",
+        payload=DatasetCreate(
+            name="Chest X-Ray Cohort",
+            dataset_type="IMAGE_CLASSIFICATION",
+            sample_count=0,
+            num_classes=2,
+        ),
+    )
+
+    with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as f:
+        zip_path = f.name
+
+    with zipfile.ZipFile(zip_path, "w") as zf:
+        for cls_name, cls_id in [("NORMAL", 0), ("PNEUMONIA", 1)]:
+            for i in range(5):
+                img = Image.new("L", (28, 28), color=(i * 20 + cls_id * 50) % 255)
+                buf = io.BytesIO()
+                img.save(buf, format="PNG")
+                zf.writestr(f"chest_xray/{cls_name}/img_{i}.png", buf.getvalue())
+
+    try:
+        version, size, fingerprint, classes = DatasetService.import_version_from_link(
+            test_db,
+            hospital_id="h-test-01",
+            actor_user_id="u-test-01",
+            dataset_id=dataset.id,
+            version_name="v-zip-1",
+            record_link=zip_path,
+        )
+
+        assert version.version == "v-zip-1"
+        assert version.sample_count == 10
+        assert classes == 2
+        assert len(fingerprint) == 64
+        assert size > 0
+    finally:
+        Path(zip_path).unlink(missing_ok=True)

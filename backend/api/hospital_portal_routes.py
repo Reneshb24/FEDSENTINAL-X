@@ -27,9 +27,19 @@ from backend.storage.models import (
 
 from sqlalchemy.orm import Session
 
+from backend.auth.security import verify_password, hash_password
+from backend.auth.schemas import ChangePasswordRequest
+from backend.services.audit import record_audit
 from backend.auth.dependencies import (
     ensure_hospital_access,
     require_hospital_access,
+    require_hospital_admin,
+)
+from backend.schemas.hospital import (
+    HospitalStaffCreateRequest,
+    HospitalStaffUpdateRequest,
+    HospitalStaffResponse,
+    HospitalUpdate,
 )
 from backend.schemas.hospital_portal import (
     HospitalDashboardResponse,
@@ -470,3 +480,174 @@ def submit_local_training(
         ),
         submitted_at=training_result.update.created_at,
     )
+
+
+# ============================================================================
+# HOSPITAL PROFILE UPDATE
+# ============================================================================
+
+@router.patch(
+    "/profile",
+    response_model=HospitalProfileResponse,
+    summary="Update hospital profile details",
+)
+def update_my_hospital_profile(
+    payload: HospitalUpdate,
+    current_user: User = Depends(require_hospital_admin),
+    db: Session = Depends(get_db),
+):
+    hospital_id = current_user.hospital_id
+    if not hospital_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User is not associated with a hospital",
+        )
+    ensure_hospital_access(current_user, hospital_id)
+    return HospitalPortalService.update_profile(
+        db,
+        hospital_id=hospital_id,
+        actor_user_id=current_user.id,
+        payload=payload,
+    )
+
+
+# ============================================================================
+# HOSPITAL STAFF MANAGEMENT
+# ============================================================================
+
+@router.get(
+    "/staff",
+    response_model=list[HospitalStaffResponse],
+    summary="List hospital enclave team members",
+)
+def list_hospital_staff(
+    current_user: User = Depends(require_hospital_access),
+    db: Session = Depends(get_db),
+):
+    hospital_id = current_user.hospital_id
+    if not hospital_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User is not associated with a hospital",
+        )
+    ensure_hospital_access(current_user, hospital_id)
+    return HospitalPortalService.get_staff(db, hospital_id)
+
+
+@router.post(
+    "/staff",
+    response_model=HospitalStaffResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add an operator or staff member to hospital enclave",
+)
+def add_hospital_staff(
+    payload: HospitalStaffCreateRequest,
+    current_user: User = Depends(require_hospital_admin),
+    db: Session = Depends(get_db),
+):
+    hospital_id = current_user.hospital_id
+    if not hospital_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User is not associated with a hospital",
+        )
+    ensure_hospital_access(current_user, hospital_id)
+    return HospitalPortalService.create_staff(
+        db,
+        hospital_id=hospital_id,
+        actor_user_id=current_user.id,
+        payload=payload,
+    )
+
+
+@router.patch(
+    "/staff/{user_id}",
+    response_model=HospitalStaffResponse,
+    summary="Update or toggle hospital enclave staff member",
+)
+def update_hospital_staff(
+    user_id: str,
+    payload: HospitalStaffUpdateRequest,
+    current_user: User = Depends(require_hospital_admin),
+    db: Session = Depends(get_db),
+):
+    hospital_id = current_user.hospital_id
+    if not hospital_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User is not associated with a hospital",
+        )
+    ensure_hospital_access(current_user, hospital_id)
+    return HospitalPortalService.update_staff(
+        db,
+        hospital_id=hospital_id,
+        actor_user_id=current_user.id,
+        user_id=user_id,
+        payload=payload,
+    )
+
+
+# ============================================================================
+# HOSPITAL SUBMITTED UPDATES
+# ============================================================================
+
+@router.get(
+    "/updates",
+    summary="List model updates submitted by this hospital enclave",
+)
+def list_hospital_updates(
+    current_user: User = Depends(require_hospital_access),
+    db: Session = Depends(get_db),
+):
+    hospital_id = current_user.hospital_id
+    if not hospital_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User is not associated with a hospital",
+        )
+    ensure_hospital_access(current_user, hospital_id)
+    return HospitalPortalService.get_updates(db, hospital_id)
+
+# ============================================================================
+# HOSPITAL ACCOUNT CREDENTIALS
+# ============================================================================
+
+@router.post(
+    "/change-password",
+    summary="Change password for authenticated hospital user",
+)
+def change_hospital_password(
+    payload: ChangePasswordRequest,
+    current_user: User = Depends(require_hospital_access),
+    db: Session = Depends(get_db),
+):
+    """Change password for the current hospital user."""
+    if not verify_password(payload.current_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect.",
+        )
+
+    if len(payload.new_password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be at least 8 characters long.",
+        )
+
+    current_user.password_hash = hash_password(payload.new_password)
+    db.commit()
+
+    record_audit(
+        db,
+        actor_user_id=current_user.id,
+        action="HOSPITAL_PASSWORD_CHANGED",
+        resource_type="hospital",
+        resource_id=current_user.hospital_id or current_user.id,
+        result="SUCCESS",
+    )
+
+    return {
+        "success": True,
+        "message": "Password changed successfully.",
+    }
+

@@ -426,6 +426,21 @@ def list_federation_rounds(
         .all()
     )
 
+    # Check for stale RUNNING rounds (e.g. server interrupted / timed out)
+    now = datetime.now(timezone.utc)
+    for r in rounds:
+        if r.status == "RUNNING" and r.started_at:
+            started = r.started_at
+            if started.tzinfo is None:
+                started = started.replace(tzinfo=timezone.utc)
+            if (now - started).total_seconds() > 900:  # 15 minutes threshold
+                RoundManagementService.mark_failed(
+                    db,
+                    r,
+                    actor_user_id=current_user.id,
+                    reason="TIMEOUT: Round exceeded execution threshold without completion (heartbeat expired).",
+                )
+
     return [
         round_to_response(round_)
         for round_ in rounds

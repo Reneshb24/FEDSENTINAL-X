@@ -47,6 +47,13 @@ import GlobalModelPage from './pages/GlobalModelPage'
 import AuditTrailPage from './pages/AuditTrailPage'
 import RoundReplayPage from './pages/RoundReplayPage'
 import ReportsPage from './pages/ReportsPage'
+import RegistrationRequestsPage from './pages/RegistrationRequestsPage'
+import HospitalLifecyclePage from './pages/HospitalLifecyclePage'
+import FederationMembershipPage from './pages/FederationMembershipPage'
+import HumanOverridesPage from './pages/HumanOverridesPage'
+import ModelLineagePage from './pages/ModelLineagePage'
+import HospitalNetwork3D from './components/visualizations/HospitalNetwork3D'
+import { ClipboardCheck } from 'lucide-react'
 
 const rawApi = (import.meta.env && import.meta.env.VITE_API_BASE_URL) || 'http://127.0.0.1:8000'
 const API = rawApi.replace(/\/+$/, '')
@@ -61,8 +68,11 @@ const navGroups = [
     label: 'FEDERATION',
     items: [
       { id: 'overview', label: 'Overview', icon: 'overview' },
-      { id: 'hospitals', label: 'Hospitals', icon: 'hospitals' },
-      { id: 'synthetic', label: 'Synthetic Data', icon: 'synthetic' },
+      { id: 'registration-requests', label: 'Registration Requests', icon: 'clipboard' },
+      { id: 'hospitals', label: 'Hospital Directory', icon: 'hospitals' },
+      { id: 'hospital-lifecycle', label: 'Hospital Lifecycle', icon: 'activity' },
+      { id: 'federation-membership', label: 'Federation Cohort', icon: 'network' },
+      { id: 'synthetic', label: 'Synthetic Lab (Simulation)', icon: 'synthetic' },
     ],
   },
   {
@@ -90,6 +100,7 @@ const navGroups = [
     items: [
       { id: 'trust', label: 'Trust Engine', icon: 'trust' },
       { id: 'incidents', label: 'Incidents', icon: 'incidents' },
+      { id: 'human-overrides', label: 'Human Overrides', icon: 'sliders' },
     ],
   },
   {
@@ -97,6 +108,7 @@ const navGroups = [
     items: [
       { id: 'aggregation', label: 'Safe Aggregation', icon: 'aggregation' },
       { id: 'model', label: 'Global Model', icon: 'model' },
+      { id: 'model-lineage', label: 'Model Lineage', icon: 'branch' },
     ],
   },
   {
@@ -148,12 +160,8 @@ function Login({ onLogin, portal = 'admin' }) {
   const isHospital = portal === 'hospital'
 
   const [authMode, setAuthMode] = useState('login') // 'login' | 'signup' (only used in hospital portal)
-  const [email, setEmail] = useState(
-    isHospital ? 'admin@h21.local' : 'admin@fedsentinel.local',
-  )
-  const [password, setPassword] = useState(
-    isHospital ? 'Hospital123!' : 'Admin123!',
-  )
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
   const [loading, setLoading] = useState(false)
@@ -168,11 +176,7 @@ function Login({ onLogin, portal = 'admin' }) {
     admin_password: '',
   })
 
-  function fillDemo(e, p) {
-    setEmail(e)
-    setPassword(p)
-    setError('')
-  }
+
 
   async function submitLogin(event) {
     event.preventDefault()
@@ -375,47 +379,7 @@ function Login({ onLogin, portal = 'admin' }) {
         {/* Form Body */}
         {(!isHospital || authMode === 'login') ? (
           <form onSubmit={submitLogin}>
-            {/* Quick Demo Fill Chips */}
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
-              <span style={{ fontSize: 9, color: 'var(--muted)', letterSpacing: '0.08em', alignSelf: 'center' }}>QUICK FILL:</span>
-              {isHospital ? (
-                <>
-                  <button
-                    type="button"
-                    className="hp-small-button"
-                    style={{ fontSize: 9, padding: '2px 8px' }}
-                    onClick={() => fillDemo('admin@h21.local', 'Hospital123!')}
-                  >
-                    H21 Demo
-                  </button>
-                  <button
-                    type="button"
-                    className="hp-small-button"
-                    style={{ fontSize: 9, padding: '2px 8px' }}
-                    onClick={() => fillDemo('admin@demohospital.local', 'Hospital123!')}
-                  >
-                    H01 General
-                  </button>
-                  <button
-                    type="button"
-                    className="hp-small-button"
-                    style={{ fontSize: 9, padding: '2px 8px' }}
-                    onClick={() => fillDemo('admin@apollo.local', 'Hospital123!')}
-                  >
-                    H30 Apollo
-                  </button>
-                </>
-              ) : (
-                <button
-                  type="button"
-                  className="hp-small-button"
-                  style={{ fontSize: 9, padding: '2px 8px' }}
-                  onClick={() => fillDemo('admin@fedsentinel.local', 'Admin123!')}
-                >
-                  Super Admin
-                </button>
-              )}
-            </div>
+
 
             <label>
               {isHospital ? 'HOSPITAL ADMIN ACCOUNT' : 'ADMINISTRATOR EMAIL'}
@@ -443,11 +407,11 @@ function Login({ onLogin, portal = 'admin' }) {
             {error && <div className="form-error">{error}</div>}
             {successMsg && <div style={{ padding: 8, background: 'rgba(0, 230, 118, 0.1)', border: '1px solid #00e676', color: '#00e676', fontSize: 11 }}>{successMsg}</div>}
 
-            <button className="primary-button" disabled={loading}>
+            <button type="submit" className="primary-button" disabled={loading}>
               {loading
                 ? 'AUTHENTICATING...'
                 : isHospital
-                  ? 'ENTER HOSPITAL PORTAL'
+                  ? 'SIGN IN TO ENCLAVE'
                   : 'ENTER CONTROL PLANE'}
               <span>&rarr;</span>
             </button>
@@ -585,8 +549,14 @@ function Login({ onLogin, portal = 'admin' }) {
             }}
             onClick={() => goTo(isHospital ? '/admin/login' : '/hospital/login')}
           >
-            <span>{isHospital ? '&larr; Back to Admin Control Plane' : 'Hospital Portal (Login & Registration)'}</span>
-            <span>&rarr;</span>
+            {isHospital ? (
+              <span>&larr; Switch to Administrator Control Plane</span>
+            ) : (
+              <>
+                <span>Hospital Enclave Access &amp; Registration</span>
+                <span>&rarr;</span>
+              </>
+            )}
           </button>
         </div>
 
@@ -2020,6 +1990,16 @@ function HospitalsPage({ data, token, onDataRefresh }) {
         </button>
       </header>
 
+      {/* 3D Federation Topology Radar */}
+      <section style={{ marginBottom: 20 }}>
+        <HospitalNetwork3D
+          hospitals={filteredHospitals}
+          selectedHospital={selected}
+          onSelectHospital={setSelected}
+          height="340px"
+        />
+      </section>
+
       <section className="hospital-metrics">
 
         <div className="hospital-stat">
@@ -2884,6 +2864,16 @@ function HospitalControlCenter({ data, token, onDataRefresh }) {
           ADD HOSPITAL
         </button>
       </header>
+
+      {/* 3D Federation Topology Radar */}
+      <section style={{ marginBottom: 20 }}>
+        <HospitalNetwork3D
+          hospitals={filteredHospitals}
+          selectedHospital={selected}
+          onSelectHospital={setSelected}
+          height="340px"
+        />
+      </section>
 
       <section className="hospital-metrics">
         <div className="hospital-metric">
@@ -6196,6 +6186,10 @@ function NavIcon({ name }) {
     terminal: Terminal,
     sliders: SlidersHorizontal,
     archive: Archive,
+    clipboard: ClipboardCheck,
+    network: Network,
+    branch: GitBranch,
+    activity: Activity,
   }
 
   const IconComponent = icons[name] || Activity
@@ -6624,8 +6618,25 @@ function App() {
           <CommandCenter data={data} />
         ) : active === 'overview' ? (
           <FederationOverview data={data} />
+        ) : active === 'registration-requests' ? (
+          <RegistrationRequestsPage
+            token={token}
+            onDataRefresh={() => setRefreshKey((value) => value + 1)}
+          />
         ) : active === 'hospitals' ? (
           <HospitalsPage
+            data={data}
+            token={token}
+            onDataRefresh={() => setRefreshKey((value) => value + 1)}
+          />
+        ) : active === 'hospital-lifecycle' ? (
+          <HospitalLifecyclePage
+            data={data}
+            token={token}
+            onDataRefresh={() => setRefreshKey((value) => value + 1)}
+          />
+        ) : active === 'federation-membership' ? (
+          <FederationMembershipPage
             data={data}
             token={token}
             onDataRefresh={() => setRefreshKey((value) => value + 1)}
@@ -6706,6 +6717,12 @@ function App() {
             onNavigate={(pageId) => setActive(pageId)}
             onDataRefresh={() => setRefreshKey((value) => value + 1)}
           />
+        ) : active === 'human-overrides' ? (
+          <HumanOverridesPage
+            data={data}
+            token={token}
+            onDataRefresh={() => setRefreshKey((value) => value + 1)}
+          />
         ) : active === 'aggregation' ? (
           <SafeAggregationPage
             data={data}
@@ -6716,6 +6733,10 @@ function App() {
           <GlobalModelPage
             data={data}
             token={token}
+          />
+        ) : active === 'model-lineage' ? (
+          <ModelLineagePage
+            data={data}
           />
         ) : active === 'audit' ? (
           <AuditTrailPage

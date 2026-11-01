@@ -24,6 +24,9 @@ import {
 } from './securityUtils'
 import './pages.css'
 
+import SecurityPipeline3D from '../components/visualizations/SecurityPipeline3D';
+import { useAppStore } from '../store/appStore';
+
 export default function TrustEnginePage({ data, token, onNavigate }) {
   const rounds = Array.isArray(data?.rounds) ? data.rounds : []
   const [selectedRoundId, setSelectedRoundId] = useState('')
@@ -81,6 +84,10 @@ export default function TrustEnginePage({ data, token, onNavigate }) {
         onRefresh={loadTrust}
         loading={loading}
       />
+      {/* 3D Security Pipeline Visualization */}
+      <div className="pipeline-visualization" style={{ height: '350px', marginTop: '16px', marginBottom: '16px', borderRadius: '8px', overflow: 'hidden' }}>
+        <SecurityPipeline3D />
+      </div>
 
       <SecurityPhilosophyBanner
         principle="RISK != VERDICT"

@@ -176,7 +176,6 @@ def create_dataset_version(
         payload=payload,
     )
 
-
 # ============================================================================
 # LIST DATASET VERSIONS
 # ============================================================================
@@ -321,6 +320,7 @@ def upload_dataset_version(
         num_classes=class_count,
         storage_status="STORED_LOCALLY",
         validation_status="VALIDATED",
+        source_type="LOCAL_UPLOAD",
         message=(
             "Dataset uploaded, validated and stored "
             "within the hospital dataset boundary."
@@ -372,6 +372,9 @@ def link_dataset_version(
         format_type=payload.format,
     )
 
+    from backend.services.dataset_service import _classify_and_resolve_url
+    _, source_type = _classify_and_resolve_url(payload.record_link)
+
     return DatasetUploadResponse(
         dataset_id=dataset_version.dataset_id,
         dataset_version_id=dataset_version.id,
@@ -384,6 +387,7 @@ def link_dataset_version(
         num_classes=class_count,
         storage_status="STORED_LOCALLY",
         validation_status="VALIDATED",
+        source_type=source_type,
         message=(
             f"Record data from '{payload.record_link}' successfully processed, "
             f"validated ({dataset_version.sample_count} samples), and stored within hospital boundary."

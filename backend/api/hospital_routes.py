@@ -17,13 +17,18 @@ from fastapi import status
 from sqlalchemy.orm import Session
 
 from backend.auth.dependencies import require_admin
-from backend.schemas.hospital import HospitalActionRequest
-from backend.schemas.hospital import HospitalAdminCreate
-from backend.schemas.hospital import HospitalCreate
-from backend.schemas.hospital import HospitalRegistrationRequest
-from backend.schemas.hospital import HospitalRegistrationResponse
-from backend.schemas.hospital import HospitalResponse
-from backend.schemas.hospital import HospitalUpdate
+from backend.schemas.hospital import (
+    HospitalActionRequest,
+    HospitalAdminCreate,
+    HospitalApplicationApprovalRequest,
+    HospitalApplicationRejectionRequest,
+    HospitalApplicationReviewRequest,
+    HospitalCreate,
+    HospitalRegistrationRequest,
+    HospitalRegistrationResponse,
+    HospitalResponse,
+    HospitalUpdate,
+)
 from backend.services.hospital_service import HospitalService
 from backend.storage.database import get_db
 from backend.storage.models import Hospital
@@ -91,6 +96,7 @@ def register_hospital(
         code=hospital.code,
         name=hospital.name,
         status=hospital.status,
+        application_status=hospital.application_status,
         message=(
             "Hospital registered and authorized successfully in federation cohort."
             if hospital.status == "ACTIVE"
@@ -108,13 +114,104 @@ def register_hospital(
     response_model=list[HospitalResponse],
 )
 def list_hospitals(
+    include_simulation: bool = False,
+    status: str | None = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_admin),
 ):
+    query = db.query(Hospital)
+    if not include_simulation:
+        query = query.filter(Hospital.is_simulation.is_(False))
+    if status:
+        query = query.filter(Hospital.status == status.upper())
     return (
-        db.query(Hospital)
+        query
         .order_by(Hospital.created_at.desc())
         .all()
+    )
+
+
+# ============================================================================
+# ADMIN — APPLICATIONS QUEUE
+# ============================================================================
+
+@router.get(
+    "/applications",
+    response_model=list[HospitalResponse],
+    summary="List institutional registration applications",
+)
+def list_applications(
+    status_filter: str | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    return HospitalService.list_applications(
+        db,
+        status_filter=status_filter,
+    )
+
+
+@router.post(
+    "/{hospital_id}/review",
+    response_model=HospitalResponse,
+    summary="Mark application as under review",
+)
+def review_hospital_application(
+    hospital_id: str,
+    payload: HospitalApplicationReviewRequest | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    hospital = get_hospital(db, hospital_id)
+    notes = payload.notes if payload else None
+    return HospitalService.review_application(
+        db,
+        actor_user_id=current_user.id,
+        hospital=hospital,
+        notes=notes,
+    )
+
+
+@router.post(
+    "/{hospital_id}/application-approve",
+    response_model=HospitalResponse,
+    summary="Approve institutional application and enroll in federation",
+)
+def approve_hospital_application(
+    hospital_id: str,
+    payload: HospitalApplicationApprovalRequest | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    hospital = get_hospital(db, hospital_id)
+    federation_id = payload.federation_id if payload else None
+    notes = payload.notes if payload else None
+    return HospitalService.approve_application(
+        db,
+        actor_user_id=current_user.id,
+        hospital=hospital,
+        federation_id=federation_id,
+        notes=notes,
+    )
+
+
+@router.post(
+    "/{hospital_id}/application-reject",
+    response_model=HospitalResponse,
+    summary="Reject institutional application with mandatory reason",
+)
+def reject_hospital_application(
+    hospital_id: str,
+    payload: HospitalApplicationRejectionRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    hospital = get_hospital(db, hospital_id)
+    return HospitalService.reject_application(
+        db,
+        actor_user_id=current_user.id,
+        hospital=hospital,
+        rejection_reason=payload.rejection_reason,
     )
 
 

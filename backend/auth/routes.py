@@ -37,11 +37,13 @@ from backend.auth.schemas import LoginRequest
 from backend.auth.schemas import LoginResponse
 from backend.auth.schemas import RefreshResponse
 from backend.auth.schemas import UserResponse
+from backend.auth.schemas import ChangePasswordRequest
 
 from backend.auth.security import create_access_token
 from backend.auth.security import generate_refresh_token
 from backend.auth.security import hash_refresh_token
 from backend.auth.security import verify_password
+from backend.auth.security import hash_password
 
 from backend.core.config import settings
 
@@ -143,11 +145,8 @@ def clear_refresh_cookie(
 )
 def login(
     request: Request,
-
     response: Response,
-
     body: LoginRequest,
-
     db: Session = Depends(get_db),
 ) -> LoginResponse:
 
@@ -203,7 +202,7 @@ def login(
     if (
         user.locked_until is not None
         and user.locked_until > now
-    ):
+):
 
         record_audit(
             db,
@@ -237,14 +236,14 @@ def login(
     if (
         not user.is_active
         or not valid_password
-    ):
+):
 
         user.failed_login_attempts += 1
 
         if (
             user.failed_login_attempts
             >= settings.auth_max_failed_attempts
-        ):
+):
 
             user.locked_until = (
                 now
@@ -414,9 +413,7 @@ def get_me(
 )
 def refresh(
     request: Request,
-
     response: Response,
-
     db: Session = Depends(get_db),
 ) -> RefreshResponse:
 
@@ -591,13 +588,8 @@ def refresh(
 )
 def logout(
     request: Request,
-
     response: Response,
-
-    current_user: User = Depends(
-        get_current_user
-    ),
-
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
 
@@ -640,4 +632,97 @@ def logout(
         "success": True,
 
         "message": "All sessions revoked",
+    }
+
+# ============================================================================
+# Change Password
+# ============================================================================
+
+@router.post(
+    "/change-password",
+    summary="Change authenticated user password",
+)
+def change_password(
+    payload: ChangePasswordRequest,
+    request: Request,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Change password for the currently authenticated user."""
+    if not verify_password(payload.current_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=400,
+            detail="Current password is incorrect.",
+        )
+
+    # Validate new password length
+    if len(payload.new_password) < 8:
+        raise HTTPException(
+            status_code=400,
+            detail="New password must be at least 8 characters long.",
+        )
+
+    # Update password hash
+    current_user.password_hash = hash_password(payload.new_password)
+
+    # Rotate refresh token
+    old_refresh_token = request.cookies.get(settings.refresh_cookie_name)
+    now = datetime.now(timezone.utc)
+    old_session = None
+    if old_refresh_token:
+        old_hash = hash_refresh_token(old_refresh_token)
+        old_session = (
+            db.query(RefreshSession)
+            .filter(RefreshSession.token_hash == old_hash)
+            .first()
+        )
+        if old_session:
+            old_session.revoked_at = now
+
+    new_refresh_token = generate_refresh_token()
+    new_session = RefreshSession(
+        user_id=current_user.id,
+        token_hash=hash_refresh_token(new_refresh_token),
+        expires_at=now + timedelta(days=settings.refresh_token_expire_days),
+        ip_address=get_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
+    )
+    db.add(new_session)
+    db.flush()
+
+    if old_refresh_token and old_session:
+        db.add(old_session)
+
+    db.commit()
+    db.refresh(new_session)
+
+    # Generate new access token
+    access_token = create_access_token(
+        user_id=current_user.id,
+        session_id=new_session.id,
+        role=current_user.role,
+        hospital_id=current_user.hospital_id,
+        secret_key=settings.jwt_secret_key,
+        algorithm=settings.jwt_algorithm,
+        expires_minutes=settings.access_token_expire_minutes,
+    )
+
+    # Set refresh cookie
+    set_refresh_cookie(response, new_refresh_token)
+
+    # Audit record
+    record_audit(
+        db,
+        actor_user_id=current_user.id,
+        action="PASSWORD_CHANGED",
+        result="SUCCESS",
+        session_id=new_session.id,
+        ip_address=get_client_ip(request),
+    )
+
+    return {
+        "access_token": access_token,
+        "expires_in": settings.access_token_expire_minutes * 60,
+        "user": serialize_user(current_user),
     }

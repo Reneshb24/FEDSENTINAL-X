@@ -83,19 +83,25 @@ class HospitalService:
             )
 
         # --------------------------------------------------------------------
-        # Create hospital
+        # Create hospital (Application submitted, pending admin review)
         # --------------------------------------------------------------------
 
-        is_auto = getattr(payload, "auto_enroll", True)
         hospital = Hospital(
             code=code,
             name=payload.name.strip(),
-            status="ACTIVE" if is_auto else "PENDING",
+            status="PENDING",
+            application_status="SUBMITTED",
             security_status="TRUSTED",
-            is_eligible=True if is_auto else False,
+            is_eligible=False,
+            is_simulation=False,
             contact_email=payload.contact_email.strip().lower(),
             contact_phone=payload.contact_phone,
-            location=payload.location,
+            address=getattr(payload, "address", None),
+            location=payload.location or getattr(payload, "address", None),
+            country=getattr(payload, "country", None),
+            region=getattr(payload, "region", None),
+            website=getattr(payload, "website", None),
+            institution_type=getattr(payload, "institution_type", "CLINICAL_CENTER") or "CLINICAL_CENTER",
             description=payload.description,
         )
 
@@ -105,9 +111,10 @@ class HospitalService:
         db.flush()
 
         # --------------------------------------------------------------------
-        # Create hospital administrator
+        # Create hospital administrator (Account ready for application tracking)
         # --------------------------------------------------------------------
 
+        admin_name = getattr(payload, "admin_name", None) or f"{hospital.name} Administrator"
         hospital_admin = User(
             email=admin_email,
             password_hash=hash_password(
@@ -119,61 +126,11 @@ class HospitalService:
             failed_login_attempts=0,
             locked_until=None,
             last_login_at=None,
+            full_name=admin_name,
         )
 
         db.add(hospital_admin)
-
-        if getattr(payload, "auto_enroll", True):
-            from backend.storage.models import Federation, FederationMembership, Dataset, DatasetVersion
-            fed = db.query(Federation).first()
-            if fed:
-                membership = FederationMembership(
-                    federation_id=fed.id,
-                    hospital_id=hospital.id,
-                    status="ACTIVE",
-                    joined_at=utc_now(),
-                )
-                db.add(membership)
-
-            init_dataset = Dataset(
-                hospital_id=hospital.id,
-                name="Clinical EHR Imaging Hub",
-                dataset_type="IMAGE_CLASSIFICATION",
-                sample_count=200,
-                num_classes=10,
-                is_active=True,
-            )
-            db.add(init_dataset)
-            db.flush()
-
-            try:
-                import numpy as np
-                import hashlib
-                from backend.services.dataset_service import _version_storage_dir
-                storage_dir = _version_storage_dir(hospital.id, init_dataset.id, "v1-initial")
-                storage_dir.mkdir(parents=True, exist_ok=True)
-                npz_path = storage_dir / "dataset.npz"
-                if not npz_path.exists():
-                    rng = np.random.RandomState(42)
-                    images = rng.randn(200, 1, 28, 28).astype(np.float32)
-                    labels = rng.randint(0, 10, size=(200,)).astype(np.int64)
-                    np.savez_compressed(npz_path, images=images, labels=labels)
-                
-                with open(npz_path, "rb") as f:
-                    fprint = hashlib.sha256(f.read()).hexdigest()
-
-                d_ver = DatasetVersion(
-                    dataset_id=init_dataset.id,
-                    version="v1-initial",
-                    sample_count=200,
-                    fingerprint=fprint,
-                )
-                db.add(d_ver)
-            except Exception:
-                pass
-
         db.commit()
-
         db.refresh(hospital)
 
         # --------------------------------------------------------------------
@@ -768,4 +725,210 @@ class HospitalService:
             result="SUCCESS",
         )
 
+        return hospital
+    # ========================================================================
+    # INSTITUTIONAL APPLICATION QUEUE & REVIEW
+    # ========================================================================
+
+    @staticmethod
+    def list_applications(
+        db: Session,
+        status_filter: str | None = None,
+    ) -> list[Hospital]:
+        """
+        List all hospital applications awaiting review, under review, or rejected.
+        Excludes simulated nodes.
+        """
+        query = db.query(Hospital).filter(Hospital.is_simulation.is_(False))
+        if status_filter:
+            query = query.filter(Hospital.application_status == status_filter.upper())
+        else:
+            query = query.filter(
+                (Hospital.application_status.in_(["SUBMITTED", "UNDER_REVIEW", "REJECTED"])) |
+                (Hospital.status == "PENDING")
+            )
+        return query.order_by(Hospital.created_at.desc()).all()
+
+    @staticmethod
+    def review_application(
+        db: Session,
+        *,
+        actor_user_id: str,
+        hospital: Hospital,
+        notes: str | None = None,
+    ) -> Hospital:
+        """
+        Move a submitted hospital application to UNDER_REVIEW.
+        """
+        previous = hospital.application_status
+        hospital.application_status = "UNDER_REVIEW"
+        hospital.updated_at = utc_now()
+
+        db.add(
+            AdminAction(
+                actor_user_id=actor_user_id,
+                hospital_id=hospital.id,
+                action="REVIEW_HOSPITAL_APPLICATION",
+                previous_status=previous,
+                new_status="UNDER_REVIEW",
+                reason=notes,
+                result="SUCCESS",
+            )
+        )
+        db.commit()
+        db.refresh(hospital)
+
+        record_audit(
+            db,
+            actor_user_id=actor_user_id,
+            action="HOSPITAL_APPLICATION_UNDER_REVIEW",
+            resource_type="hospital_application",
+            resource_id=hospital.id,
+            reason=notes,
+            result="SUCCESS",
+        )
+        return hospital
+
+    @staticmethod
+    def approve_application(
+        db: Session,
+        *,
+        actor_user_id: str,
+        hospital: Hospital,
+        federation_id: str | None = None,
+        notes: str | None = None,
+    ) -> Hospital:
+        """
+        Approve an institutional application:
+        - Marks application_status = 'APPROVED'
+        - Sets hospital status = 'ACTIVE' and is_eligible = True
+        - Automatically enrolls in the target federation membership
+        """
+        from backend.storage.models import Federation, FederationMembership
+
+        previous = hospital.status
+        hospital.status = "ACTIVE"
+        hospital.application_status = "APPROVED"
+        hospital.is_eligible = True
+        hospital.security_status = "TRUSTED"
+        hospital.rejection_reason = None
+        hospital.updated_at = utc_now()
+
+        # Assign federation membership
+        target_fed_id = federation_id
+        if not target_fed_id:
+            fed = db.query(Federation).first()
+            if fed:
+                target_fed_id = fed.id
+
+        if target_fed_id:
+            existing_mem = (
+                db.query(FederationMembership)
+                .filter(
+                    FederationMembership.federation_id == target_fed_id,
+                    FederationMembership.hospital_id == hospital.id,
+                )
+                .first()
+            )
+            if existing_mem:
+                existing_mem.status = "ACTIVE"
+            else:
+                new_mem = FederationMembership(
+                    federation_id=target_fed_id,
+                    hospital_id=hospital.id,
+                    status="ACTIVE",
+                    joined_at=utc_now(),
+                )
+                db.add(new_mem)
+
+        db.add(
+            AdminAction(
+                actor_user_id=actor_user_id,
+                hospital_id=hospital.id,
+                action="APPROVE_HOSPITAL_APPLICATION",
+                previous_status=previous,
+                new_status="ACTIVE",
+                reason=notes or "Application approved by global administrator",
+                result="SUCCESS",
+            )
+        )
+        db.commit()
+        db.refresh(hospital)
+
+        record_audit(
+            db,
+            actor_user_id=actor_user_id,
+            action="HOSPITAL_APPLICATION_APPROVED",
+            resource_type="hospital_application",
+            resource_id=hospital.id,
+            reason=notes,
+            result="SUCCESS",
+            metadata={
+                "federation_id": target_fed_id,
+                "hospital_code": hospital.code,
+            },
+        )
+        return hospital
+
+    @staticmethod
+    def reject_application(
+        db: Session,
+        *,
+        actor_user_id: str,
+        hospital: Hospital,
+        rejection_reason: str,
+    ) -> Hospital:
+        """
+        Reject an institutional application with a mandatory reason:
+        - Marks application_status = 'REJECTED'
+        - Sets hospital status = 'REJECTED' and is_eligible = False
+        - Deactivates any federation membership
+        """
+        from backend.storage.models import FederationMembership
+
+        if not rejection_reason or len(rejection_reason.strip()) < 3:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="A valid mandatory rejection reason must be supplied.",
+            )
+
+        previous = hospital.status
+        hospital.status = "REJECTED"
+        hospital.application_status = "REJECTED"
+        hospital.is_eligible = False
+        hospital.rejection_reason = rejection_reason.strip()
+        hospital.updated_at = utc_now()
+
+        # Deactivate memberships if any
+        mems = db.query(FederationMembership).filter(FederationMembership.hospital_id == hospital.id).all()
+        for m in mems:
+            m.status = "INACTIVE"
+
+        db.add(
+            AdminAction(
+                actor_user_id=actor_user_id,
+                hospital_id=hospital.id,
+                action="REJECT_HOSPITAL_APPLICATION",
+                previous_status=previous,
+                new_status="REJECTED",
+                reason=rejection_reason.strip(),
+                result="SUCCESS",
+            )
+        )
+        db.commit()
+        db.refresh(hospital)
+
+        record_audit(
+            db,
+            actor_user_id=actor_user_id,
+            action="HOSPITAL_APPLICATION_REJECTED",
+            resource_type="hospital_application",
+            resource_id=hospital.id,
+            reason=rejection_reason.strip(),
+            result="SUCCESS",
+            metadata={
+                "hospital_code": hospital.code,
+                "rejection_reason": rejection_reason.strip(),
+            },
+        )
         return hospital
