@@ -47,10 +47,23 @@ FedSentinel-X is designed for real-world enterprise healthcare AI defense:
   2. `DON'T TRUST THE UPDATE. VERIFY IT.` — Candidate updates are untrusted until attested across L0–L5 defense gates.
   3. `DATASET != MODEL UPDATE` — Raw patient data never leaves local hospital enclaves.
 * **Autonomous 6-Layer Defense-in-Depth Pipeline (L0–L5)**: Combines structural float checks, 128-dimensional deterministic privacy projections, robust MAD coordinate-wise z-scores, holdout loss trajectory profiling, counterfactual harm testing, and Bayesian threat attribution.
-* **3D Visualizations with Graceful WebGL Fallbacks**:
-  * **3D Orbital Radar Network Topology** (`HospitalNetwork3D`): Interactive Three.js/R3F orbital mesh of hospital nodes with live status halos, ping beams, and click inspection.
-  * **3D Neural Architecture Explorer** (`NeuralModel3D`): Interactive layer visualization of `FedSentinelCNN` feature maps, synaptic weight lines, and output class logits.
-  * **3D Multi-Tier Defense Pipeline** (`SecurityPipeline3D`): Visualizes model update trajectories passing through L0–L5 gates, the red quarantine diversion chute, and the safe aggregation core.
+* **14 Specialized 3D Visualizations with Interactive Telemetry & WebGL Fallbacks**:
+  * **SOC Defense Shield** (`DefenseShield3D`): Interactive orbital shield in the Command Center with active health telemetry, pulse beacons, and risk rings.
+  * **Federation Orbital Radar** (`FederationOrbit3D`): Multi-tier concentric orbits visualizing Trusted, Probation, and Quarantined institutions.
+  * **Hospital Topology Radar** (`HospitalNetwork3D`): Geographic/network mesh of hospital nodes with live status halos, ping beams, and click inspection.
+  * **L0 Volumetric Tensor Scanner** (`L0TensorScanner3D`): Rotating 3D tensor lattice with an animated scanning laser plane verifying SafeTensors format and zero-pickle integrity.
+  * **L1 Norm Distribution Manifold** (`L1NormDistribution3D`): 3D update norm scatter plot showing 128-D projection boundaries and clipping envelopes.
+  * **L2 Cosine Cluster Manifold** (`L2CosineCluster3D`): 3D angular coordinate cluster showing consensus convergence and robust MAD outlier separation.
+  * **L3 Loss Surface Landscape** (`L3LossSurface3D`): 3D wireframe loss surface tracing candidate update gradient trajectories against holdout validation minima.
+  * **L4 Counterfactual Trajectory** (`L4Counterfactual3D`): Dual-path 3D trajectory comparing consensus state with vs. without (Leave-One-Out) candidate updates.
+  * **L5 Threat Attribution Radar** (`L5AttributionRadar3D`): 3D multi-axis radar chart projecting Bayesian posterior attack hypotheses (Backdoor, Scaling, Free-rider, Label-flip, Sybil, Benign non-IID).
+  * **Trust Matrix Manifold** (`TrustMatrix3D`): 3D interactive matrix nodes dynamically color-coded by Bayesian reputation and historical consistency.
+  * **Safe Aggregation Fusion Vortex** (`SafeAggregationVortex3D`): 3D particle vortex demonstrating candidate update convergence into the global model core via FedAvg, Coordinate Median, or Trimmed Mean.
+  * **Neural Architecture Explorer** (`NeuralModel3D`): Interactive layer visualization of `FedSentinelCNN` feature maps, synaptic weight lines, and output class logits.
+  * **Cryptographic Lineage Tree** (`ModelLineageTree3D`): 3D directed acyclic graph (DAG) of model checkpoint versions, SHA-256 hashes, and accuracy progressions.
+  * **Synthetic Distribution Lab** (`SyntheticLab3D`): 3D client node manifold with real-time Dirichlet partition curves and class distribution histograms.
+  * **Hospital Clinical Enclave Pipeline** (`HospitalEnclave3D`): 3D in situ enclave training pipeline visualizing local patient data isolation, PyTorch SGD execution, differential delta extraction, and SafeTensors packaging with zero data egress.
+* **Synthetic Attack Sandbox & Benchmark Lab**: Test the defense pipeline against synthetic cohorts with configurable distribution models: Clean IID, Non-IID Dirichlet ($\alpha \in [0.05, 10.0]$), Pathological Label Skew, Pixel-pattern Backdoor Triggers, and Sybil Model Replacement attacks.
 * **Enterprise Ingestion Security (SSRF & Path Traversal Prevention)**: Remote dataset imports strictly validate hostnames and resolve DNS to block loopback, RFC-1918 private subnets, link-local, and AWS metadata addresses (`169.254.169.254`). Local paths are restricted to permitted directory boundaries.
 
 ---
@@ -103,24 +116,50 @@ FedSentinel-X is designed for real-world enterprise healthcare AI defense:
 ## Key Features
 
 ### 1. Global Administrator Security Control Plane
-* **Registration Requests Queue**: Review incoming healthcare institution applications, inspect legal contact information, mark under review, approve (auto-enrolling into active federation membership), or reject with a mandatory justification.
-* **Hospital Directory**: Real-time directory of verified production hospitals with interactive 3D Orbital Radar topology.
-* **Hospital Lifecycle Management**: Authoritative controls to suspend, restore, quarantine, release, or revoke hospital nodes with permanent audit log entries.
-* **Federation Cohort Management**: Orchestrate federation clusters, inspect member join dates, and assign approved hospitals.
-* **Round Configuration**: True separation of **Simulation Mode** (using isolated synthetic nodes for adversarial stress testing) vs. **Hospital Mode** (coordinating real approved hospital enclaves).
-* **Live Round & Telemetry**: Real-time round progress monitoring via REST and WebSocket streaming (`/ws/events`).
-* **Update Intake & L0–L5 Gate Telemetry**: Deep forensic inspection of candidate updates across all 6 analytical gates.
-* **Human-in-the-Loop Overrides**: Authoritative adjudications for quarantined updates with logged justification notes.
-* **Model Lineage & 3D Neural Explorer**: Sequential model lineage tree showing accuracy deltas, participant attributions, and interactive 3D layer visualization.
-* **Forensic Round Replay & Reports**: 10-stage timeline scrubber and publication-grade executive attestation reports with print-to-PDF support.
+* **SOC Command Center**: High-level federation posture, live incident feed, round metrics, and interactive 3D Defense Shield (`DefenseShield3D`).
+* **Federation Overview**: Multi-tier orbital topology (`FederationOrbit3D`) categorizing nodes by Trusted, Probation, and Quarantined tiers with live ping status.
+* **Registration Requests Queue**: Review incoming healthcare institution applications, inspect contact and legal credentials, transition to under-review, approve with instant federation onboarding, or reject with a mandatory justification.
+* **Hospital Control Center**: Consolidated hospital fleet operations featuring 3D topology radar (`HospitalNetwork3D`), search and filtering by security status/tier, hospital cards with trust metrics, and an integrated management drawer with instant actions (Approve, Suspend, Quarantine, Release, Revoke).
+* **Federation Cohort Management**: Orchestrate federation clusters, configure participant eligibility toggles, and view institutional join history.
+* **Synthetic Lab & Attack Sandbox**: Interactive benchmarking environment with `SyntheticLab3D` visualization. Configure Dirichlet skew ($\alpha \in [0.05, 10.0]$), pathological label concentration, backdoor triggers, and sybil model replacements to evaluate L0–L5 defense gates without impacting production clinical enclaves.
+* **Round Configuration**: Strict separation of **Simulation Mode** (isolated synthetic clients for adversarial experimentation) vs. **Hospital Mode** (coordinating real, verified clinical enclaves). Dynamic participant slider, preset buttons, hyperparameter inputs, and stale round cancellation.
+* **Live Round & Telemetry**: 10-stage execution pipeline monitoring with real-time participant progress, loss tracking, and gate-by-gate verification.
+* **Update Intake Ledger**: Ingested candidate SafeTensors updates, SHA-256 fingerprint verification, payload inspector, and defense pipeline triggers.
+* **Multi-Tier L0–L5 Defense Suite**:
+  * **L0 Verify**: SafeTensors format and zero-pickle verification with 3D volumetric tensor scanner (`L0TensorScanner3D`).
+  * **L1 Inspect**: 128-D privacy projection and NaN/Inf numeric sanity filter with 3D norm distribution manifold (`L1NormDistribution3D`).
+  * **L2 Correlate**: Robust MAD coordinate-wise outlier scores and cosine similarity matrix with 3D cluster manifold (`L2CosineCluster3D`).
+  * **Quarantine Vault**: Forensic isolation chamber for suspicious updates with audited release and permanent discard actions.
+  * **L3 Influence**: Holdout validation loss gradient trajectory profiling with 3D loss surface landscape (`L3LossSurface3D`).
+  * **L4 Simulate**: Leave-One-Out counterfactual shadow consensus simulation ($\Delta \text{Acc}$) with 3D trajectory visualizer (`L4Counterfactual3D`).
+  * **L5 Attribute**: Dynamic Bayesian threat hypothesis attribution with 3D multi-axis radar chart (`L5AttributionRadar3D`).
+* **Trust Engine**: Global Bayesian reputation scoring with interactive 3D trust matrix (`TrustMatrix3D`), dynamic attenuation decay, and non-punitive clinical tolerance.
+* **Incident Management**: Centralized threat feed with severity filters (Critical, High, Medium, Low), incident acknowledgment, and forensic resolution logging.
+* **Human-in-the-Loop Overrides**: Immutable audit ledger of security officer manual overrides with mandatory rationale recording.
+* **Safe Aggregation Core**: Multi-algorithm consensus engine (FedAvg, Coordinate Median, Trimmed Mean) with 3D particle fusion vortex (`SafeAggregationVortex3D`).
+* **Global Model Explorer**: Deep neural layer inspector for `FedSentinelCNN` (Conv1, Conv2, FC1, FC2) with 3D neural explorer (`NeuralModel3D`) and SafeTensors export.
+* **Model Lineage DAG**: Cryptographic parent-child model version tree with 3D lineage visualization (`ModelLineageTree3D`) and audited checkpoint rollback.
+* **Cryptographic Audit Ledger**: Immutable, append-only log of all federation events, actor identities, IP addresses, and timestamps with JSON/CSV export and SHA-256 chain verification.
+* **Round Replay**: Interactive 10-stage timeline scrubber with play, pause, step-forward, and variable speed playback (`0.5x`, `1x`, `2x`, `4x`).
+* **Attestation Dossiers**: Publication-grade compliance reports aligned with HIPAA Security Rule, FDA 21 CFR Part 11, EU AI Act, and NIST AI RMF with print-to-PDF export.
 
 ### 2. Hospital Clinical Enclave Portal
-* **Application Status Monitoring**: Unapproved hospitals see an institutional status screen with submitted details, current review state, or rejection reasons, with training strictly disabled until approved.
-* **My Hospital Enclave Profile**: Update contact phone, email, official website, address, country, and institutional description via `PATCH /api/v1/hospital/profile`.
-* **Team & Access Management**: Enclave administrators can list staff members, invite operators (`POST /api/v1/hospital/staff`), and toggle active status (`PATCH /api/v1/hospital/staff/{id}`).
-* **Dataset Management Hub**: Ingest datasets via multi-format file uploads (.zip image archives, .tar.gz, .csv, .parquet, .npz) or external URLs/online repositories with automated shape validation `(N, 1, 28, 28)` and strict SSRF blocking.
-* **Local In Situ Training**: Real PyTorch training runs locally on hospital hardware using server-verified global models; generates `.safetensors` update packages.
-* **Submitted Updates Ledger**: Real-time view of submitted updates and security dispositions from `/api/v1/hospital/updates`.
+* **Institutional Registration**: Self-service onboarding portal allowing hospitals to submit legal credentials, primary contacts, and clinical specialization.
+* **Application Status Monitoring**: Unapproved hospitals view application review status, submitted details, and administrative notes, with training strictly locked until approved.
+* **Hospital Command**: Enclave operational dashboard with health posture, active round status, enrolled dataset count, and trust tier indicator.
+* **My Hospital Enclave Profile**: Update institutional contact info, physical address, website, and clinical description, plus secure password change modal.
+* **Federation Membership**: Consortium details, participating peers, active federation parameters, and institutional join dates.
+* **Team & Access Management**: Enclave administrators manage local operators, invite staff members (`POST /api/v1/hospital/staff`), and toggle active account status.
+* **Dataset Management Hub**: Ingest datasets via multi-format file uploads (.zip image archives, .tar.gz, .csv, .parquet, .npz), verified external URLs (Hugging Face, GitHub, Zenodo, Kaggle) with strict SSRF protection, or built-in in situ clinical benchmark generation.
+* **Data Quality Register**: 5-point clinical data validation checklist (SafeTensors/Zero-Pickle, normalized $(1, 28, 28)$ tensor shape, 0% NaN/Inf finite values, class balance, minimum sample size) with one-click activation for federation training.
+* **Current Round Inspection**: Real-time round progress, hyperparameter specifications, and enclave eligibility status.
+* **In Situ Local Model Training**: Authentic PyTorch training running on private hospital hardware with 3D enclave pipeline visualizer (`HospitalEnclave3D`), live epoch-by-epoch loss tracking, differential delta extraction, and SafeTensors compilation with zero data egress.
+* **Model Updates Ledger**: History of submitted differential updates, cryptographic hashes, and L0–L5 gate verdicts (Accepted vs. Quarantined).
+* **Global Model Inspection**: Download consensus SafeTensors weights and verify model accuracy.
+* **Enclave Security Status & Self-Test**: Hardware boundary verification, zero data egress guarantee, and 6-layer defense gate checklist.
+* **Clinical Incidents**: Enclave-specific threat alerts, forensic explanations, and direct "Request Administrative Review" mechanism.
+* **Visual Trust Engine**: Circular SVG reputation dial, Bayesian scoring parameters ($\alpha, \beta, \lambda$), evaluation log, and clinical good faith guarantee.
+* **Reports & Local Audit**: Export local training logs, generate compliance summaries, and review local operator activity.
 
 ---
 
@@ -223,25 +262,24 @@ pytest tests/ -v
 2. Connect repository **Reneshb24/FEDSENTINAL-X**.
 3. Configure:
    * **Runtime**: Python 3
-   * **Build Command**: pip install -r requirements.txt
-   * **Start Command**: uvicorn backend.main:app --host 0.0.0.0 --port 
+   * **Build Command**: `pip install -r requirements.txt`
+   * **Start Command**: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
    * **Environment Variables**:
-     * ENVIRONMENT: production
-     * JWT_SECRET_KEY: <secure-random-32-chars-key>
-     * DATABASE_URL: sqlite:///./fedsentinel.db
-4. Deploy and copy your Render URL (e.g. https://fedsentinel-api.onrender.com).
+     * `ENVIRONMENT`: `production`
+     * `JWT_SECRET_KEY`: `<secure-random-32-chars-key>`
+     * `DATABASE_URL`: `sqlite:///./fedsentinel.db`
+4. Deploy and copy your Render URL (e.g. `https://fedsentinel-api.onrender.com`).
 
 ### Deploy Frontend on Vercel
 1. Go to [vercel.com/new](https://vercel.com/new) and import **Reneshb24/FEDSENTINAL-X**.
 2. Configure:
    * **Framework Preset**: Vite
-   * **Root Directory**: rontend
-   * **Build Command**: 
-pm run build
-   * **Output Directory**: dist
+   * **Root Directory**: `frontend`
+   * **Build Command**: `npm run build`
+   * **Output Directory**: `dist`
    * **Environment Variables**:
-     * VITE_API_BASE_URL: <your-render-backend-url>
-     * VITE_FEDERATION_ID: 413ef0b3-a947-4a02-a652-d963ef14b8da
+     * `VITE_API_BASE_URL`: `<your-render-backend-url>`
+     * `VITE_FEDERATION_ID`: `413ef0b3-a947-4a02-a652-d963ef14b8da`
 3. Click **Deploy**. Vercel launches the application with instant edge delivery.
 
 ---
