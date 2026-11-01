@@ -66,8 +66,10 @@ function UpdateParticle({ update }) {
 }
 
 export default function SecurityPipeline3D() {
-  const updates = useAppStore(state => Object.values(state.updates));
-  const rounds = useAppStore(state => Object.values(state.rounds));
+  const updatesMap = useAppStore(state => state.updates);
+  const roundsMap = useAppStore(state => state.rounds);
+  const updates = useMemo(() => Object.values(updatesMap || {}), [updatesMap]);
+  const rounds = useMemo(() => Object.values(roundsMap || {}), [roundsMap]);
   const activeRound = useMemo(() => rounds.find(r => r.status === 'RUNNING' || r.status === 'OPEN') || {}, [rounds]);
 
   // Determine status for each stage (simple aggregation of updates at that stage)

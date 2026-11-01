@@ -1,3 +1,4 @@
+import NeuralModel3D from '../components/visualizations/NeuralModel3D'
 import React, { useState, useEffect, useMemo } from 'react'
 import {
   Cpu,
@@ -100,6 +101,20 @@ export default function GlobalModelPage({ data, token }) {
               : '88.2%'}
           </span>
           <span className="sec-stat-sub">Top-1 Accuracy on central validation</span>
+        </div>
+      </div>
+
+      {/* 3D Neural Architecture Simulation */}
+      <div className="sec-panel" style={{ marginBottom: 20 }}>
+        <div className="sec-panel-header">
+          <h2>
+            <Cpu size={16} />
+            3D Neural Architecture Simulation & Tensor Topography
+          </h2>
+          <span className="sec-badge sec-badge-pass">INTERACTIVE 3D</span>
+        </div>
+        <div className="sec-panel-body" style={{ height: 340, padding: 0, overflow: 'hidden' }}>
+          <NeuralModel3D height="340px" />
         </div>
       </div>
 

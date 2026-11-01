@@ -5,6 +5,7 @@ import {
   Archive,
   BarChart3,
   Building2,
+  ChevronRight,
   Database,
   FileClock,
   FileText,
@@ -958,6 +959,7 @@ function ModelLineage({ latestRound, previousRound }) {
 }
 
 function CommandCenter({ data }) {
+  const [commandView, setCommandView] = useState('3d')
   const latestRound = data.rounds?.[0]
   const previousRound = data.rounds?.[1]
   const incident = data.incidents?.[0]
@@ -1060,10 +1062,36 @@ function CommandCenter({ data }) {
             </span>
           </div>
 
-          <HospitalTopology
-            hospitals={data.hospitals}
-            incidents={data.incidents}
-          />
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginBottom: 10 }}>
+            <button
+              type="button"
+              style={{ fontSize: 11, padding: '3px 8px', background: commandView === '3d' ? 'rgba(0, 229, 255, 0.15)' : 'transparent', color: commandView === '3d' ? '#00e5ff' : '#8ba1a8', border: '1px solid ' + (commandView === '3d' ? '#00e5ff' : '#22303c'), borderRadius: 4, cursor: 'pointer' }}
+              onClick={() => setCommandView('3d')}
+            >
+              3D SIMULATION
+            </button>
+            <button
+              type="button"
+              style={{ fontSize: 11, padding: '3px 8px', background: commandView === '2d' ? 'rgba(0, 229, 255, 0.15)' : 'transparent', color: commandView === '2d' ? '#00e5ff' : '#8ba1a8', border: '1px solid ' + (commandView === '2d' ? '#00e5ff' : '#22303c'), borderRadius: 4, cursor: 'pointer' }}
+              onClick={() => setCommandView('2d')}
+            >
+              2D TOPOLOGY
+            </button>
+          </div>
+
+          {commandView === '3d' ? (
+            <div style={{ marginBottom: 12 }}>
+              <HospitalNetwork3D
+                hospitals={data.hospitals}
+                height="280px"
+              />
+            </div>
+          ) : (
+            <HospitalTopology
+              hospitals={data.hospitals}
+              incidents={data.incidents}
+            />
+          )}
 
           <div className="topology-legend">
             <span>
@@ -1135,6 +1163,7 @@ function CommandCenter({ data }) {
 }
 
 function FederationOverview({ data }) {
+  const [topologyView, setTopologyView] = useState('3d')
   const hospitals = Array.isArray(data.hospitals)
     ? data.hospitals
     : []
@@ -1324,6 +1353,35 @@ function FederationOverview({ data }) {
             </span>
           </div>
 
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginBottom: 12 }}>
+            <button
+              type="button"
+              className={`ghost-button ${topologyView === '3d' ? 'active' : ''}`}
+              style={{ fontSize: 11, padding: '4px 10px', background: topologyView === '3d' ? 'rgba(0, 229, 255, 0.15)' : 'transparent', color: topologyView === '3d' ? '#00e5ff' : '#8ba1a8', border: '1px solid ' + (topologyView === '3d' ? '#00e5ff' : '#22303c'), borderRadius: 4 }}
+              onClick={() => setTopologyView('3d')}
+            >
+              3D SIMULATION
+            </button>
+            <button
+              type="button"
+              className={`ghost-button ${topologyView === '2d' ? 'active' : ''}`}
+              style={{ fontSize: 11, padding: '4px 10px', background: topologyView === '2d' ? 'rgba(0, 229, 255, 0.15)' : 'transparent', color: topologyView === '2d' ? '#00e5ff' : '#8ba1a8', border: '1px solid ' + (topologyView === '2d' ? '#00e5ff' : '#22303c'), borderRadius: 4 }}
+              onClick={() => setTopologyView('2d')}
+            >
+              2D ORBIT
+            </button>
+          </div>
+
+          {topologyView === '3d' ? (
+            <div style={{ marginBottom: 16 }}>
+              <HospitalNetwork3D
+                hospitals={hospitals}
+                selectedHospital={selectedHospital}
+                onSelectHospital={(h) => setSelectedHospitalId(h?.id || null)}
+                height="340px"
+              />
+            </div>
+          ) : (
           <div className="interactive-topology">
             <div className="topology-orbit orbit-inner" />
             <div className="topology-orbit orbit-outer" />
@@ -1366,6 +1424,7 @@ function FederationOverview({ data }) {
               )
             })}
           </div>
+          )}
 
           <div className="topology-legend">
             <span>
@@ -2088,11 +2147,11 @@ function HospitalsPage({ data, token, onDataRefresh }) {
           </span>
         </div>
 
-        <div className="hospital-list">
+        <div className="hospital-grid">
 
           {filteredHospitals.length === 0 ? (
-            <div className="hospital-empty">
-              <Hospital size={24} />
+            <div className="hospital-empty" style={{ gridColumn: '1 / -1' }}>
+              <Hospital size={28} />
               <strong>NO HOSPITALS MATCH</strong>
               <small>
                 Adjust the search or lifecycle/security filters.
@@ -2118,21 +2177,11 @@ function HospitalsPage({ data, token, onDataRefresh }) {
                   )
                 : 0
 
-              const riskLevel =
-                riskScore >= 70
-                  ? 'HIGH'
-                  : riskScore >= 30
-                    ? 'MEDIUM'
-                    : riskScore > 0
-                      ? 'LOW'
-                      : 'NORMAL'
-
-
-              const isBusy = busyId === hospital.id
+              const isSelected = selected?.id === hospital.id
 
               return (
                 <article
-                  className={`hospital-row ${incidentHospitalIds.has(hospital.id) ? 'has-incident' : ''}`}
+                  className={`hospital-card ${isSelected ? 'selected' : ''} ${hospitalIncident ? 'has-incident' : ''}`}
                   key={hospital.id}
                   role="button"
                   tabIndex={0}
@@ -2144,108 +2193,49 @@ function HospitalsPage({ data, token, onDataRefresh }) {
                     }
                   }}
                 >
+                  <div className="hospital-card-glow" />
 
-                  <div className="hospital-identity">
-
-                    <div className={`hospital-node ${getSecurityClass(securityStatus)}`}>
-                      {hospital.code}
-                    </div>
-
-                    <div>
-                      <strong>{hospital.name}</strong>
-
-                      <small>
-                        {hospital.location || 'Location not provided'}
-                      </small>
-
-                      <small>
-                        {hospital.contact_email || 'No contact email'}
-                      </small>
-                    </div>
-
-                  </div>
-
-                                    {hospitalIncident ? (
-                    <div className="hospital-security-attention">
-                      <div className="security-attention-label">
-                        SECURITY ATTENTION
-                      </div>
-
-                      <div className="hospital-risk-metrics">
-                        <div className="hospital-risk-metric">
-                          <span>RISK SCORE</span>
-                          <strong>
-                            {Math.round(riskScore)} / 100
-                          </strong>
-                        </div>
-
-                        <div className="hospital-risk-metric">
-                          <span>SEVERITY</span>
-                          <strong>
-                            {String(
-                              hospitalIncident.severity || riskLevel
-                            ).toUpperCase()}
-                          </strong>
-                        </div>
-                      </div>
-
-                      <div className="hospital-incident-type">
-                        {String(
-                          hospitalIncident.incident_type ||
-                          hospitalIncident.incidentType ||
-                          hospitalIncident.type ||
-                          'SECURITY INCIDENT'
-                        ).replaceAll('_', ' ')}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="hospital-security-normal">
-                      <div className="security-normal-label">
-                        SECURITY STATUS
-                      </div>
-
-                      <strong>NORMAL</strong>
-
-                      <div className="hospital-risk-normal">
-                        RISK SCORE <b>0 / 100</b>
-                      </div>
+                  {hospitalIncident && (
+                    <div className="hospital-incident-marker">
+                      ALERT: RISK {Math.round(riskScore)}
                     </div>
                   )}
-<div className="hospital-state">
 
-                    <span
-                      className={`hospital-badge status-${getStatusClass(
-                        lifecycleStatus,
-                      )}`}
-                    >
+                  <div className="hospital-card-top">
+                    <span className="hospital-code">{hospital.code}</span>
+                    <div className="hospital-online">
+                      <i />
+                      <span>
+                        {lifecycleStatus === 'ACTIVE' ? 'ONLINE' : lifecycleStatus}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="hospital-card-main">
+                    <div className="hospital-building">
+                      <Building2 size={20} />
+                    </div>
+                    <div className="hospital-identity">
+                      <strong>{hospital.name}</strong>
+                      <span>{hospital.location || 'Location not specified'}</span>
+                      <small>{hospital.contact_email || 'No contact email'}</small>
+                    </div>
+                  </div>
+
+                  <div className="hospital-card-bottom">
+                    <span className={`state-badge ${getStatusClass(lifecycleStatus)}`}>
                       {lifecycleStatus}
                     </span>
-
-                    <span
-                      className={`hospital-badge security-${getSecurityClass(
-                        securityStatus,
-                      )}`}
-                    >
+                    <span className={`security-badge ${getSecurityClass(securityStatus)}`}>
                       {securityStatus}
                     </span>
-
-                    <span
-                      className={
-                        hospital.is_eligible
-                          ? 'eligibility yes'
-                          : 'eligibility no'
-                      }
-                    >
-                      {hospital.is_eligible ? 'ELIGIBLE' : 'INELIGIBLE'}
+                    <span className={`eligibility-badge ${hospital.is_eligible !== false ? 'eligible' : 'ineligible'}`}>
+                      {hospital.is_eligible !== false ? 'ELIGIBLE' : 'INELIGIBLE'}
                     </span>
-
+                    <div className="hospital-open" title="Inspect Node">
+                      <ChevronRight size={14} />
+                    </div>
                   </div>
-
-                  <div className="hospital-card-entry">
-                    <span>INSPECT NODE</span>
-                    <strong>?</strong>
-                  </div>
-
                 </article>
               )
             })

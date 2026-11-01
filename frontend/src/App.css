@@ -1204,7 +1204,7 @@ button {
 .overview-status small {
   margin-top: 4px;
   opacity: 0.45;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .status-dot {
@@ -1239,7 +1239,7 @@ button {
 }
 
 .overview-metric span {
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 1.5px;
   opacity: 0.42;
 }
@@ -1252,7 +1252,7 @@ button {
 }
 
 .overview-metric small {
-  font-size: 8px;
+  font-size: 11px;
   opacity: 0.42;
 }
 
@@ -1288,7 +1288,7 @@ button {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 1px;
   color: #36ffb7;
 }
@@ -1361,7 +1361,7 @@ button {
 }
 
 .core-node small {
-  font-size: 6px;
+  font-size: 10px;
   opacity: 0.5;
   margin-top: 2px;
 }
@@ -1388,12 +1388,12 @@ button {
   background: rgba(54, 255, 183, 0.05);
   align-items: center;
   justify-content: center;
-  font-size: 6px;
+  font-size: 10px;
   color: #36ffb7;
 }
 
 .topology-hospital small {
-  font-size: 6px;
+  font-size: 10px;
   opacity: 0.38;
 }
 
@@ -1423,7 +1423,7 @@ button {
 }
 
 .topology-footer span {
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.8px;
   opacity: 0.48;
   display: flex;
@@ -1464,7 +1464,7 @@ button {
 }
 
 .posture-total span {
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 1px;
   opacity: 0.4;
 }
@@ -1484,13 +1484,13 @@ button {
 }
 
 .posture-row span {
-  font-size: 8px;
+  font-size: 11px;
   opacity: 0.5;
   letter-spacing: 0.8px;
 }
 
 .posture-row strong {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 500;
 }
 
@@ -1530,7 +1530,7 @@ button {
 }
 
 .lifecycle-grid span {
-  font-size: 7px;
+  font-size: 10px;
   opacity: 0.4;
   letter-spacing: 0.8px;
 }
@@ -1576,13 +1576,13 @@ button {
 
 .round-id small,
 .round-stat small {
-  font-size: 7px;
+  font-size: 10px;
   opacity: 0.4;
   margin-top: 3px;
 }
 
 .round-state {
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .7px;
   padding: 4px 6px;
   border: 1px solid rgba(54, 255, 183, 0.2);
@@ -1604,7 +1604,7 @@ button {
 .overview-empty {
   padding: 30px;
   text-align: center;
-  font-size: 8px;
+  font-size: 11px;
   opacity: 0.4;
 }
 
@@ -1640,7 +1640,7 @@ button {
 }
 
 .pipeline-box small {
-  font-size: 5px;
+  font-size: 10px;
   opacity: 0.42;
   margin-top: 4px;
 }
@@ -1663,7 +1663,7 @@ button {
 
 .overview-principle p {
   margin: 0;
-  font-size: 8px;
+  font-size: 11px;
   line-height: 1.7;
   opacity: 0.45;
 }
@@ -1758,7 +1758,7 @@ button {
 .overview-status small {
   margin-top: 4px;
   color: #5c6c76;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.1em;
 }
 
@@ -1783,7 +1783,7 @@ button {
 .overview-metric > small {
   display: block;
   color: #62727d;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.1em;
 }
 
@@ -1870,7 +1870,7 @@ button {
 
 .topology-core small {
   color: #61737b;
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: 0.16em;
 }
 
@@ -1921,12 +1921,12 @@ button {
 }
 
 .interactive-hospital-node b {
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .interactive-hospital-node small {
   margin-top: 2px;
-  font-size: 5px;
+  font-size: 10px;
   letter-spacing: 0.04em;
   color: #5b747d;
 }
@@ -1996,7 +1996,7 @@ button {
   padding: 10px 14px;
   border-top: 1px solid rgba(110, 135, 150, 0.12);
   color: #667680;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.07em;
 }
 
@@ -2045,7 +2045,7 @@ button {
 
 .posture-total span {
   color: #64747e;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.1em;
 }
 
@@ -2059,7 +2059,7 @@ button {
   display: flex;
   justify-content: space-between;
   color: #7b8b94;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .posture-bars label b {
@@ -2097,7 +2097,7 @@ button {
 .lifecycle-grid span {
   display: block;
   color: #63737d;
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: 0.09em;
 }
 
@@ -2140,12 +2140,12 @@ button {
 .round-row > div small {
   margin-top: 3px;
   color: #5e6e77;
-  font-size: 6px;
+  font-size: 10px;
 }
 
 .round-row > span {
   color: #73828a;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .round-accepted {
@@ -2187,7 +2187,7 @@ button {
 .overview-stage-node small {
   margin-top: 4px;
   color: #5f727b;
-  font-size: 5px;
+  font-size: 10px;
 }
 
 .overview-stage-line {
@@ -2213,7 +2213,7 @@ button {
 .risk-principle p {
   margin: 0;
   color: #74848d;
-  font-size: 8px;
+  font-size: 11px;
   line-height: 1.6;
 }
 
@@ -2223,7 +2223,7 @@ button {
 
 .activity-round {
   color: #38dcb5;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.1em;
 }
 
@@ -2249,17 +2249,17 @@ button {
 
 .activity-step span {
   color: #3ddab8;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .activity-step strong {
   margin: 8px 0 5px;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .activity-step small {
   color: #65757e;
-  font-size: 6px;
+  font-size: 10px;
 }
 
 .activity-connector {
@@ -2316,7 +2316,7 @@ button {
 .drawer-header p {
   margin: 0;
   color: #74848d;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .drawer-close {
@@ -2360,13 +2360,13 @@ button {
 }
 
 .drawer-state strong {
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .drawer-state small {
   margin-top: 3px;
   color: #667780;
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: 0.08em;
 }
 
@@ -2378,7 +2378,7 @@ button {
 .drawer-section-title {
   margin-bottom: 12px;
   color: #43d9bb;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.1em;
 }
 
@@ -2405,7 +2405,7 @@ button {
 .drawer-round-card span {
   display: block;
   color: #61717b;
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: 0.08em;
 }
 
@@ -2416,7 +2416,7 @@ button {
   display: block;
   margin-top: 5px;
   color: #d9e1e4;
-  font-size: 8px;
+  font-size: 11px;
   word-break: break-word;
 }
 
@@ -2469,13 +2469,13 @@ button {
 
 .evidence-item span {
   color: #3ddab8;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .evidence-item p {
   margin: 0;
   color: #829199;
-  font-size: 7px;
+  font-size: 10px;
   line-height: 1.5;
 }
 
@@ -2489,14 +2489,14 @@ button {
 .drawer-warning strong {
   display: block;
   color: #ffc15b;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 0.08em;
 }
 
 .drawer-warning p {
   margin: 7px 0 0;
   color: #78868d;
-  font-size: 7px;
+  font-size: 10px;
   line-height: 1.55;
 }
 
@@ -2514,13 +2514,13 @@ button {
 
 .drawer-clean-state strong {
   display: block;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .drawer-clean-state p {
   margin: 6px 0 0;
   color: #697981;
-  font-size: 7px;
+  font-size: 10px;
   line-height: 1.5;
 }
 
@@ -2651,7 +2651,7 @@ button {
 
 .hospital-stat span {
   display: block;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 1.4px;
   color: #638087;
   margin-bottom: 10px;
@@ -2668,7 +2668,7 @@ button {
 .hospital-stat small {
   display: block;
   margin-top: 7px;
-  font-size: 8px;
+  font-size: 11px;
   color: #52666c;
 }
 
@@ -2719,7 +2719,7 @@ button {
   border: 1px solid #1c3035;
   background: #080e12;
   color: #8ba2a7;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: .5px;
   outline: 0;
 }
@@ -2778,7 +2778,7 @@ button {
   border: 1px solid #15716f;
   background: #07191c;
   color: #55d9d1;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: .5px;
 }
@@ -2811,7 +2811,7 @@ button {
 .hospital-identity small {
   display: block;
   color: #526a70;
-  font-size: 8px;
+  font-size: 11px;
   line-height: 1.5;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2835,7 +2835,7 @@ button {
   border: 1px solid #26363a;
   background: #091014;
   color: #71878c;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .7px;
   white-space: nowrap;
 }
@@ -2903,7 +2903,7 @@ button {
   border: 1px solid #26383d;
   background: #0a1115;
   color: #789197;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .7px;
   cursor: pointer;
 }
@@ -2938,7 +2938,7 @@ button {
 }
 
 .hospital-empty small {
-  font-size: 8px;
+  font-size: 11px;
 }
 
 /* Hospital detail / management modal */
@@ -2981,7 +2981,7 @@ button {
 .hospital-modal-header p {
   margin: 0;
   color: #61777c;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .hospital-detail-status {
@@ -3011,14 +3011,14 @@ button {
   display: block;
   margin-bottom: 8px;
   color: #536a70;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .8px;
 }
 
 .hospital-detail-grid strong {
   display: block;
   color: #c8d7d9;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 500;
   overflow-wrap: anywhere;
 }
@@ -3053,7 +3053,7 @@ button {
   border: 1px solid #25363a;
   background: #091014;
   color: #61777c;
-  font-size: 8px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -3072,7 +3072,7 @@ button {
   display: block;
   margin-top: 15px;
   color: #6d858a;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .9px;
 }
 
@@ -3246,7 +3246,7 @@ button {
 }
 
 .hospital-identity small {
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .hospital-state {
@@ -3258,7 +3258,7 @@ button {
 .hospital-badge {
   min-height: 24px;
   padding: 0 9px;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .8px;
 }
 
@@ -3275,7 +3275,7 @@ button {
 }
 
 .hospital-card-entry span {
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 1px;
 }
 
@@ -3326,7 +3326,7 @@ button {
   margin-left: auto;
   align-self: flex-end;
   color: #36575c;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 1px;
 }
 
@@ -3422,7 +3422,7 @@ button {
 .hospital-metric > span {
   display: block;
   color: #55717a;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 0.16em;
   margin-bottom: 10px;
 }
@@ -3438,7 +3438,7 @@ button {
   display: block;
   margin-top: 8px;
   color: #47616a;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .metric-icon {
@@ -3506,13 +3506,13 @@ button {
   color: #8aa6ad;
   padding: 0 10px;
   font-family: inherit;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.05em;
 }
 
 .hospital-result-count {
   color: #42616a;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 0.12em;
   text-align: right;
   white-space: nowrap;
@@ -3542,7 +3542,7 @@ button {
   padding: 7px 10px;
   border: 1px solid #17343b;
   color: #54717a;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .hospital-grid {
@@ -3625,7 +3625,7 @@ button {
   align-items: center;
   gap: 6px;
   color: #32d89d;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.12em;
 }
 
@@ -3664,8 +3664,9 @@ button {
 .hospital-identity strong {
   display: block;
   color: #dceff2;
-  font-size: 11px;
-  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3675,7 +3676,7 @@ button {
 .hospital-identity small {
   display: block;
   color: #527079;
-  font-size: 8px;
+  font-size: 11px;
   margin-top: 3px;
   white-space: nowrap;
   overflow: hidden;
@@ -3699,7 +3700,7 @@ button {
   padding: 5px 7px;
   border: 1px solid #174650;
   color: #27cfd7;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.06em;
 }
 
@@ -3765,7 +3766,7 @@ button {
   color: #ff6370;
   border-right: 1px solid rgba(255, 67, 82, 0.35);
   border-bottom: 1px solid rgba(255, 67, 82, 0.35);
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: 0.12em;
 }
 
@@ -3795,7 +3796,7 @@ button {
 
 .hospital-empty span {
   color: #405860;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 /* ============================================================
@@ -3859,7 +3860,7 @@ button {
 .hospital-drawer-header p {
   margin: 0;
   color: #58727a;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .drawer-status-dot {
@@ -3901,7 +3902,7 @@ button {
   padding: 12px 5px;
   text-align: center;
   color: #4e6870;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.08em;
   border-right: 1px solid #172d34;
 }
@@ -3948,13 +3949,13 @@ button {
 .drawer-visual span {
   margin-top: 4px;
   color: #4e6971;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.12em;
 }
 
 .drawer-visual strong {
   color: #c6dce0;
-  font-size: 9px;
+  font-size: 11px;
   margin-bottom: 4px;
   word-break: break-word;
 }
@@ -3977,14 +3978,14 @@ button {
 .drawer-state-grid span {
   display: block;
   color: #49636a;
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: 0.1em;
   margin-bottom: 9px;
 }
 
 .drawer-state-grid strong {
   color: #28d5dc;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .drawer-action-section {
@@ -3994,7 +3995,7 @@ button {
 .drawer-section-title {
   margin-bottom: 12px;
   color: #56aab0;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 0.15em;
 }
 
@@ -4028,7 +4029,7 @@ button {
 
 .drawer-action strong {
   display: block;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 0.04em;
 }
 
@@ -4036,7 +4037,7 @@ button {
   display: block;
   margin-top: 8px;
   color: #4c666e;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .drawer-action.approve {
@@ -4074,7 +4075,7 @@ button {
   padding: 9px;
   border: 1px solid #17454c;
   color: #27d8df;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.1em;
 }
 
@@ -4084,7 +4085,7 @@ button {
   border: 1px solid rgba(255, 76, 91, 0.4);
   background: rgba(255, 76, 91, 0.06);
   color: #ff6470;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .drawer-security-note {
@@ -4104,7 +4105,7 @@ button {
 
 .drawer-security-note small {
   color: #526d74;
-  font-size: 7px;
+  font-size: 10px;
   line-height: 1.5;
 }
 
@@ -4315,7 +4316,7 @@ button {
 
 /* online indicator */
 .hospitals-page .hospital-online {
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.14em;
 }
 
@@ -4388,7 +4389,7 @@ button {
 .hospitals-page .hospital-identity span,
 .hospitals-page .hospital-identity small {
   color: #55727a;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 /* bottom = status telemetry, NOT action buttons */
@@ -4423,7 +4424,7 @@ button {
 
   padding: 5px 9px;
 
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: 0.14em;
 }
 
@@ -4434,7 +4435,7 @@ button {
   margin-left: auto;
 
   color: #3d6670;
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: 0.13em;
 
   transition:
@@ -4600,7 +4601,7 @@ button {
 
   color: #294b53;
 
-  font-size: 5px;
+  font-size: 10px;
   letter-spacing: 0.12em;
 }
 
@@ -4642,7 +4643,7 @@ button {
 
   color: #ff6571;
 
-  font-size: 5px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.1em;
 }
@@ -5203,7 +5204,7 @@ button {
   padding: 4px 7px;
   border-radius: 5px;
 
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: .12em;
 
@@ -5229,7 +5230,7 @@ button {
   content: "SELECT NODE";
   margin-top: 4px;
 
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: .13em;
 
@@ -5375,7 +5376,7 @@ button {
 
 .hospitals-page .hospital-drawer-header .panel-kicker {
   color: #38cbd2;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.16em;
 }
 
@@ -5409,7 +5410,7 @@ button {
 .hospitals-page .hospital-detail-grid span {
   margin-bottom: 10px;
   color: #5d7c84;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 0.12em;
 }
 
@@ -5428,7 +5429,7 @@ button {
 
 .hospitals-page .hospital-management-actions .panel-kicker {
   color: #55aeb4;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.13em;
   margin-bottom: 13px;
 }
@@ -5436,7 +5437,7 @@ button {
 .hospitals-page .hospital-management-actions button {
   min-height: 36px;
   padding: 0 13px;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.08em;
 }
 
@@ -5446,7 +5447,7 @@ button {
   border: 1px solid #172d34;
   background: rgba(8, 17, 22, 0.55);
   color: #789198;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.6;
 }
 
@@ -5509,7 +5510,7 @@ button {
   justify-content: space-between;
   border-bottom: 1px solid #172d34;
   color: #55aeb4;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.14em;
 }
 
@@ -5537,13 +5538,13 @@ button {
 .hospitals-page .security-state-row span,
 .hospitals-page .incident-state-details span {
   color: #5d7c84;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.11em;
 }
 
 .hospitals-page .security-state-row strong {
   color: #c8dde0;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.05em;
 }
 
@@ -5564,7 +5565,7 @@ button {
 
 .hospitals-page .incident-state-heading > span:first-child {
   color: #a9bec2;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.12em;
 }
 
@@ -5572,7 +5573,7 @@ button {
   padding: 4px 7px;
   border: 1px solid rgba(200, 90, 90, 0.55);
   color: #d88989;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.1em;
 }
 
@@ -5604,7 +5605,7 @@ button {
 
 .hospitals-page .incident-state-details strong {
   color: #cbdfe2;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .hospitals-page .hospital-security-clear {
@@ -5613,7 +5614,7 @@ button {
   align-items: center;
   gap: 9px;
   color: #708a90;
-  font-size: 8px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -5687,7 +5688,7 @@ button {
 .synthetic-status strong {
   display: block;
   color: #57d1d2;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 0.12em;
 }
 
@@ -5695,7 +5696,7 @@ button {
   display: block;
   margin-top: 4px;
   color: #557178;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .synthetic-metrics {
@@ -5715,7 +5716,7 @@ button {
 .synthetic-metric span {
   display: block;
   color: #57757d;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.14em;
 }
 
@@ -5730,7 +5731,7 @@ button {
   display: block;
   margin-top: 5px;
   color: #587178;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .synthetic-main-grid {
@@ -5747,7 +5748,7 @@ button {
   border: 1px solid #1b4147;
   color: #55c7ca;
   background: rgba(10, 29, 34, 0.7);
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.1em;
 }
 
@@ -5775,7 +5776,7 @@ button {
 .synthetic-flow-node strong {
   display: block;
   color: #9eb6ba;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.05em;
 }
 
@@ -5783,7 +5784,7 @@ button {
   display: block;
   margin-top: 6px;
   color: #526b71;
-  font-size: 6px;
+  font-size: 10px;
 }
 
 .synthetic-flow-node.active,
@@ -5827,13 +5828,13 @@ button {
 .synthetic-explanation strong {
   display: block;
   color: #a8c2c5;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .synthetic-explanation p {
   margin: 6px 0 0;
   color: #617b81;
-  font-size: 8px;
+  font-size: 11px;
   line-height: 1.6;
 }
 
@@ -5850,7 +5851,7 @@ button {
 .network-layer span {
   display: block;
   color: #4f7b82;
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: 0.14em;
 }
 
@@ -5865,7 +5866,7 @@ button {
   display: block;
   margin-top: 4px;
   color: #526d73;
-  font-size: 6px;
+  font-size: 10px;
 }
 
 .network-layer.input,
@@ -5912,7 +5913,7 @@ button {
 
 .synthetic-client-head strong {
   color: #708a90;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .synthetic-client-dot {
@@ -5958,7 +5959,7 @@ button {
   display: block;
   margin-top: 4px;
   color: #4e676d;
-  font-size: 6px;
+  font-size: 10px;
 }
 
 .synthetic-shard-note {
@@ -5969,7 +5970,7 @@ button {
   padding: 11px 13px;
   border-top: 1px solid #152f35;
   color: #637b80;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .synthetic-boundary {
@@ -5996,7 +5997,7 @@ button {
 .boundary-label {
   margin-bottom: 13px;
   color: #55bfc2;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: 0.14em;
 }
 
@@ -6010,7 +6011,7 @@ button {
   gap: 8px;
   margin-top: 9px;
   color: #71898e;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .boundary-item svg {
@@ -6024,7 +6025,7 @@ button {
   justify-content: center;
   gap: 8px;
   color: #536f75;
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: 0.12em;
 }
 
@@ -6045,13 +6046,13 @@ button {
 
 .synthetic-principle strong {
   color: #5bd0d0;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.12em;
 }
 
 .synthetic-principle span {
   color: #70888d;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .synthetic-context {
@@ -6073,7 +6074,7 @@ button {
 .synthetic-context span {
   display: block;
   color: #4e6970;
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: 0.13em;
 }
 
@@ -6212,12 +6213,12 @@ button {
 }
 
 .synthetic-flow-node strong {
-  font-size: 7px;
+  font-size: 10px;
   white-space: normal;
 }
 
 .synthetic-flow-node small {
-  font-size: 6px;
+  font-size: 10px;
 }
 
 .synthetic-flow-line {
@@ -6417,7 +6418,7 @@ button {
 .round-config-state small {
   margin-bottom: 4px;
   color: #52777e;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .12em;
 }
 
@@ -6484,7 +6485,7 @@ button {
   color: #4fc6cc;
   border: 1px solid #23525a;
   padding: 5px 8px;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .1em;
 }
 
@@ -6549,7 +6550,7 @@ button {
 .round-mode-card span {
   margin-bottom: 5px;
   color: #52777e;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .12em;
 }
 
@@ -6563,13 +6564,13 @@ button {
   max-width: 480px;
   margin-top: 6px;
   color: #6d888e;
-  font-size: 8px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
 .round-mode-card i {
   color: #3dbfc5;
-  font-size: 7px;
+  font-size: 10px;
   font-style: normal;
   letter-spacing: .08em;
 }
@@ -6598,7 +6599,7 @@ button {
 
 .round-field-top label {
   color: #63848a;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: .12em;
 }
 
@@ -6619,7 +6620,7 @@ button {
   display: flex;
   justify-content: space-between;
   color: #4f6e74;
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: .1em;
 }
 
@@ -6645,7 +6646,7 @@ button {
   display: block;
   margin-bottom: 6px;
   color: #5d7c82;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .1em;
 }
 
@@ -6683,7 +6684,7 @@ button {
   align-items: center;
   gap: 8px;
   color: #4f7077;
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: .1em;
 }
 
@@ -6704,7 +6705,7 @@ button {
   display: block;
   margin-top: 9px;
   color: #627f85;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .round-validation-strip {
@@ -6731,7 +6732,7 @@ button {
 .round-validation-strip span {
   margin-bottom: 5px;
   color: #4f6f76;
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: .1em;
 }
 
@@ -6775,7 +6776,7 @@ button {
 .attack-toggle-copy span {
   margin-bottom: 5px;
   color: #5c7d83;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .11em;
 }
 
@@ -6788,7 +6789,7 @@ button {
   max-width: 440px;
   margin-top: 7px;
   color: #617d83;
-  font-size: 7px;
+  font-size: 10px;
   line-height: 1.5;
 }
 
@@ -6849,7 +6850,7 @@ button {
 
 .readiness-summary span {
   color: #54757c;
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: .1em;
 }
 
@@ -6878,7 +6879,7 @@ button {
 .participant-node-id {
   display: block;
   color: #739196;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .08em;
 }
 
@@ -6922,7 +6923,7 @@ button {
 
 .participant-node small {
   color: #47666c;
-  font-size: 5px;
+  font-size: 10px;
   letter-spacing: .08em;
 }
 
@@ -6953,7 +6954,7 @@ button {
 .readiness-footer span {
   margin-bottom: 4px;
   color: #4d6d73;
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: .1em;
 }
 
@@ -7022,7 +7023,7 @@ button {
 .preview-flow small {
   margin-top: 3px;
   color: #4f7076;
-  font-size: 5px;
+  font-size: 10px;
   letter-spacing: .08em;
 }
 
@@ -7044,7 +7045,7 @@ button {
     );
   color: #aee1e3;
   font-family: inherit;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: .12em;
   cursor: pointer;
 }
@@ -7068,7 +7069,7 @@ button {
   border: 1px solid #235058;
   background: rgba(8, 22, 26, .8);
   color: #81b9bd;
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .round-action-feedback.success svg {
@@ -7115,7 +7116,7 @@ button {
 
 .history-round-number span {
   color: #46676e;
-  font-size: 5px;
+  font-size: 10px;
   letter-spacing: .1em;
 }
 
@@ -7133,7 +7134,7 @@ button {
 
 .history-status strong {
   color: #92b5b9;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .08em;
 }
 
@@ -7173,7 +7174,7 @@ button {
   color: #5a777d;
   border: 1px solid #17343a;
   padding: 5px 7px;
-  font-size: 5px;
+  font-size: 10px;
   letter-spacing: .08em;
 }
 
@@ -7184,7 +7185,7 @@ button {
   background: rgba(17, 45, 50, .55);
   color: #73cbd0;
   font-family: inherit;
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: .08em;
   cursor: pointer;
 }
@@ -7206,7 +7207,7 @@ button {
   justify-content: center;
   gap: 9px;
   color: #45656c;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .12em;
 }
 
@@ -7305,7 +7306,7 @@ button {
   right: 15px;
   bottom: 12px;
   color: #48676d;
-  font-size: 5px;
+  font-size: 10px;
   letter-spacing: .1em;
 }
 
@@ -7376,7 +7377,7 @@ button {
   padding: 0 11px;
   border: 1px solid #23444a;
   color: #7f9ba0;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: .12em;
 }
 
@@ -7415,7 +7416,7 @@ button {
 .live-connection small {
   display: block;
   color: #55747a;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .13em;
 }
 
@@ -7425,7 +7426,7 @@ button {
   gap: 7px;
   margin: 8px 0;
   color: #c8e0e3;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: .1em;
 }
 
@@ -7451,7 +7452,7 @@ button {
 .live-metric small {
   display: block;
   color: #55747a;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .12em;
 }
 
@@ -7503,7 +7504,7 @@ button {
   padding: 6px 8px;
   border: 1px solid #21434a;
   color: #48bdc2;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .1em;
 }
 
@@ -7586,7 +7587,7 @@ button {
   display: block;
   margin-top: 4px;
   color: #59767c;
-  font-size: 7px;
+  font-size: 10px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -7597,7 +7598,7 @@ button {
   align-items: center;
   gap: 6px;
   color: #5e858a;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .08em;
   white-space: nowrap;
 }
@@ -7654,7 +7655,7 @@ button {
 }
 
 .live-flow-node span {
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .1em;
 }
 
@@ -7697,7 +7698,7 @@ button {
 .live-security-core > span {
   margin-top: 5px;
   color: #4c777d;
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: .1em;
 }
 
@@ -7709,7 +7710,7 @@ button {
   padding: 6px 8px;
   border: 1px solid #21434a;
   color: #49c8cd;
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: .09em;
 }
 
@@ -7742,7 +7743,7 @@ button {
 .live-stage strong {
   display: block;
   color: #55757b;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: .1em;
 }
 
@@ -7750,7 +7751,7 @@ button {
   display: block;
   margin-top: 4px;
   color: #3c5c62;
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: .07em;
 }
 
@@ -7824,7 +7825,7 @@ button {
 .live-event-row time {
   padding-top: 2px;
   color: #4a6c72;
-  font-size: 7px;
+  font-size: 10px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -7856,7 +7857,7 @@ button {
 .live-event-copy strong {
   display: block;
   color: #b8d0d3;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: .08em;
 }
 
@@ -7864,7 +7865,7 @@ button {
   display: block;
   margin-top: 4px;
   color: #57747a;
-  font-size: 7px;
+  font-size: 10px;
   line-height: 1.45;
 }
 
@@ -7897,7 +7898,7 @@ button {
   display: block;
   margin-top: 5px;
   color: #537179;
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: .1em;
 }
 
@@ -7909,7 +7910,7 @@ button {
 .live-update-state small {
   display: block;
   color: #5e858a;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .08em;
 }
 
@@ -7935,7 +7936,7 @@ button {
   justify-content: center;
   gap: 9px;
   color: #48666c;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: .08em;
 }
 
@@ -7962,14 +7963,14 @@ button {
   display: block;
   margin-top: 4px;
   color: #d7b9bb;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .live-incident-strip span {
   display: block;
   margin-top: 4px;
   color: #8d696d;
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .live-incident-meta {
@@ -7978,7 +7979,7 @@ button {
 
 .live-incident-meta span {
   color: #dc7c83;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: .1em;
 }
 
@@ -7986,7 +7987,7 @@ button {
   display: block;
   margin-top: 5px;
   color: #75585c;
-  font-size: 6px;
+  font-size: 10px;
 }
 
 .live-empty-state {
@@ -8013,7 +8014,7 @@ button {
   max-width: 500px;
   margin: 0;
   color: #648086;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.6;
 }
 
@@ -8149,7 +8150,7 @@ button {
 .round-config-page .client-count-control > span {
   align-self: center;
   color: #6c8b92;
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.14em;
 }
@@ -8176,7 +8177,7 @@ button {
 .round-config-page .client-count-control small {
   grid-column: 1 / -1;
   color: #527079;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 0.04em;
 }
 
@@ -8217,7 +8218,7 @@ button {
 
 .round-config-page .round-mode-card i {
   font-style: normal;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 0.12em;
 }
 
@@ -8240,7 +8241,7 @@ button {
 
 .synthetic-page .boundary-arrow-label {
   color: #6f8d94;
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.13em;
   text-align: center;
@@ -8375,7 +8376,7 @@ button {
   padding: 3px 6px;
   border: 1px solid #19383e;
   color: #50777d;
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: .12em;
 }
 
@@ -8420,14 +8421,14 @@ button {
   display: block;
   margin-bottom: 4px;
   color: #b9d8db;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: .08em;
 }
 
 .round-mode-explanation p {
   margin: 0;
   color: #66838a;
-  font-size: 8px;
+  font-size: 11px;
   line-height: 1.6;
 }
 
@@ -8470,13 +8471,13 @@ button {
 
 .round-selected-summary span {
   color: #5d7a80;
-  font-size: 7px;
+  font-size: 10px;
   letter-spacing: .1em;
 }
 
 .round-selected-summary strong {
   color: #48d5d9;
-  font-size: 9px;
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -8504,7 +8505,7 @@ button {
   display: block;
   margin-top: 8px;
   color: #48676d;
-  font-size: 6px;
+  font-size: 10px;
   letter-spacing: .09em;
 }
 
@@ -8524,7 +8525,7 @@ button {
   border: 1px solid #4b4426;
   background: rgba(54, 46, 17, .28);
   color: #b6a75d;
-  font-size: 8px;
+  font-size: 11px;
   line-height: 1.55;
 }
 
@@ -8532,7 +8533,7 @@ button {
   display: block;
   margin-bottom: 3px;
   color: #d1c06d;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: .09em;
 }
 
@@ -8624,7 +8625,7 @@ button {
   display: block;
   margin-top: 4px;
   color: #9a7f82;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .round-config-page .history-status-failed {
@@ -8721,7 +8722,7 @@ button {
 }
 
 .client-presets-row .preset-label {
-  font-size: 8px;
+  font-size: 11px;
   color: #55757d;
   letter-spacing: 0.1em;
   font-weight: 600;
@@ -8732,7 +8733,7 @@ button {
   border: 1px solid #1c3c44;
   background: #061519;
   color: #7da5ae;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.06em;
   font-family: inherit;
   cursor: pointer;
@@ -8811,7 +8812,7 @@ button {
   background: rgba(45, 15, 15, 0.3);
   color: #f87171;
   font-family: inherit;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.06em;
   cursor: pointer;
@@ -8869,7 +8870,7 @@ button {
 
 .live-round-selector-box label {
   color: #63848a;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 0.12em;
   font-weight: 600;
 }

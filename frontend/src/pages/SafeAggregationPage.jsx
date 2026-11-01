@@ -1,3 +1,4 @@
+import SecurityPipeline3D from '../components/visualizations/SecurityPipeline3D'
 import React, { useState, useEffect, useMemo } from 'react'
 import {
   Layers3,
@@ -104,6 +105,20 @@ export default function SafeAggregationPage({ data, token, onNavigate }) {
           <span className="sec-stat-label">AGGREGATION METHOD</span>
           <span className="sec-stat-value">FEDAVG + SHIELD</span>
           <span className="sec-stat-sub">Multi-layer pre-filtered</span>
+        </div>
+      </div>
+
+      {/* 3D Security Pipeline & Aggregation Flow */}
+      <div className="sec-panel" style={{ marginBottom: 20 }}>
+        <div className="sec-panel-header">
+          <h2>
+            <Layers3 size={16} />
+            3D Security Pipeline & Tensor Aggregation Simulation
+          </h2>
+          <span className="sec-badge sec-badge-pass">LIVE 3D SIMULATION</span>
+        </div>
+        <div className="sec-panel-body" style={{ height: 280, padding: 0, overflow: 'hidden' }}>
+          <SecurityPipeline3D />
         </div>
       </div>
 

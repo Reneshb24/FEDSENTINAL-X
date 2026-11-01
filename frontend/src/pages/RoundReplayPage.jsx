@@ -1,3 +1,4 @@
+import SecurityPipeline3D from '../components/visualizations/SecurityPipeline3D'
 import React, { useState, useEffect, useMemo, useRef } from 'react'
 import {
   Play,

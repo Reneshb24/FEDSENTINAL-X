@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 
 from backend.core.types import RoundStatus
 from backend.layers.layer3_influence.subset_sampler import (
@@ -134,9 +135,21 @@ def round_to_response(
     federation_round: FederationRound,
 ) -> FederationRoundResponse:
 
-    configuration = json.loads(
-        federation_round.config_json or "{}"
-    )
+    try:
+        configuration = json.loads(federation_round.config_json or "{}")
+    except Exception:
+        configuration = {}
+
+    if not isinstance(configuration, dict):
+        configuration = {}
+
+    if "num_clients" in configuration:
+        try:
+            configuration["num_clients"] = max(2, int(configuration["num_clients"]))
+        except (ValueError, TypeError):
+            configuration["num_clients"] = 2
+    else:
+        configuration.setdefault("num_clients", 2)
 
     return FederationRoundResponse(
         id=federation_round.id,
