@@ -1,4 +1,4 @@
-import SecurityPipeline3D from '../components/visualizations/SecurityPipeline3D'
+import SafeAggregationVortex3D from '../components/visualizations/SafeAggregationVortex3D'
 import React, { useState, useEffect, useMemo } from 'react'
 import {
   Layers3,
@@ -108,17 +108,17 @@ export default function SafeAggregationPage({ data, token, onNavigate }) {
         </div>
       </div>
 
-      {/* 3D Security Pipeline & Aggregation Flow */}
-      <div className="sec-panel" style={{ marginBottom: 20 }}>
+      {/* 3D Safe Tensor Aggregation Vortex */}
+      <div className="sec-panel" style={{ marginBottom: 16 }}>
         <div className="sec-panel-header">
           <h2>
             <Layers3 size={16} />
-            3D Security Pipeline & Tensor Aggregation Simulation
+            3D FedAvg Tensor Aggregation Fusion & Quarantine Vault
           </h2>
-          <span className="sec-badge sec-badge-pass">LIVE 3D SIMULATION</span>
+          <span className="sec-badge sec-badge-pass">FUSION VORTEX</span>
         </div>
-        <div className="sec-panel-body" style={{ height: 280, padding: 0, overflow: 'hidden' }}>
-          <SecurityPipeline3D />
+        <div className="sec-panel-body" style={{ height: 260, padding: 0, overflow: 'hidden' }}>
+          <SafeAggregationVortex3D height="260px" />
         </div>
       </div>
 

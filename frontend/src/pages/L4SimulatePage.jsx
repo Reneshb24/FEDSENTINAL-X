@@ -1,3 +1,4 @@
+import L4Counterfactual3D from '../components/visualizations/L4Counterfactual3D'
 import React, { useState, useEffect, useMemo } from 'react'
 import {
   Sliders,
@@ -125,6 +126,20 @@ export default function L4SimulatePage({ data, token, onNavigate }) {
               : '--'}
           </span>
           <span className="sec-stat-sub">Δ Cross-entropy loss</span>
+        </div>
+      </div>
+
+      {/* 3D Counterfactual Bifurcation Trajectory */}
+      <div className="sec-panel" style={{ marginBottom: 16 }}>
+        <div className="sec-panel-header">
+          <h2>
+            <Zap size={16} />
+            3D Leave-One-Out (LOO) Counterfactual Model Trajectory
+          </h2>
+          <span className="sec-badge sec-badge-pass">BIFURCATION TRAJECTORY</span>
+        </div>
+        <div className="sec-panel-body" style={{ height: 250, padding: 0, overflow: 'hidden' }}>
+          <L4Counterfactual3D height="250px" />
         </div>
       </div>
 

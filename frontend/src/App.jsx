@@ -54,6 +54,9 @@ import FederationMembershipPage from './pages/FederationMembershipPage'
 import HumanOverridesPage from './pages/HumanOverridesPage'
 import ModelLineagePage from './pages/ModelLineagePage'
 import HospitalNetwork3D from './components/visualizations/HospitalNetwork3D'
+import DefenseShield3D from './components/visualizations/DefenseShield3D'
+import FederationOrbit3D from './components/visualizations/FederationOrbit3D'
+import SyntheticLab3D from './components/visualizations/SyntheticLab3D'
 import { ClipboardCheck } from 'lucide-react'
 
 const rawApi = (import.meta.env && import.meta.env.VITE_API_BASE_URL) || 'http://127.0.0.1:8000'
@@ -70,10 +73,9 @@ const navGroups = [
     items: [
       { id: 'overview', label: 'Overview', icon: 'overview' },
       { id: 'registration-requests', label: 'Registration Requests', icon: 'clipboard' },
-      { id: 'hospitals', label: 'Hospital Directory', icon: 'hospitals' },
-      { id: 'hospital-lifecycle', label: 'Hospital Lifecycle', icon: 'activity' },
+      { id: 'hospitals', label: 'Hospital Control Center', icon: 'hospitals' },
       { id: 'federation-membership', label: 'Federation Cohort', icon: 'network' },
-      { id: 'synthetic', label: 'Synthetic Lab (Simulation)', icon: 'synthetic' },
+      { id: 'synthetic', label: 'Synthetic Lab & Sandbox', icon: 'synthetic' },
     ],
   },
   {
@@ -1081,9 +1083,9 @@ function CommandCenter({ data }) {
 
           {commandView === '3d' ? (
             <div style={{ marginBottom: 12 }}>
-              <HospitalNetwork3D
-                hospitals={data.hospitals}
-                height="280px"
+              <DefenseShield3D
+                posture={federationPosture}
+                height="260px"
               />
             </div>
           ) : (
@@ -1374,11 +1376,11 @@ function FederationOverview({ data }) {
 
           {topologyView === '3d' ? (
             <div style={{ marginBottom: 16 }}>
-              <HospitalNetwork3D
+              <FederationOrbit3D
                 hospitals={hospitals}
                 selectedHospital={selectedHospital}
                 onSelectHospital={(h) => setSelectedHospitalId(h?.id || null)}
-                height="340px"
+                height="280px"
               />
             </div>
           ) : (
@@ -2050,12 +2052,12 @@ function HospitalsPage({ data, token, onDataRefresh }) {
       </header>
 
       {/* 3D Federation Topology Radar */}
-      <section style={{ marginBottom: 20 }}>
+      <section style={{ marginBottom: 14 }}>
         <HospitalNetwork3D
           hospitals={filteredHospitals}
           selectedHospital={selected}
           onSelectHospital={setSelected}
-          height="340px"
+          height="240px"
         />
       </section>
 
@@ -2856,12 +2858,12 @@ function HospitalControlCenter({ data, token, onDataRefresh }) {
       </header>
 
       {/* 3D Federation Topology Radar */}
-      <section style={{ marginBottom: 20 }}>
+      <section style={{ marginBottom: 14 }}>
         <HospitalNetwork3D
           hospitals={filteredHospitals}
           selectedHospital={selected}
           onSelectHospital={setSelected}
-          height="340px"
+          height="240px"
         />
       </section>
 
@@ -3291,6 +3293,10 @@ function HospitalControlCenter({ data, token, onDataRefresh }) {
 
 
 function SyntheticDataPage({ data }) {
+  const [selectedScenario, setSelectedScenario] = useState('non_iid')
+  const [clientCount, setClientCount] = useState(20)
+  const [alphaVal, setAlphaVal] = useState(0.5)
+
   const hospitals = Array.isArray(data?.hospitals)
     ? data.hospitals
     : []
@@ -3306,7 +3312,7 @@ function SyntheticDataPage({ data }) {
       String(hospital.status || '').toUpperCase() === 'ACTIVE',
   ).length
 
-  const simulatedClients = 20
+  const simulatedClients = clientCount
 
   return (
     <div className="synthetic-page">
@@ -3314,15 +3320,13 @@ function SyntheticDataPage({ data }) {
       <header className="synthetic-hero">
         <div>
           <div className="eyebrow">
-            FEDERATION / SIMULATION LAB
+            FEDERATION / SIMULATION & ATTACK SANDBOX
           </div>
 
-          <h1>Synthetic Data</h1>
+          <h1>Synthetic Lab & Sandbox</h1>
 
           <p>
-            Controlled synthetic environment for reproducing
-            federated-learning conditions without exposing
-            hospital-local datasets.
+            Controlled simulation testbed for validating zero-trust security layers against non-IID partitions and adversarial attacks.
           </p>
         </div>
 
@@ -3330,11 +3334,55 @@ function SyntheticDataPage({ data }) {
           <span className="pulse" />
 
           <div>
-            <strong>SIMULATION BASELINE</strong>
-            <small>FEDERATION DATA ENVIRONMENT</small>
+            <strong>{selectedScenario.toUpperCase().replaceAll('_', ' ')}</strong>
+            <small>ACTIVE SIMULATION PROFILE</small>
           </div>
         </div>
       </header>
+
+      {/* 3D Synthetic Shard & Dirichlet Topology */}
+      <section style={{ marginBottom: 16 }}>
+        <SyntheticLab3D height="250px" />
+      </section>
+
+      {/* Interactive Scenario Selector */}
+      <section className="panel" style={{ padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#00e5ff', letterSpacing: '0.06em' }}>ATTACK / DRIFT SCENARIO:</span>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {[
+              { id: 'clean', label: 'Clean IID Baseline' },
+              { id: 'non_iid', label: 'Non-IID Dirichlet (α=0.5)' },
+              { id: 'label_skew', label: 'Extreme Skew (α=0.1)' },
+              { id: 'backdoor', label: 'Backdoor Trigger Patch' },
+              { id: 'sybil', label: 'Model Replacement Sybil' }
+            ].map(sc => (
+              <button
+                key={sc.id}
+                type="button"
+                onClick={() => setSelectedScenario(sc.id)}
+                style={{
+                  fontSize: 10,
+                  padding: '4px 8px',
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                  border: selectedScenario === sc.id ? '1px solid #00e5ff' : '1px solid #1e293b',
+                  background: selectedScenario === sc.id ? 'rgba(0, 229, 255, 0.15)' : 'rgba(15, 23, 42, 0.6)',
+                  color: selectedScenario === sc.id ? '#00e5ff' : '#94a3b8',
+                  fontWeight: selectedScenario === sc.id ? 700 : 500
+                }}
+              >
+                {sc.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 11, color: '#94a3b8' }}>
+          <span>Nodes: <strong style={{ color: '#fff' }}>{clientCount}</strong></span>
+          <span>Dirichlet α: <strong style={{ color: '#00e5ff' }}>{selectedScenario === 'label_skew' ? '0.1' : alphaVal}</strong></span>
+        </div>
+      </section>
 
 
       <section className="synthetic-metrics">
@@ -3422,7 +3470,7 @@ function SyntheticDataPage({ data }) {
             <div className="synthetic-flow-node security">
               <ShieldCheck size={17} />
               <strong>SECURITY PIPELINE</strong>
-              <small>VERIFY ? INSPECT ? CORRELATE</small>
+              <small>VERIFY → INSPECT → CORRELATE</small>
             </div>
 
           </div>
@@ -3433,7 +3481,7 @@ function SyntheticDataPage({ data }) {
 
             <div>
               <strong>
-                Synthetic data is a controlled simulation input ? not hospital data.
+                Synthetic data is a controlled simulation input — not private hospital data.
               </strong>
 
               <p>
@@ -5886,7 +5934,7 @@ function LiveRoundPage({ data, token }) {
             <div className="panel-kicker">
               SECURITY PIPELINE
             </div>
-            <h2>VERIFY ? INSPECT ? CORRELATE ? ANALYZE</h2>
+            <h2>VERIFY → INSPECT → CORRELATE ? ANALYZE</h2>
           </div>
 
           <span className="live-principle">
@@ -6615,12 +6663,6 @@ function App() {
           />
         ) : active === 'hospitals' ? (
           <HospitalsPage
-            data={data}
-            token={token}
-            onDataRefresh={() => setRefreshKey((value) => value + 1)}
-          />
-        ) : active === 'hospital-lifecycle' ? (
-          <HospitalLifecyclePage
             data={data}
             token={token}
             onDataRefresh={() => setRefreshKey((value) => value + 1)}

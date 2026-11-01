@@ -14,7 +14,7 @@
 
 .security-subpage-title-group h1 {
   margin: 4px 0 6px 0;
-  font-size: 1.75rem;
+  font-size: 1.35rem;
   font-weight: 700;
   color: #f0f6fc;
   letter-spacing: -0.02em;
@@ -661,7 +661,7 @@
 }
 
 .report-document-title {
-  font-size: 1.75rem;
+  font-size: 1.35rem;
   font-weight: 800;
   color: #f0f6fc;
   letter-spacing: -0.02em;
@@ -776,7 +776,7 @@
 }
 
 .report-metric-box .metric-val {
-  font-size: 1.75rem;
+  font-size: 1.35rem;
   font-weight: 800;
   font-family: monospace;
 }

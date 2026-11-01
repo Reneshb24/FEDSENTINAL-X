@@ -1,3 +1,4 @@
+import L1NormDistribution3D from '../components/visualizations/L1NormDistribution3D'
 import React, { useState, useEffect, useMemo } from 'react'
 import {
   Fingerprint,
@@ -126,7 +127,21 @@ export default function L1InspectPage({ data, token, onNavigate }) {
       {/* Main Fingerprint Deck */}
       <div className="sec-grid-2col">
         {/* Left: Participant Fingerprint Selector */}
-        <div className="sec-panel">
+        {/* 3D Parameter Gradient Norm Inspector */}
+      <div className="sec-panel" style={{ marginBottom: 16 }}>
+        <div className="sec-panel-header">
+          <h2>
+            <Sliders size={16} />
+            3D Parameter Gradient Norm Distribution & Statistical Clipping
+          </h2>
+          <span className="sec-badge sec-badge-pass">NORM INSPECTOR</span>
+        </div>
+        <div className="sec-panel-body" style={{ height: 250, padding: 0, overflow: 'hidden' }}>
+          <L1NormDistribution3D height="250px" />
+        </div>
+      </div>
+
+      <div className="sec-panel">
           <div className="sec-panel-header">
             <h2>
               <Fingerprint size={16} />

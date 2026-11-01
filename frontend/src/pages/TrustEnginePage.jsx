@@ -24,7 +24,7 @@ import {
 } from './securityUtils'
 import './pages.css'
 
-import SecurityPipeline3D from '../components/visualizations/SecurityPipeline3D';
+import TrustMatrix3D from '../components/visualizations/TrustMatrix3D';
 import { useAppStore } from '../store/appStore';
 
 export default function TrustEnginePage({ data, token, onNavigate }) {
@@ -84,9 +84,9 @@ export default function TrustEnginePage({ data, token, onNavigate }) {
         onRefresh={loadTrust}
         loading={loading}
       />
-      {/* 3D Security Pipeline Visualization */}
-      <div className="pipeline-visualization" style={{ height: '350px', marginTop: '16px', marginBottom: '16px', borderRadius: '8px', overflow: 'hidden' }}>
-        <SecurityPipeline3D />
+      {/* 3D Multi-Factor Trust Manifold */}
+      <div style={{ marginTop: '14px', marginBottom: '16px', borderRadius: '8px', overflow: 'hidden' }}>
+        <TrustMatrix3D trustRecords={trustRecords} height="260px" />
       </div>
 
       <SecurityPhilosophyBanner

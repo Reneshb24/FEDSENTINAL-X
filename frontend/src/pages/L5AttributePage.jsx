@@ -1,3 +1,4 @@
+import L5AttributionRadar3D from '../components/visualizations/L5AttributionRadar3D'
 import React, { useState, useEffect, useMemo } from 'react'
 import {
   Compass,
@@ -94,6 +95,20 @@ export default function L5AttributePage({ data, token, onNavigate }) {
       />
 
       {/* Attribution Canonical Weights Banner */}
+      {/* 3D Forensic Attribution Radar */}
+      <div className="sec-panel" style={{ marginBottom: 16 }}>
+        <div className="sec-panel-header">
+          <h2>
+            <ShieldAlert size={16} />
+            3D Forensic Threat Attribution & Backdoor Signature Radar
+          </h2>
+          <span className="sec-badge sec-badge-pass">THREAT RADAR</span>
+        </div>
+        <div className="sec-panel-body" style={{ height: 250, padding: 0, overflow: 'hidden' }}>
+          <L5AttributionRadar3D height="250px" />
+        </div>
+      </div>
+
       <div className="sec-panel">
         <div className="sec-panel-header">
           <h2>

@@ -1,3 +1,4 @@
+import L2CosineCluster3D from '../components/visualizations/L2CosineCluster3D'
 import React, { useState, useEffect, useMemo } from 'react'
 import {
   Radar,
@@ -118,6 +119,20 @@ export default function L2CorrelatePage({ data, token, onNavigate }) {
       </div>
 
       {/* Anomaly Distribution Chart & Table */}
+      {/* 3D Pairwise Cosine Similarity Manifold */}
+      <div className="sec-panel" style={{ marginBottom: 16 }}>
+        <div className="sec-panel-header">
+          <h2>
+            <Network size={16} />
+            3D Pairwise Cosine Similarity Manifold & Outlier Trajectory
+          </h2>
+          <span className="sec-badge sec-badge-pass">SPATIAL CLUSTER</span>
+        </div>
+        <div className="sec-panel-body" style={{ height: 250, padding: 0, overflow: 'hidden' }}>
+          <L2CosineCluster3D height="250px" />
+        </div>
+      </div>
+
       <div className="sec-panel">
         <div className="sec-panel-header">
           <h2>

@@ -1,3 +1,4 @@
+import L3LossSurface3D from '../components/visualizations/L3LossSurface3D'
 import React, { useState, useEffect, useMemo } from 'react'
 import {
   TrendingUp,
@@ -113,6 +114,20 @@ export default function L3InfluencePage({ data, token, onNavigate }) {
       </div>
 
       {/* Influence Table */}
+      {/* 3D Loss Surface Influence Vector */}
+      <div className="sec-panel" style={{ marginBottom: 16 }}>
+        <div className="sec-panel-header">
+          <h2>
+            <Activity size={16} />
+            3D Subsampling Loss Surface & Directional Influence Field
+          </h2>
+          <span className="sec-badge sec-badge-pass">LOSS FIELD</span>
+        </div>
+        <div className="sec-panel-body" style={{ height: 250, padding: 0, overflow: 'hidden' }}>
+          <L3LossSurface3D height="250px" />
+        </div>
+      </div>
+
       <div className="sec-panel">
         <div className="sec-panel-header">
           <h2>

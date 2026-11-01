@@ -1,3 +1,4 @@
+import L0TensorScanner3D from '../components/visualizations/L0TensorScanner3D'
 import React, { useState, useEffect, useMemo } from 'react'
 import {
   ShieldCheck,
@@ -116,6 +117,20 @@ export default function L0VerifyPage({ data, token, onNavigate }) {
       </div>
 
       {/* Verification Matrix Table */}
+      {/* 3D Tensor Volumetric Integrity Scanner */}
+      <div className="sec-panel" style={{ marginBottom: 16 }}>
+        <div className="sec-panel-header">
+          <h2>
+            <CheckCircle2 size={16} />
+            3D Volumetric Tensor Integrity Scanner & Memory Attestation
+          </h2>
+          <span className="sec-badge sec-badge-pass">SCANNER ONLINE</span>
+        </div>
+        <div className="sec-panel-body" style={{ height: 250, padding: 0, overflow: 'hidden' }}>
+          <L0TensorScanner3D height="250px" />
+        </div>
+      </div>
+
       <div className="sec-panel">
         <div className="sec-panel-header">
           <h2>
