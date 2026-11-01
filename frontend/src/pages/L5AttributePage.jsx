@@ -105,7 +105,7 @@ export default function L5AttributePage({ data, token, onNavigate }) {
           <span className="sec-badge sec-badge-pass">THREAT RADAR</span>
         </div>
         <div className="sec-panel-body" style={{ height: 250, padding: 0, overflow: 'hidden' }}>
-          <L5AttributionRadar3D height="250px" />
+          <L5AttributionRadar3D incidents={data?.incidents || []} height="250px" />
         </div>
       </div>
 

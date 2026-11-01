@@ -3,9 +3,10 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls, Html } from '@react-three/drei'
 import * as THREE from 'three'
 
-function AggregationCore() {
+function AggregationCore({ acceptedCount = 4, quarantinedCount = 1 }) {
   const coreRef = useRef()
   const ringRef = useRef()
+  const [hovered, setHovered] = useState(false)
 
   useFrame((state, delta) => {
     if (coreRef.current) {
@@ -20,7 +21,12 @@ function AggregationCore() {
   return (
     <group position={[0, 0, 0]}>
       {/* Central Global Model Synthesis Core */}
-      <mesh ref={coreRef}>
+      <mesh
+        ref={coreRef}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => setHovered(false)}
+        scale={hovered ? 1.3 : 1.0}
+      >
         <dodecahedronGeometry args={[0.9, 0]} />
         <meshStandardMaterial
           color="#10b981"
@@ -44,25 +50,32 @@ function AggregationCore() {
 
       <Html position={[0, -1.8, 0]} center>
         <div style={{
-          background: 'rgba(5, 18, 26, 0.9)',
+          background: 'rgba(5, 18, 26, 0.95)',
           border: '1px solid #10b981',
           borderRadius: '4px',
-          padding: '2px 8px',
+          padding: '4px 10px',
           color: '#10b981',
           fontSize: '9px',
           fontWeight: 700,
           whiteSpace: 'nowrap',
           letterSpacing: '0.06em',
+          boxShadow: '0 0 12px rgba(16, 185, 129, 0.3)',
         }}>
-          FEDAVG + SHIELD FUSION
+          <div>FEDAVG + SHIELD FUSION CORE</div>
+          {hovered && (
+            <div style={{ fontSize: '8px', color: '#94a3b8', marginTop: 2, fontWeight: 500 }}>
+              {acceptedCount} Weights Merged • {quarantinedCount} Deflected to Quarantine Vault
+            </div>
+          )}
         </div>
       </Html>
     </group>
   )
 }
 
-function IngressTensorStream({ isQuarantined = false, angle, delay = 0 }) {
+function IngressTensorStream({ isQuarantined = false, angle, delay = 0, code }) {
   const meshRef = useRef()
+  const [hovered, setHovered] = useState(false)
   const radius = 3.6
 
   useFrame((state) => {
@@ -88,54 +101,98 @@ function IngressTensorStream({ isQuarantined = false, angle, delay = 0 }) {
   })
 
   return (
-    <mesh ref={meshRef}>
-      <sphereGeometry args={[1, 12, 12]} />
-      <meshStandardMaterial
-        color={isQuarantined ? '#ef4444' : '#00e5ff'}
-        emissive={isQuarantined ? '#b91c1c' : '#0284c7'}
-        emissiveIntensity={1.0}
-      />
-    </mesh>
+    <group>
+      <mesh
+        ref={meshRef}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => setHovered(false)}
+      >
+        <sphereGeometry args={[1, 12, 12]} />
+        <meshStandardMaterial
+          color={isQuarantined ? '#ef4444' : '#00e5ff'}
+          emissive={isQuarantined ? '#b91c1c' : '#0284c7'}
+          emissiveIntensity={1.0}
+        />
+      </mesh>
+    </group>
   )
 }
 
-function QuarantineCell() {
+function QuarantineCell({ count = 0 }) {
+  const [hovered, setHovered] = useState(false)
+
   return (
     <group position={[3.6, 1.2, -2.5]}>
-      <mesh>
+      <mesh
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => setHovered(false)}
+      >
         <boxGeometry args={[1.5, 1.5, 1.5]} />
         <meshBasicMaterial color="#ef4444" wireframe transparent opacity={0.4} />
       </mesh>
       <Html position={[0, -1.1, 0]} center>
-        <span style={{ fontSize: '8px', color: '#ef4444', fontWeight: 700, letterSpacing: '0.05em' }}>
-          QUARANTINE VAULT
-        </span>
+        <div style={{
+          background: 'rgba(20, 5, 8, 0.95)',
+          border: '1px solid #ef4444',
+          borderRadius: '4px',
+          padding: '2px 6px',
+          color: '#ef4444',
+          fontSize: '8px',
+          fontWeight: 700,
+          whiteSpace: 'nowrap',
+        }}>
+          QUARANTINE VAULT ({count} SEVERED)
+        </div>
       </Html>
     </group>
   )
 }
 
-export default function SafeAggregationVortex3D({ height = '260px' }) {
+export default function SafeAggregationVortex3D({ round = null, updates = [], height = '260px' }) {
+  const acceptedCount = round?.accepted_updates ?? 4
+  const quarantinedCount = round?.quarantined_updates ?? (updates.filter(u => u.detection_status === 'QUARANTINED').length || 1)
+
   const streams = useMemo(() => {
-    return [
-      { angle: 0, delay: 0, isQuarantined: false },
-      { angle: Math.PI * 0.4, delay: 0.2, isQuarantined: false },
-      { angle: Math.PI * 0.8, delay: 0.5, isQuarantined: false },
-      { angle: Math.PI * 1.2, delay: 0.7, isQuarantined: false },
-      { angle: Math.PI * 1.6, delay: 0.35, isQuarantined: true }, // Outlier deflected
-    ]
-  }, [])
+    const list = []
+    const totalAccepted = Math.max(acceptedCount, 3)
+    for (let i = 0; i < totalAccepted; i++) {
+      list.push({
+        angle: (i / totalAccepted) * Math.PI * 1.5,
+        delay: i * 0.22,
+        isQuarantined: false,
+        code: `CLIENT-${i + 1}`,
+      })
+    }
+    const totalQuarantined = Math.max(quarantinedCount, 1)
+    for (let j = 0; j < totalQuarantined; j++) {
+      list.push({
+        angle: Math.PI * 1.6 + j * 0.4,
+        delay: 0.35 + j * 0.3,
+        isQuarantined: true,
+        code: `POISON-${j + 1}`,
+      })
+    }
+    return list
+  }, [acceptedCount, quarantinedCount])
 
   return (
-    <div style={{ width: '100%', height, position: 'relative', background: 'radial-gradient(ellipse at center, rgba(8, 30, 24, 0.92) 0%, rgba(4, 9, 14, 0.98) 85%)', borderRadius: '8px', overflow: 'hidden' }}>
+    <div style={{
+      width: '100%',
+      height,
+      position: 'relative',
+      background: 'radial-gradient(ellipse at center, rgba(8, 30, 24, 0.92) 0%, rgba(4, 9, 14, 0.98) 85%)',
+      borderRadius: '8px',
+      overflow: 'hidden',
+      border: '1px solid #133a30'
+    }}>
       <Canvas camera={{ position: [0, 4.5, 7], fov: 42 }}>
         <ambientLight intensity={0.6} />
         <pointLight position={[5, 8, 5]} intensity={1.5} color="#34d399" />
         <pointLight position={[-5, -4, -5]} intensity={0.8} color="#00e5ff" />
         <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.5} maxPolarAngle={Math.PI / 2.1} minPolarAngle={Math.PI / 4} />
 
-        <AggregationCore />
-        <QuarantineCell />
+        <AggregationCore acceptedCount={acceptedCount} quarantinedCount={quarantinedCount} />
+        <QuarantineCell count={quarantinedCount} />
 
         {streams.map((s, idx) => (
           <IngressTensorStream
@@ -143,6 +200,7 @@ export default function SafeAggregationVortex3D({ height = '260px' }) {
             angle={s.angle}
             delay={s.delay}
             isQuarantined={s.isQuarantined}
+            code={s.code}
           />
         ))}
       </Canvas>

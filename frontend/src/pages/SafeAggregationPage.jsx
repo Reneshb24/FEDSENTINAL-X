@@ -118,7 +118,7 @@ export default function SafeAggregationPage({ data, token, onNavigate }) {
           <span className="sec-badge sec-badge-pass">FUSION VORTEX</span>
         </div>
         <div className="sec-panel-body" style={{ height: 260, padding: 0, overflow: 'hidden' }}>
-          <SafeAggregationVortex3D height="260px" />
+          <SafeAggregationVortex3D round={activeRound} updates={updates} height="260px" />
         </div>
       </div>
 

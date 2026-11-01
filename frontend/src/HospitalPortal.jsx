@@ -1,3 +1,4 @@
+import HospitalEnclave3D from './components/visualizations/HospitalEnclave3D'
 import { useEffect, useMemo, useState } from 'react'
 import {
   Activity,
@@ -2912,6 +2913,19 @@ function LocalTrainingPage({
           <button onClick={() => setError('')}><X size={15} /></button>
         </div>
       )}
+
+      {/* 3D Institutional Secure Enclave Simulation */}
+      <div style={{ marginBottom: 16 }}>
+        <HospitalEnclave3D
+          jobStatus={job?.status || 'IDLE'}
+          epoch={job?.current_epoch || 0}
+          loss={job?.metrics?.loss ?? null}
+          datasetName={selectedDatasetObj?.name || 'Local Clinical Shard'}
+          sampleCount={selectedDatasetObj?.sample_count ?? 1000}
+          hash={submittedUpdate?.artifact_hash || job?.artifact_hash || null}
+          height="240px"
+        />
+      </div>
 
       {/* Top Visual Cards: Enclave Dataset & Server Model Anchor */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>

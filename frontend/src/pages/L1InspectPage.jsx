@@ -124,10 +124,7 @@ export default function L1InspectPage({ data, token, onNavigate }) {
         </div>
       </div>
 
-      {/* Main Fingerprint Deck */}
-      <div className="sec-grid-2col">
-        {/* Left: Participant Fingerprint Selector */}
-        {/* 3D Parameter Gradient Norm Inspector */}
+      {/* 3D Parameter Gradient Norm Inspector */}
       <div className="sec-panel" style={{ marginBottom: 16 }}>
         <div className="sec-panel-header">
           <h2>
@@ -137,9 +134,13 @@ export default function L1InspectPage({ data, token, onNavigate }) {
           <span className="sec-badge sec-badge-pass">NORM INSPECTOR</span>
         </div>
         <div className="sec-panel-body" style={{ height: 250, padding: 0, overflow: 'hidden' }}>
-          <L1NormDistribution3D height="250px" />
+          <L1NormDistribution3D updates={updates} height="250px" />
         </div>
       </div>
+
+      {/* Main Fingerprint Deck */}
+      <div className="sec-grid-2col">
+        {/* Left: Participant Fingerprint Selector */}
 
       <div className="sec-panel">
           <div className="sec-panel-header">

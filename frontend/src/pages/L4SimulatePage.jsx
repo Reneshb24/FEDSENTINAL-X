@@ -139,7 +139,7 @@ export default function L4SimulatePage({ data, token, onNavigate }) {
           <span className="sec-badge sec-badge-pass">BIFURCATION TRAJECTORY</span>
         </div>
         <div className="sec-panel-body" style={{ height: 250, padding: 0, overflow: 'hidden' }}>
-          <L4Counterfactual3D height="250px" />
+          <L4Counterfactual3D updates={updates} height="250px" />
         </div>
       </div>
 

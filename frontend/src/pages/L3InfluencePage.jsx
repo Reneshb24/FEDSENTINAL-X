@@ -124,7 +124,7 @@ export default function L3InfluencePage({ data, token, onNavigate }) {
           <span className="sec-badge sec-badge-pass">LOSS FIELD</span>
         </div>
         <div className="sec-panel-body" style={{ height: 250, padding: 0, overflow: 'hidden' }}>
-          <L3LossSurface3D height="250px" />
+          <L3LossSurface3D updates={updates} height="250px" />
         </div>
       </div>
 

@@ -129,7 +129,7 @@ export default function L2CorrelatePage({ data, token, onNavigate }) {
           <span className="sec-badge sec-badge-pass">SPATIAL CLUSTER</span>
         </div>
         <div className="sec-panel-body" style={{ height: 250, padding: 0, overflow: 'hidden' }}>
-          <L2CosineCluster3D height="250px" />
+          <L2CosineCluster3D updates={updates} height="250px" />
         </div>
       </div>
 

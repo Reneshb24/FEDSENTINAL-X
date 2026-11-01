@@ -1084,6 +1084,7 @@ function CommandCenter({ data }) {
           {commandView === '3d' ? (
             <div style={{ marginBottom: 12 }}>
               <DefenseShield3D
+                data={data}
                 posture={federationPosture}
                 height="260px"
               />
