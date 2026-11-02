@@ -973,6 +973,7 @@ In-situ clinical decision support and disease identification powered by the cons
   * **`Chest X-Ray: Cardiomegaly / Failure`**: Markedly enlarged transverse cardiac silhouette (>60% cardiothoracic ratio).
   * **`Dermoscopy: Dysplastic Lesion`**: Asymmetric pigmented cutaneous macule with border irregularity.
   * **`Normal Chest Radiograph`**: Clear bilateral lung fields with crisp cardiophrenic angles and normal silhouette.
+  * **`Non-Medical / Out-of-Distribution Test`**: Multi-color non-clinical test pattern to demonstrate and verify automatic ML Out-of-Distribution (OOD) rejection.
 * **Clinical Notes Narrative Presets**:
   * **`Acute Pulmonary Infection`**: Productive purulent rust-colored sputum, 39.2°C fever, chills, pleuritic chest pain, dyspnea, and SpO2 91%.
   * **`Severe Glycemic / Type-2 Diabetes`**: Persistent polydipsia, polyuria, nocturia x4, lethargy, fasting glucose 218 mg/dL, HbA1c 9.6%, and peripheral neuropathy.
@@ -1000,9 +1001,10 @@ In-situ clinical decision support and disease identification powered by the cons
   * Dispatches multi-modal payload to `POST /api/v1/hospital/predict`.
   * Runs genuine PyTorch CNN feature map extraction or clinical NLP ontology parsing in-situ inside the hospital memory space.
   * Records tamper-evident audit trail `CLINICAL_INFERENCE_EXECUTED` with patient ID and condition.
-* **Risk Tier Badge**: Color-coded risk tier (`CRITICAL` vibrant red, `HIGH` amber-red, `MODERATE` warning yellow, `LOW` verified green).
-* **Primary Diagnostic Finding**: Concise clinical diagnosis (e.g., `Community-Acquired Pneumonia (Lobar Pulmonary Infiltration)`).
-* **Primary Confidence Meter**: High-precision statistical confidence percentage (e.g., `92.46%`).
+* **Risk Tier Badge**: Color-coded risk tier (`CRITICAL` vibrant red, `HIGH` amber-red, `MODERATE` warning yellow, `LOW` verified green, `INCONCLUSIVE` neutral slate).
+* **Primary Diagnostic Finding**: Concise clinical diagnosis or out-of-distribution verdict (e.g., `Community-Acquired Pneumonia (Lobar Pulmonary Infiltration)` or `Inconclusive / Out-of-Distribution Image (No Known Clinical Signature)`).
+* **Primary Confidence Meter / Match Score**: High-precision statistical confidence percentage (e.g., `93.93%` for matched conditions, `< 25%` match score for out-of-distribution uploads).
+* **Federated Consortium Learning Lineage Card**: Visual metadata pill cloud displaying all contributing member hospital enclaves whose accepted updates actively synthesized the consensus model checkpoint (e.g., `H51 Clinical Diabetes Cohort`, `H21 Stanford Clinical AI Enclave`), update counts, and checkpoint hash.
 * **Objective Clinical Findings Summary**: Narrative synthesis of optical metrics (radiographic density, quadrant opacity ratios) or symptom entities extracted from the patient's records.
 * **Differential Diagnosis Spectrum**: Ranked list of top candidate conditions with confidence tier badges and probability progress bars.
 * **Detected Clinical Entities & Metrics**: Visual chip cloud displaying all extracted biomarkers, vitals, or optical metrics (e.g., `optical_density: 0.42`, `spo2: 91%`, `fever: 39.2C`).

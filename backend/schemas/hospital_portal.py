@@ -129,6 +129,8 @@ class DiseasePredictionResponse(BaseModel):
     differentials: list[DifferentialDiagnosis] | None = None
     biomarker_importance: dict[str, float]
     clinical_recommendation: str
+    is_out_of_distribution: bool = False
+    contributing_hospitals: list[dict[str, str | int]] | None = None
     executed_at: datetime
 
 

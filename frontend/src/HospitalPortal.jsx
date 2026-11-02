@@ -4121,6 +4121,18 @@ function generateSyntheticScan(type) {
     ctx.beginPath()
     ctx.ellipse(78, 82, 35, 28, 0.4, 0, Math.PI * 2)
     ctx.fill()
+  } else if (type === 'ood') {
+    // Non-medical multi-color pattern to test Out-of-Distribution rejection
+    ctx.fillStyle = '#ef4444'
+    ctx.fillRect(0, 0, 160, 160)
+    ctx.fillStyle = '#22c55e'
+    ctx.fillRect(20, 20, 120, 120)
+    ctx.fillStyle = '#3b82f6'
+    ctx.beginPath()
+    ctx.arc(80, 80, 40, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = '#eab308'
+    ctx.fillRect(60, 60, 40, 40)
   } else {
     // Normal clear chest radiograph
     ctx.fillStyle = '#2d3748'
@@ -4212,6 +4224,14 @@ function DiseasePredictionPage({ token, hospital }) {
       badge: 'CONTROL',
       color: '#10b981',
       type: 'normal',
+    },
+    {
+      id: 'ood_test',
+      name: 'Non-Medical / Out-of-Distribution Test',
+      desc: 'Arbitrary non-clinical RGB pattern to test OOD rejection',
+      badge: 'OOD TEST',
+      color: '#94a3b8',
+      type: 'ood',
     },
   ]
 
@@ -4346,7 +4366,8 @@ function DiseasePredictionPage({ token, hospital }) {
     }
   }
 
-  const isPositive = result && (result.probability >= 50.0 || result.risk_level === 'CRITICAL' || result.risk_level === 'HIGH')
+  const isOod = result && (result.is_out_of_distribution || result.risk_level === 'INCONCLUSIVE')
+  const isPositive = result && !isOod && (result.probability >= 50.0 || result.risk_level === 'CRITICAL' || result.risk_level === 'HIGH')
 
   return (
     <>
@@ -4817,8 +4838,18 @@ function DiseasePredictionPage({ token, hospital }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {/* Status & Probability Banner */}
                 <div style={{
-                  background: isPositive ? 'rgba(239, 68, 68, 0.12)' : 'rgba(16, 185, 129, 0.12)',
-                  border: `1px solid ${isPositive ? 'rgba(239, 68, 68, 0.35)' : 'rgba(16, 185, 129, 0.35)'}`,
+                  background: isOod
+                    ? 'rgba(148, 163, 184, 0.10)'
+                    : isPositive
+                    ? 'rgba(239, 68, 68, 0.12)'
+                    : 'rgba(16, 185, 129, 0.12)',
+                  border: `1px solid ${
+                    isOod
+                      ? 'rgba(148, 163, 184, 0.35)'
+                      : isPositive
+                      ? 'rgba(239, 68, 68, 0.35)'
+                      : 'rgba(16, 185, 129, 0.35)'
+                  }`,
                   borderRadius: 10,
                   padding: 16,
                   display: 'flex',
@@ -4829,27 +4860,73 @@ function DiseasePredictionPage({ token, hospital }) {
                     <div style={{
                       fontSize: 11,
                       fontWeight: 800,
-                      color: isPositive ? '#f87171' : '#34d399',
+                      color: isOod ? '#94a3b8' : isPositive ? '#f87171' : '#34d399',
                       letterSpacing: '.06em',
                       marginBottom: 4,
                     }}>
-                      MODALITY: {result.modality || modality} · RISK TIER: {result.risk_level}
+                      {isOod ? 'OUT-OF-DISTRIBUTION · REJECTED MANIFOLD' : `MODALITY: ${result.modality || modality} · RISK TIER: ${result.risk_level}`}
                     </div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: '#f8fafc' }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: '#f8fafc' }}>
                       {result.prediction}
                     </div>
                     <small style={{ color: '#94a3b8', fontSize: 10 }}>
-                      Evaluated on federated consensus model checkpoint: {result.model_version}
+                      Evaluated against federated consensus checkpoint: {result.model_version}
                     </small>
                   </div>
 
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: 28, fontWeight: 900, color: isPositive ? '#ef4444' : '#10b981' }}>
+                    <div style={{
+                      fontSize: 28,
+                      fontWeight: 900,
+                      color: isOod ? '#94a3b8' : isPositive ? '#ef4444' : '#10b981',
+                    }}>
                       {result.probability}%
                     </div>
-                    <small style={{ color: '#94a3b8', fontSize: 10 }}>Primary Confidence</small>
+                    <small style={{ color: '#94a3b8', fontSize: 10 }}>
+                      {isOod ? 'Consortium Match' : 'Primary Confidence'}
+                    </small>
                   </div>
                 </div>
+
+                {/* Contributing Hospitals & Collaborative Consortium Lineage */}
+                {result.contributing_hospitals && result.contributing_hospitals.length > 0 && (
+                  <div style={{
+                    background: '#080d14',
+                    border: '1px solid rgba(0, 229, 255, 0.18)',
+                    borderRadius: 8,
+                    padding: '10px 14px',
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#00e5ff', letterSpacing: '.04em' }}>
+                        FEDERATED CONSORTIUM LEARNING LINEAGE
+                      </span>
+                      <span style={{ fontSize: 10, color: '#94a3b8' }}>
+                        {result.contributing_hospitals.length} Member Enclaves Synthesized
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 8, lineHeight: 1.3 }}>
+                      Diagnostic inference dynamically leverages model weights trained across active hospital updates:
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {result.contributing_hospitals.map((hosp) => (
+                        <span
+                          key={hosp.id}
+                          style={{
+                            background: 'rgba(0, 229, 255, 0.06)',
+                            border: '1px solid rgba(0, 229, 255, 0.2)',
+                            borderRadius: 4,
+                            padding: '3px 8px',
+                            fontSize: 10,
+                            color: '#cbd5e1',
+                          }}
+                        >
+                          <strong style={{ color: '#00e5ff' }}>{hosp.code || hosp.id.slice(0, 6)}</strong> · {hosp.name}
+                          {hosp.accepted_updates ? ` (${hosp.accepted_updates} updates)` : ''}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Findings Summary */}
                 {result.findings_summary && (
