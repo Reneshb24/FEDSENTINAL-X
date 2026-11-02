@@ -172,9 +172,10 @@ export default function L5AttributePage({ data, token, onNavigate }) {
               </thead>
               <tbody>
                 {parsedUpdates.map((u) => {
-                  const l5 = u.parsed.l5
+                  const l5 = u.parsed?.l5 || {}
                   const isSelected = u.id === activeUpdate?.id
-                  const isAnomalous = l5.hypothesis.includes('ANOMALOUS')
+                  const hypothesis = l5.hypothesis || 'BENIGN'
+                  const isAnomalous = String(hypothesis).includes('ANOMALOUS')
                   return (
                     <tr
                       key={u.id}
@@ -196,17 +197,17 @@ export default function L5AttributePage({ data, token, onNavigate }) {
                             isAnomalous ? 'sec-badge-quarantined' : 'sec-badge-accepted'
                           }`}
                         >
-                          {l5.hypothesis || 'BENIGN'}
+                          {hypothesis}
                         </span>
                       </td>
                       <td>
                         <span style={{ fontFamily: 'monospace' }}>
-                          {formatNumber(l5.attribution_score, 2)}
+                          {formatNumber(l5.attribution_score ?? 0, 2)}
                         </span>
                       </td>
                       <td>
                         <span style={{ fontFamily: 'monospace', color: '#00e5ff' }}>
-                          {formatNumber(l5.confidence, 2)}
+                          {formatNumber(l5.confidence ?? 0, 2)}
                         </span>
                       </td>
                       <td>
@@ -236,7 +237,7 @@ export default function L5AttributePage({ data, token, onNavigate }) {
             </h2>
             {activeUpdate && (
               <span className="sec-badge sec-badge-info">
-                CONFIDENCE: {formatNumber(activeUpdate.parsed.l5.confidence, 2)}
+                CONFIDENCE: {formatNumber(activeUpdate.parsed?.l5?.confidence ?? 0, 2)}
               </span>
             )}
           </div>
@@ -249,13 +250,13 @@ export default function L5AttributePage({ data, token, onNavigate }) {
                     style={{
                       fontSize: '1.25rem',
                       fontWeight: 700,
-                      color: activeUpdate.parsed.l5.hypothesis.includes('ANOMALOUS')
+                      color: String(activeUpdate.parsed?.l5?.hypothesis || '').includes('ANOMALOUS')
                         ? '#ff3b5c'
                         : '#00e676',
                       marginTop: 4,
                     }}
                   >
-                    {activeUpdate.parsed.l5.hypothesis}
+                    {activeUpdate.parsed?.l5?.hypothesis || 'BENIGN'}
                   </div>
                 </div>
 
@@ -263,7 +264,7 @@ export default function L5AttributePage({ data, token, onNavigate }) {
                   <div style={{ fontSize: '0.75rem', color: '#8b949e', marginBottom: 8 }}>
                     SUPPORTING EVIDENCE PILLARS
                   </div>
-                  {activeUpdate.parsed.l5.supporting_evidence.length > 0 ? (
+                  {Array.isArray(activeUpdate.parsed?.l5?.supporting_evidence) && activeUpdate.parsed.l5.supporting_evidence.length > 0 ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {activeUpdate.parsed.l5.supporting_evidence.map((ev, i) => (
                         <div

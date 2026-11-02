@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Eye,
   RefreshCw,
+  Zap,
 } from 'lucide-react'
 import {
   apiFetch,

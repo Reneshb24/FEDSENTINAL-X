@@ -76,6 +76,10 @@ class RoundConfigurationCreate(BaseModel):
         ge=0,
     )
 
+    selected_hospital_ids: list[str] = Field(
+        default_factory=list,
+    )
+
 
 class RoundConfigurationResponse(RoundConfigurationCreate):
     pass

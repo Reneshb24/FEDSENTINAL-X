@@ -120,7 +120,7 @@ export default function L1NormDistribution3D({ updates = [], height = '250px' })
       <Canvas camera={{ position: [4, 3.5, 5], fov: 42 }}>
         <ambientLight intensity={0.7} />
         <pointLight position={[5, 8, 5]} intensity={1.2} />
-        <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.8} maxPolarAngle={Math.PI / 2.2} minPolarAngle={Math.PI / 3.5} />
+        <OrbitControls enableZoom={true} zoomSpeed={1.0} minDistance={2} maxDistance={35} enablePan={true} panSpeed={1.0} enableRotate={true} rotateSpeed={0.8} enableDamping={true} dampingFactor={0.05} autoRotate autoRotateSpeed={0.6} />
 
         {bars.map((bar, i) => (
           <HistogramBar key={bar.id} bar={bar} index={i} total={bars.length} />

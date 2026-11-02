@@ -287,13 +287,7 @@ export default function NeuralModel3D({
           ))}
         </Suspense>
 
-        <OrbitControls
-          enablePan={false}
-          maxDistance={14}
-          minDistance={3}
-          autoRotate
-          autoRotateSpeed={0.3}
-        />
+        <OrbitControls enableZoom={true} zoomSpeed={1.0} minDistance={2} maxDistance={35} enablePan={true} panSpeed={1.0} enableRotate={true} rotateSpeed={0.8} enableDamping={true} dampingFactor={0.05} autoRotate autoRotateSpeed={0.6} />
       </Canvas>
     </div>
   )

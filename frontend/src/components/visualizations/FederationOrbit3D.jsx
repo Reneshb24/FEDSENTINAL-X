@@ -105,7 +105,7 @@ export default function FederationOrbit3D({
       <Canvas camera={{ position: [0, 4.5, 7], fov: 42 }}>
         <ambientLight intensity={0.6} />
         <pointLight position={[0, 5, 0]} intensity={1.5} color="#00e5ff" />
-        <OrbitControls enableZoom={false} enablePan={false} maxPolarAngle={Math.PI / 2.1} minPolarAngle={Math.PI / 4} autoRotate autoRotateSpeed={0.5} />
+        <OrbitControls enableZoom={true} zoomSpeed={1.0} minDistance={2} maxDistance={35} enablePan={true} panSpeed={1.0} enableRotate={true} rotateSpeed={0.8} enableDamping={true} dampingFactor={0.05} autoRotate autoRotateSpeed={0.6} />
 
         {/* Central FedSentinel Hub */}
         <mesh position={[0, 0, 0]}>

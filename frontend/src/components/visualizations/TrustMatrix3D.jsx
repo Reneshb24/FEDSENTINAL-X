@@ -114,7 +114,7 @@ export default function TrustMatrix3D({ trustRecords = [], height = '260px' }) {
       <Canvas camera={{ position: [5, 4, 6], fov: 42 }}>
         <ambientLight intensity={0.6} />
         <pointLight position={[6, 8, 6]} intensity={1.2} />
-        <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.6} maxPolarAngle={Math.PI / 2.1} minPolarAngle={Math.PI / 4} />
+        <OrbitControls enableZoom={true} zoomSpeed={1.0} minDistance={2} maxDistance={35} enablePan={true} panSpeed={1.0} enableRotate={true} rotateSpeed={0.8} enableDamping={true} dampingFactor={0.05} autoRotate autoRotateSpeed={0.6} />
 
         {/* 3D Threshold Decision Planes */}
         <ThresholdPlane y={0.6} color="#10b981" label="TRUSTED (>= 0.70)" />

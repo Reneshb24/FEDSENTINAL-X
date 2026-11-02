@@ -85,7 +85,7 @@ export default function SecurityPipeline3D() {
     <Canvas camera={{ position: [10, 6, 20], fov: 50 }} style={{ height: '100%', width: '100%' }}>
       <ambientLight intensity={0.5} />
       <directionalLight position={[5, 10, 5]} intensity={1} />
-      <OrbitControls enablePan={false} />
+      <OrbitControls enableZoom={true} zoomSpeed={1.0} minDistance={2} maxDistance={35} enablePan={true} panSpeed={1.0} enableRotate={true} rotateSpeed={0.8} enableDamping={true} dampingFactor={0.05} autoRotate autoRotateSpeed={0.6} />
       {/* Pipeline stages */}
       {Object.entries(stagePositions).map(([stage, pos]) => (
         <StageNode

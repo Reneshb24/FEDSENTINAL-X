@@ -123,7 +123,7 @@ export default function L2CosineCluster3D({ updates = [], height = '250px' }) {
       <Canvas camera={{ position: [3.5, 3.5, 4.5], fov: 42 }}>
         <ambientLight intensity={0.7} />
         <pointLight position={[5, 8, 5]} intensity={1.2} />
-        <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.8} />
+        <OrbitControls enableZoom={true} zoomSpeed={1.0} minDistance={2} maxDistance={35} enablePan={true} panSpeed={1.0} enableRotate={true} rotateSpeed={0.8} enableDamping={true} dampingFactor={0.05} autoRotate autoRotateSpeed={0.6} />
 
         {/* Central Consensus Centroid */}
         <mesh position={[0, 0, 0]}>

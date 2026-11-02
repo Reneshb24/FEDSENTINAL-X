@@ -280,6 +280,11 @@ def update_federation(
     "/{federation_id}/members",
     response_model=list[MembershipResponse],
 )
+@router.get(
+    "/{federation_id}/memberships",
+    response_model=list[MembershipResponse],
+    include_in_schema=False,
+)
 def list_members(
     federation_id: str,
     db: Session = Depends(get_db),
@@ -301,6 +306,12 @@ def list_members(
     "/{federation_id}/members",
     response_model=MembershipResponse,
     status_code=status.HTTP_201_CREATED,
+)
+@router.post(
+    "/{federation_id}/memberships",
+    response_model=MembershipResponse,
+    status_code=status.HTTP_201_CREATED,
+    include_in_schema=False,
 )
 def add_member(
     federation_id: str,

@@ -3976,7 +3976,12 @@ function RoundConfigurationPage({ data, token, onDataRefresh, onNavigate }) {
           body: JSON.stringify({
             configuration: {
               ...config,
-              num_clients: Number(config.num_clients),
+              num_clients: !simulationMode && config.selected_hospital_ids?.length
+                ? config.selected_hospital_ids.length
+                : Number(config.num_clients),
+              selected_hospital_ids: !simulationMode && Array.isArray(config.selected_hospital_ids)
+                ? config.selected_hospital_ids
+                : [],
               seed: Number(config.seed),
               concentration: Number(config.concentration),
               local_epochs: Number(config.local_epochs),
@@ -4241,92 +4246,215 @@ function RoundConfigurationPage({ data, token, onDataRefresh, onNavigate }) {
             <Users size={18} strokeWidth={1.4} />
           </div>
 
-          <div className="round-field">
+          {simulationMode ? (
+            <div className="round-field">
+              <div className="round-field-top">
+                <label>CLIENT COUNT (SIMULATED)</label>
+                <strong>{config.num_clients} SELECTED</strong>
+              </div>
 
-            <div className="round-field-top">
-              <label>
-                {simulationMode
-                  ? 'CLIENT COUNT (SIMULATED)'
-                  : 'CLIENT COUNT (HOSPITAL NODES)'}
-              </label>
-              <strong>{config.num_clients} SELECTED</strong>
-            </div>
-
-            <input
-              type="range"
-              min="2"
-              max={participantCapacity}
-              step="1"
-              value={Math.max(
-                2,
-                Math.min(
-                  Number(config.num_clients) || 2,
-                  participantCapacity,
-                ),
-              )}
-              onChange={(event) =>
-                setField(
-                  'num_clients',
-                  Number(event.target.value),
-                )
-              }
-            />
-
-            <div className="round-range-meta">
-              <span>MIN 2 CLIENTS</span>
-              <span>
-                CAPACITY: {participantCapacity} AVAILABLE
-              </span>
-            </div>
-
-            <div className="client-presets-row">
-              <span className="preset-label">PRESETS:</span>
-              {[2, 5, 10, participantCapacity]
-                .filter((v, i, arr) => arr.indexOf(v) === i && v <= participantCapacity && v >= 2)
-                .map((val) => (
-                  <button
-                    key={val}
-                    type="button"
-                    className={`preset-btn ${Number(config.num_clients) === val ? 'active' : ''}`}
-                    onClick={() => setField('num_clients', val)}
-                  >
-                    {val === participantCapacity ? `ALL (${val})` : `${val} NODES`}
-                  </button>
-                ))}
-            </div>
-
-            <div className="client-count-control">
-              <span>SET PARTICIPANTS</span>
               <input
-                type="number"
+                type="range"
                 min="2"
                 max={participantCapacity}
                 step="1"
-                value={config.num_clients}
-                onChange={(event) => {
-                  const raw = Number(event.target.value)
-                  if (!Number.isFinite(raw)) return
+                value={Math.max(
+                  2,
+                  Math.min(
+                    Number(config.num_clients) || 2,
+                    participantCapacity,
+                  ),
+                )}
+                onChange={(event) =>
                   setField(
                     'num_clients',
-                    Math.max(2, Math.min(Math.trunc(raw), participantCapacity)),
+                    Number(event.target.value),
                   )
-                }}
-                aria-label={
-                  simulationMode
-                    ? 'Number of simulated clients'
-                    : 'Number of hospital participants'
                 }
               />
-              <small>
-                {simulationMode
-                  ? 'Choose 2-20 synthetic clients'
-                  : `${eligibleHospitals.length} eligible hospital node${
-                      eligibleHospitals.length === 1 ? '' : 's'
-                    } ready for federation`}
+
+              <div className="round-range-meta">
+                <span>MIN 2 CLIENTS</span>
+                <span>
+                  CAPACITY: {participantCapacity} AVAILABLE
+                </span>
+              </div>
+
+              <div className="client-presets-row">
+                <span className="preset-label">PRESETS:</span>
+                {[2, 5, 10, participantCapacity]
+                  .filter((v, i, arr) => arr.indexOf(v) === i && v <= participantCapacity && v >= 2)
+                  .map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      className={`preset-btn ${Number(config.num_clients) === val ? 'active' : ''}`}
+                      onClick={() => setField('num_clients', val)}
+                    >
+                      {val === participantCapacity ? `ALL (${val})` : `${val} NODES`}
+                    </button>
+                  ))}
+              </div>
+
+              <div className="client-count-control">
+                <span>SET PARTICIPANTS</span>
+                <input
+                  type="number"
+                  min="2"
+                  max={participantCapacity}
+                  step="1"
+                  value={config.num_clients}
+                  onChange={(event) => {
+                    const raw = Number(event.target.value)
+                    if (!Number.isFinite(raw)) return
+                    setField(
+                      'num_clients',
+                      Math.max(2, Math.min(Math.trunc(raw), participantCapacity)),
+                    )
+                  }}
+                  aria-label="Number of simulated clients"
+                />
+                <small>Choose 2-20 synthetic clients for controlled security testing</small>
+              </div>
+            </div>
+          ) : (
+            <div className="round-field">
+              <div className="round-field-top">
+                <label>SELECT PARTICIPATING HOSPITALS</label>
+                <strong>
+                  {(config.selected_hospital_ids?.length ?? config.num_clients)} OF {eligibleHospitals.length} SELECTED
+                </strong>
+              </div>
+
+              <div className="client-presets-row" style={{ marginTop: 6, marginBottom: 10, flexWrap: 'wrap', gap: 6 }}>
+                <span className="preset-label">QUICK SELECTION:</span>
+                <button
+                  type="button"
+                  className="preset-btn"
+                  onClick={() => {
+                    const shuffled = [...eligibleHospitals].sort(() => 0.5 - Math.random())
+                    const picked = shuffled.slice(0, Math.min(2, eligibleHospitals.length)).map((h) => h.id)
+                    setConfig((c) => ({ ...c, selected_hospital_ids: picked, num_clients: picked.length }))
+                  }}
+                >
+                  🎲 RANDOM 2
+                </button>
+                <button
+                  type="button"
+                  className="preset-btn"
+                  onClick={() => {
+                    const shuffled = [...eligibleHospitals].sort(() => 0.5 - Math.random())
+                    const picked = shuffled.slice(0, Math.min(3, eligibleHospitals.length)).map((h) => h.id)
+                    setConfig((c) => ({ ...c, selected_hospital_ids: picked, num_clients: picked.length }))
+                  }}
+                >
+                  🎲 RANDOM 3
+                </button>
+                <button
+                  type="button"
+                  className="preset-btn"
+                  onClick={() => {
+                    const allIds = eligibleHospitals.map((h) => h.id)
+                    setConfig((c) => ({ ...c, selected_hospital_ids: allIds, num_clients: allIds.length }))
+                  }}
+                >
+                  ALL ({eligibleHospitals.length})
+                </button>
+                <button
+                  type="button"
+                  className="preset-btn"
+                  onClick={() => {
+                    setConfig((c) => ({ ...c, selected_hospital_ids: [], num_clients: 2 }))
+                  }}
+                >
+                  CLEAR
+                </button>
+              </div>
+
+              <div
+                style={{
+                  maxHeight: 220,
+                  overflowY: 'auto',
+                  border: '1px solid var(--line)',
+                  borderRadius: 6,
+                  background: 'rgba(2, 6, 23, 0.6)',
+                  padding: 6,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6,
+                }}
+              >
+                {eligibleHospitals.map((h) => {
+                  const currentSelected = Array.isArray(config.selected_hospital_ids)
+                    ? config.selected_hospital_ids
+                    : eligibleHospitals.slice(0, Number(config.num_clients) || 2).map((x) => x.id)
+                  const isSelected = currentSelected.includes(h.id)
+                  return (
+                    <div
+                      key={h.id}
+                      onClick={() => {
+                        const set = new Set(currentSelected)
+                        if (set.has(h.id)) {
+                          set.delete(h.id)
+                        } else {
+                          set.add(h.id)
+                        }
+                        const nextList = Array.from(set)
+                        setConfig((c) => ({
+                          ...c,
+                          selected_hospital_ids: nextList,
+                          num_clients: Math.max(2, nextList.length),
+                        }))
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '8px 12px',
+                        borderRadius: 4,
+                        cursor: 'pointer',
+                        background: isSelected ? 'rgba(0, 229, 255, 0.12)' : 'rgba(255, 255, 255, 0.02)',
+                        border: isSelected ? '1px solid #00e5ff' : '1px solid transparent',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => {}}
+                          style={{ cursor: 'pointer' }}
+                        />
+                        <div>
+                          <strong style={{ color: isSelected ? '#00e5ff' : '#f8fafc', fontSize: 13 }}>
+                            {h.code} — {h.name}
+                          </strong>
+                          <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                            {h.location || 'Clinical Enclave'} · Tier: {h.security_tier || 'TRUSTED'}
+                          </div>
+                        </div>
+                      </div>
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 700,
+                          padding: '2px 6px',
+                          borderRadius: 3,
+                          background: isSelected ? '#00e5ff' : '#334155',
+                          color: isSelected ? '#000' : '#94a3b8',
+                        }}
+                      >
+                        {isSelected ? 'INCLUDED' : 'EXCLUDED'}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+              <small style={{ display: 'block', marginTop: 6, color: '#94a3b8', fontSize: 11 }}>
+                Choose arbitrary hospitals by clicking checkboxes or use random selection.
               </small>
             </div>
-
-          </div>
+          )}
 
           <div className="round-input-row">
 
@@ -5414,6 +5542,12 @@ function LiveRoundPage({ data, token }) {
       participating > 0 &&
       hospitals.length > 0
     ) {
+      const savedConfig = activeRound?.configuration || {}
+      if (Array.isArray(savedConfig.selected_hospital_ids) && savedConfig.selected_hospital_ids.length > 0) {
+        const idSet = new Set(savedConfig.selected_hospital_ids)
+        const chosen = hospitals.filter(h => idSet.has(h.id) || idSet.has(h.code)).map(h => h.code || h.id)
+        if (chosen.length > 0) return chosen
+      }
       return hospitals
         .map(
           (hospital) =>

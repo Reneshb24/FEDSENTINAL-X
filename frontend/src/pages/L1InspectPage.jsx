@@ -10,6 +10,7 @@ import {
   Database,
   Lock,
   Compass,
+  Sliders,
 } from 'lucide-react'
 import {
   apiFetch,

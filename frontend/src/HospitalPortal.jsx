@@ -41,6 +41,7 @@ import {
   Workflow,
   X,
   XCircle,
+  Zap,
 } from 'lucide-react'
 
 const rawHospitalApi = (import.meta.env && import.meta.env.VITE_API_BASE_URL) || 'http://127.0.0.1:8000'
@@ -315,6 +316,19 @@ function HospitalCommand({
               : 'NOT A MEMBER'}
           </span>
         </div>
+      </div>
+
+      {/* 3D Institutional Clinical Enclave & Security Boundary */}
+      <div style={{ marginBottom: 20 }}>
+        <HospitalEnclave3D
+          jobStatus={status?.is_eligible ? 'ONLINE' : 'STANDBY'}
+          epoch={latestRound?.round_number || 1}
+          loss={dashboard?.latest_loss ?? null}
+          datasetName="Clinical EHR & Radiology Silo"
+          sampleCount={dashboard?.dataset_count ? dashboard.dataset_count * 200 : 850}
+          hash={hospital?.id ? hospital.id.slice(0, 16) : null}
+          height="220px"
+        />
       </div>
 
       <div className="hp-stat-grid">
@@ -722,21 +736,7 @@ function MyHospitalPage({
         </div>
       </div>
 
-      {message && (
-        <div className="hp-notice hp-notice-success">
-          <CheckCircle2 size={18} />
-          <span>{message}</span>
-          <button onClick={() => setMessage('')}><X size={15} /></button>
-        </div>
-      )}
 
-      {error && (
-        <div className="hp-notice hp-notice-danger">
-          <AlertTriangle size={18} />
-          <span>{error}</span>
-          <button onClick={() => setError('')}><X size={15} /></button>
-        </div>
-      )}
 
       <div className="hp-grid-2">
         <section className="hp-card">
@@ -764,6 +764,21 @@ function MyHospitalPage({
             <InfoRow label="Specialization" value={currentHospital?.description || 'General & Clinical AI Research'} />
             <InfoRow label="Enclave Created" value={formatDate(currentHospital?.created_at)} />
           </div>
+
+          {error && (
+            <div className="hp-notice hp-notice-danger" style={{ marginTop: 14 }}>
+              <AlertTriangle size={16} />
+              <span>{error}</span>
+              <button type="button" onClick={() => setError('')}><X size={14} /></button>
+            </div>
+          )}
+          {message && (
+            <div className="hp-notice hp-notice-success" style={{ marginTop: 14 }}>
+              <CheckCircle2 size={16} />
+              <span>{message}</span>
+              <button type="button" onClick={() => setMessage('')}><X size={14} /></button>
+            </div>
+          )}
         </section>
 
         <section className="hp-card">
@@ -948,6 +963,13 @@ function MyHospitalPage({
                 />
               </label>
 
+              {error && (
+                <div className="hp-notice hp-notice-danger" style={{ marginBottom: 14 }}>
+                  <AlertTriangle size={16} />
+                  <span>{error}</span>
+                </div>
+              )}
+
               <div className="hp-modal-actions">
                 <button
                   type="button"
@@ -1016,6 +1038,13 @@ function MyHospitalPage({
                   minLength={8}
                 />
               </label>
+
+              {error && (
+                <div className="hp-notice hp-notice-danger" style={{ marginBottom: 14 }}>
+                  <AlertTriangle size={16} />
+                  <span>{error}</span>
+                </div>
+              )}
 
               <div className="hp-modal-actions">
                 <button
@@ -1289,17 +1318,7 @@ function TeamAccessPage({ token, hospital, onRefresh }) {
         </button>
       </div>
 
-      {message && (
-        <div style={{ padding: '12px 16px', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: '#10b981', borderRadius: 6, marginBottom: 16, fontSize: 13 }}>
-          {message}
-        </div>
-      )}
 
-      {error && (
-        <div style={{ padding: '12px 16px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', color: '#ef4444', borderRadius: 6, marginBottom: 16, fontSize: 13 }}>
-          {error}
-        </div>
-      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 20 }}>
         <div className="hp-stat">
@@ -1393,6 +1412,22 @@ function TeamAccessPage({ token, hospital, onRefresh }) {
             </tbody>
           </table>
         </div>
+
+        {(error || message) && (
+          <div style={{
+            padding: '10px 14px',
+            borderTop: '1px solid #1e293b',
+            background: error ? 'rgba(239, 68, 68, 0.08)' : 'rgba(16, 185, 129, 0.08)',
+            color: error ? '#ef4444' : '#10b981',
+            fontSize: 12,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}>
+            <span>{error || message}</span>
+            <button onClick={() => { setError(''); setMessage(''); }} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}>&times;</button>
+          </div>
+        )}
       </section>
 
       {/* Add Staff Modal */}
@@ -1449,6 +1484,12 @@ function TeamAccessPage({ token, hospital, onRefresh }) {
                   <option value="HOSPITAL_ADMIN">Hospital Administrator (Full enclave control)</option>
                 </select>
               </label>
+
+              {error && (
+                <div style={{ padding: '8px 12px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', color: '#ef4444', borderRadius: 4, marginBottom: 12, fontSize: 11 }}>
+                  {error}
+                </div>
+              )}
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
                 <button
@@ -1754,21 +1795,7 @@ function DatasetsPage({
         </button>
       </div>
 
-      {message && (
-        <div className="hp-notice hp-notice-success">
-          <CheckCircle2 size={18} />
-          <span>{message}</span>
-          <button onClick={() => setMessage('')}><X size={15} /></button>
-        </div>
-      )}
 
-      {error && (
-        <div className="hp-notice hp-notice-danger">
-          <AlertTriangle size={18} />
-          <span>{error}</span>
-          <button onClick={() => setError('')}><X size={15} /></button>
-        </div>
-      )}
 
       {/* Datasets Table Card */}
       <section className="hp-card">
@@ -1871,6 +1898,22 @@ function DatasetsPage({
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {(error || message) && (
+          <div style={{
+            padding: '10px 14px',
+            borderTop: '1px solid #1e293b',
+            background: error ? 'rgba(239, 68, 68, 0.08)' : 'rgba(16, 185, 129, 0.08)',
+            color: error ? '#ef4444' : '#10b981',
+            fontSize: 12,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}>
+            <span>{error || message}</span>
+            <button onClick={() => { setError(''); setMessage(''); }} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}>&times;</button>
           </div>
         )}
       </section>
@@ -2014,6 +2057,12 @@ function DatasetsPage({
                       Zero-Pickle Ingestion: NPZ arrays are parsed with pickle disabled. Arrays must match structural requirements for FedSentinelCNN.
                     </span>
                   </div>
+                  {error && (
+                    <div className="hp-notice hp-notice-danger" style={{ marginBottom: 10 }}>
+                      <AlertTriangle size={15} />
+                      <span>{error}</span>
+                    </div>
+                  )}
                   <button
                     type="submit"
                     className="hp-button hp-button-primary"
@@ -2054,6 +2103,12 @@ function DatasetsPage({
                       SSRF Guardrail Active: Localhost, private RFC-1918 addresses (10.x, 192.168.x), link-local, and AWS metadata (169.254.x) are strictly blocked.
                     </span>
                   </div>
+                  {error && (
+                    <div className="hp-notice hp-notice-danger" style={{ marginBottom: 10 }}>
+                      <AlertTriangle size={15} />
+                      <span>{error}</span>
+                    </div>
+                  )}
                   <button
                     type="submit"
                     className="hp-button hp-button-primary"
@@ -2083,6 +2138,12 @@ function DatasetsPage({
                       Instantly synthesizes 200 validated local clinical tensor samples with {activeDataset.num_classes} distinct pathology classes directly inside the enclave boundary. No internet connection or external file required.
                     </span>
                   </div>
+                  {error && (
+                    <div className="hp-notice hp-notice-danger" style={{ marginBottom: 10 }}>
+                      <AlertTriangle size={15} />
+                      <span>{error}</span>
+                    </div>
+                  )}
                   <button
                     type="button"
                     className="hp-button hp-button-primary"
@@ -2204,6 +2265,13 @@ function DatasetsPage({
                   required
                 />
               </label>
+
+              {error && (
+                <div className="hp-notice hp-notice-danger" style={{ marginBottom: 12 }}>
+                  <AlertTriangle size={15} />
+                  <span>{error}</span>
+                </div>
+              )}
 
               <div className="hp-modal-actions">
                 <button
@@ -2905,14 +2973,7 @@ function LocalTrainingPage({
         </div>
       </div>
 
-      {/* Notice / Errors */}
-      {error && (
-        <div className="hp-notice hp-notice-danger">
-          <AlertTriangle size={18} />
-          <span>{error}</span>
-          <button onClick={() => setError('')}><X size={15} /></button>
-        </div>
-      )}
+
 
       {/* 3D Institutional Secure Enclave Simulation */}
       <div style={{ marginBottom: 16 }}>
@@ -3120,6 +3181,33 @@ function LocalTrainingPage({
                   </>
                 )}
               </button>
+            )}
+
+            {error && (
+              <div
+                style={{
+                  marginTop: 12,
+                  padding: '10px 14px',
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  color: '#ef4444',
+                  borderRadius: 6,
+                  fontSize: 12,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+              >
+                <AlertTriangle size={15} />
+                <span>{error}</span>
+                <button
+                  type="button"
+                  onClick={() => setError('')}
+                  style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}
+                >
+                  <X size={14} />
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -6580,7 +6668,7 @@ export default function HospitalPortal({
         </aside>
 
         <main className="hp-main">
-          {error && (
+          {error && !hospital && (
             <div className="hp-notice hp-notice-danger">
               <AlertTriangle size={18} />
               <div>

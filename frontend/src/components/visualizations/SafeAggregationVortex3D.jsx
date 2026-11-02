@@ -189,7 +189,7 @@ export default function SafeAggregationVortex3D({ round = null, updates = [], he
         <ambientLight intensity={0.6} />
         <pointLight position={[5, 8, 5]} intensity={1.5} color="#34d399" />
         <pointLight position={[-5, -4, -5]} intensity={0.8} color="#00e5ff" />
-        <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.5} maxPolarAngle={Math.PI / 2.1} minPolarAngle={Math.PI / 4} />
+        <OrbitControls enableZoom={true} zoomSpeed={1.0} minDistance={2} maxDistance={35} enablePan={true} panSpeed={1.0} enableRotate={true} rotateSpeed={0.8} enableDamping={true} dampingFactor={0.05} autoRotate autoRotateSpeed={0.6} />
 
         <AggregationCore acceptedCount={acceptedCount} quarantinedCount={quarantinedCount} />
         <QuarantineCell count={quarantinedCount} />

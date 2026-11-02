@@ -290,13 +290,7 @@ export default function HospitalNetwork3D({
           ))}
         </Suspense>
 
-        <OrbitControls
-          enablePan={false}
-          maxDistance={18}
-          minDistance={4}
-          autoRotate
-          autoRotateSpeed={0.5}
-        />
+        <OrbitControls enableZoom={true} zoomSpeed={1.0} minDistance={2} maxDistance={35} enablePan={true} panSpeed={1.0} enableRotate={true} rotateSpeed={0.8} enableDamping={true} dampingFactor={0.05} autoRotate autoRotateSpeed={0.6} />
       </Canvas>
     </div>
   )
