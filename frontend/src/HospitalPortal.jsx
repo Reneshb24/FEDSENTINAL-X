@@ -59,6 +59,7 @@ import {
   Link2,
   Lock,
   Network,
+  Play,
   Radio,
   RefreshCw,
   Save,

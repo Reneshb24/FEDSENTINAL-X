@@ -708,8 +708,14 @@ class HospitalTrainingService:
         # 5. Create model
         # ---------------------------------------------------------
 
+        model_classes = dataset.num_classes
+        if "classifier.3.bias" in global_state:
+            model_classes = int(global_state["classifier.3.bias"].shape[0])
+        elif "classifier.3.weight" in global_state:
+            model_classes = int(global_state["classifier.3.weight"].shape[0])
+
         model = self.model_factory(
-            num_classes=dataset.num_classes
+            num_classes=model_classes
         )
 
         # ---------------------------------------------------------
@@ -832,32 +838,35 @@ class HospitalTrainingService:
             raise ValueError("Active federation was not found.")
 
         # ---------------------------------------------------------
-        # 2. Verify round belongs to federation
+        # 2. Verify round belongs to federation (if not in pre-flight mode)
         # ---------------------------------------------------------
 
-        federation_round = (
-            db.query(FederationRound)
-            .filter(
-                FederationRound.id == round_id,
-                FederationRound.federation_id == federation_id,
-            )
-            .first()
-        )
+        is_preflight = round_id.startswith("PRE_FLIGHT")
 
-        if federation_round is None:
-            raise ValueError(
-                "Round was not found for this federation."
+        if not is_preflight:
+            federation_round = (
+                db.query(FederationRound)
+                .filter(
+                    FederationRound.id == round_id,
+                    FederationRound.federation_id == federation_id,
+                )
+                .first()
             )
 
-        # ---------------------------------------------------------
-        # 3. Verify round is accepting hospital training
-        # ---------------------------------------------------------
+            if federation_round is None:
+                raise ValueError(
+                    "Round was not found for this federation."
+                )
 
-        if federation_round.status != "RUNNING":
-            raise ValueError(
-                f"Round is not accepting hospital training. "
-                f"Current status: {federation_round.status}."
-            )
+            # ---------------------------------------------------------
+            # 3. Verify round is accepting hospital training
+            # ---------------------------------------------------------
+
+            if federation_round.status != "RUNNING":
+                raise ValueError(
+                    f"Round is not accepting hospital training. "
+                    f"Current status: {federation_round.status}."
+                )
 
         # ---------------------------------------------------------
         # 4. Load the latest validated global model

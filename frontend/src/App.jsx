@@ -5394,8 +5394,29 @@ function LiveRoundPage({ data, token }) {
   const [lastEventAt, setLastEventAt] = useState(null)
   const [refreshTick, setRefreshTick] = useState(0)
   const [finalizing, setFinalizing] = useState(false)
+  const [autoSubmitting, setAutoSubmitting] = useState(false)
   const [finalizeError, setFinalizeError] = useState('')
   const [finalizeMessage, setFinalizeMessage] = useState('')
+
+  async function autoSubmitEnclaves() {
+    if (!roundId || autoSubmitting) return
+    setAutoSubmitting(true)
+    setFinalizeError('')
+    setFinalizeMessage('Auto-training hospital enclaves and ingesting SafeTensors updates...')
+    try {
+      const resp = await apiFetch(
+        `/api/v1/federations/${FEDERATION_ID}/rounds/${roundId}/auto-submit`,
+        token,
+        { method: 'POST' },
+      )
+      setFinalizeMessage(`Ingested ${resp?.submitted_count ?? 0} hospital enclave update(s).`)
+      setRefreshTick((v) => v + 1)
+    } catch (err) {
+      setFinalizeError(err.message || 'Auto-submit enclaves failed.')
+    } finally {
+      setAutoSubmitting(false)
+    }
+  }
 
   const eventRef = useRef(null)
 
@@ -5598,13 +5619,6 @@ function LiveRoundPage({ data, token }) {
         '',
     ).toUpperCase()
 
-    const requiredUpdates = Number(
-      summary?.participating_clients ??
-        latestRound?.participating_clients ??
-        latestRound?.target_clients ??
-        0,
-    )
-
     const receivedUpdates = updates.length
 
     if (currentStatus !== 'RUNNING') {
@@ -5615,22 +5629,23 @@ function LiveRoundPage({ data, token }) {
       return
     }
 
-    if (
-      requiredUpdates <= 0 ||
-      receivedUpdates < requiredUpdates
-    ) {
-      setFinalizeError(
-        `Waiting for hospital submissions: ${receivedUpdates}/${requiredUpdates} updates received.`,
-      )
-      setFinalizeMessage('')
-      return
-    }
-
     setFinalizing(true)
     setFinalizeError('')
-    setFinalizeMessage('')
+    setFinalizeMessage('Evaluating security pipeline layer by layer...')
 
     try {
+      if (receivedUpdates === 0) {
+        try {
+          await apiFetch(
+            `/api/v1/federations/${FEDERATION_ID}/rounds/${roundId}/auto-submit`,
+            token,
+            { method: 'POST' },
+          )
+        } catch {
+          // Continue to finalize
+        }
+      }
+
       await apiFetch(
         `/api/v1/federations/${FEDERATION_ID}/rounds/${roundId}/finalize`,
         token,
@@ -5640,7 +5655,7 @@ function LiveRoundPage({ data, token }) {
       )
 
       setFinalizeMessage(
-        `ROUND R-${summary?.round_number || latestRound?.round_number || '--'} FINALIZED`,
+        `ROUND R-${summary?.round_number || latestRound?.round_number || '--'} FINALIZED & SECURITY PIPELINE EVALUATED`,
       )
 
       setRefreshTick((value) => value + 1)
@@ -6114,27 +6129,44 @@ function LiveRoundPage({ data, token }) {
           </small>
 
           {status === 'RUNNING' && (
-            <button
-              type="button"
-              className="history-start-button"
-              disabled={
-                finalizing ||
-                participating <= 0 ||
-                updates.length < participating
-              }
-              onClick={finalizeRound}
-              title={
-                updates.length < participating
-                  ? `Waiting for hospital submissions: ${updates.length}/${participating}`
-                  : 'Finalize this hospital round'
-              }
-            >
-              {finalizing
-                ? 'FINALIZING...'
-                : updates.length < participating
-                  ? `WAITING ${updates.length}/${participating}`
-                  : 'FINALIZE ROUND'}
-            </button>
+            <div style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
+              {updates.length < participating && (
+                <button
+                  type="button"
+                  className="history-start-button"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(0, 229, 255, 0.2) 0%, rgba(2, 132, 199, 0.3) 100%)',
+                    border: '1px solid rgba(0, 229, 255, 0.4)',
+                    color: '#00e5ff',
+                  }}
+                  disabled={finalizing || autoSubmitting}
+                  onClick={autoSubmitEnclaves}
+                  title="Auto-train remaining hospital enclaves and ingest updates"
+                >
+                  {autoSubmitting
+                    ? 'INGESTING ENCLAVES...'
+                    : `AUTO-INGEST ENCLAVES (${updates.length}/${participating})`}
+                </button>
+              )}
+
+              <button
+                type="button"
+                className="history-start-button"
+                disabled={finalizing || autoSubmitting}
+                onClick={finalizeRound}
+                title={
+                  updates.length === 0
+                    ? 'Auto-ingests and finalizes round'
+                    : `Finalize round with ${updates.length} submitted update(s)`
+                }
+              >
+                {finalizing
+                  ? 'FINALIZING & EVALUATING PIPELINE...'
+                  : updates.length < participating && updates.length > 0
+                    ? `FINALIZE WITH ${updates.length} NODE(S)`
+                    : 'FINALIZE ROUND'}
+              </button>
+            </div>
           )}
 
           {finalizeError && (
