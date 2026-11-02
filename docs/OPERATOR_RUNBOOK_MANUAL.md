@@ -317,17 +317,23 @@ The operational control desk for launching federated training rounds.
 
 ### 4.8 Live Round Operations (`/rounds/live` or `live-round`)
 
-Real-time telemetry monitor tracking active round execution step-by-step.
+Real-time telemetry monitor tracking active round execution step-by-step across all participating client nodes.
 
-* **Round Header Banner**: Displays Round Number, Mode (`SIMULATION` / `HOSPITAL`), Status (`RUNNING`, `AGGREGATING`, `COMPLETED`), and Elapsed Time.
+* **Round Header Banner**: Displays Round Number (`R-X`), Execution Mode (`SIMULATION` / `HOSPITAL`), Status (`RUNNING`, `AGGREGATING`, `COMPLETED`), and Elapsed Time.
 * **10-Stage Visual Execution Pipeline**:
-  * `01 Initialization` $\to$ `02 Weight Dispatch` $\to$ `03 Local Training` $\to$ `04 Update Intake` $\to$ `05 L0 Verify` $\to$ `06 L1 Inspect` $\to$ `07 L2 Correlate` $\to$ `08 L3/L4 Simulate` $\to$ `09 Safe Aggregation` $\to$ `10 Lineage Commit`.
-* **Enclave Telemetry Table**:
-  * Columns: Enclave Code, Status, Local Epoch Progress, Training Loss, Upload Time, Defense Gate Status.
+  * `01 Initialization` → `02 Weight Dispatch` → `03 Local Training` → `04 Update Intake` → `05 L0 Verify` → `06 L1 Inspect` → `07 L2 Correlate` → `08 L3/L4 Simulate` → `09 Safe Aggregation` → `10 Lineage Commit`.
+* **Enclave Telemetry Table & Topologies**:
+  * Shows active channels for all configured participant nodes (e.g., H51 Clinical Diabetes Cohort, H21 Stanford Clinical Enclave).
+  * Real-time participant state: `TRAINING`, `SUBMITTED`, `PENDING_ANALYSIS`, `QUARANTINED`, `AGGREGATED`.
 * **Operational Control Buttons**:
-  * **`ABORT ROUND` button**: Emergency stop button. Halts current training and logs containment event.
-  * **`TRIGGER DEFENSE PIPELINE` button**: Manually forces evaluation of candidate updates through L0–L5.
-  * **`EXECUTE SAFE AGGREGATION` button**: Triggers consensus model fusion once updates are ingested and verified.
+  * **`AUTO-INGEST ENCLAVES (X/Y)` button**:
+    * Displayed when the round is `RUNNING` and fewer updates have been received than configured nodes (`updates.length < participating`).
+    * **Action**: Automatically executes local training across all unsubmitted participating hospital enclaves on their active local datasets, signs zero-pickle SafeTensors update packages, and dispatches them to the round intake queue with one click.
+  * **`FINALIZE ROUND` / `FINALIZE WITH X NODE(S)` button**:
+    * Enabled whenever at least 1 update has been received (`updates.length >= 1`).
+    * If 0 updates are present, clicking it automatically triggers auto-ingestion for all configured nodes first, then executes finalization.
+    * **Action**: Executes the full defense-in-depth pipeline (L0 Verify → L1 Inspect → L2 Correlate → L3 Influence → L4 Simulate → L5 Attribute → Trust Engine → Safe Aggregation) layer by layer, broadcasting real-time SSE WebSocket events and rendering live stage progress.
+  * **`ABORT ROUND` button**: Emergency containment stop. Halts current training and logs containment audit record.
 
 ---
 
@@ -770,58 +776,71 @@ Live round inspection from the enclave's clinical perspective.
 
 ### 5.8 In Situ Local Model Training Pipeline (`training`)
 
-The core clinical training workstation where authentic PyTorch model training is executed.
+The core clinical training workstation where authentic PyTorch model training is executed directly on local hospital hardware.
 
-* **3D Enclave Training Pipeline Visualizer (`HospitalEnclave3D`)**:
-  * Interactive 3D visualization illustrating the 5 enclave training stages:
-    1. *Private Hospital Patient Data Silo* (Zero network egress)
-    2. *Local PyTorch SGD Engine* (Hardware execution)
-    3. *Differential Weight Delta Extractor* ($\Delta W = W_{\text{local}} - W_{\text{global}}$)
-    4. *SafeTensors Serialization* (Zero-pickle security)
-    5. *Encrypted Update Dispatch* (To control plane)
-* **Round Gating Card**:
-  * If round is `COMPLETED`: Displays sealed round banner and disables start button: `ROUND COMPLETED — WAITING FOR NEXT ROUND`.
-  * If round is `OPEN`: Training controls are unlocked.
-* **Active Training Controls**:
-  * **Dataset Selector dropdown**: Choose verified clinical dataset for this run.
-  * **`START LOCAL TRAINING & SUBMIT UPDATE` button**:
-    1. Downloads current global model weights ($W_{\text{global}}$) from control plane.
-    2. Initializes PyTorch `FedSentinelCNN` with global weights.
-    3. Executes local gradient descent across local clinical patient batches.
-    4. Calculates differential update delta: $\Delta W = W_{\text{trained}} - W_{\text{global}}$.
-    5. Packages $\Delta W$ into `.safetensors` binary format.
-    6. Computes SHA-256 cryptographic digest.
-    7. Dispatches update package via `POST /api/v1/hospital/submit-update`.
-  * **`CANCEL LOCAL TRAINING` button**: Immediately interrupts PyTorch training thread and discards in-progress batch.
-* **Live Telemetry & Console Stream**:
-  * Real-time progress bar tracking epoch completion (e.g., `Epoch 1/1 [100%]`).
-  * Live training loss curve and console output log.
-* **Submitted Update Receipt**:
-  * Displays: Update ID, SHA-256 Digest, Submission Timestamp, File Size, Defense Pipeline Status (`PENDING_EVALUATION`, `ACCEPTED_BY_CONSENSUS`, `QUARANTINED`).
+* **Dual Operational Training Modes**:
+  * **Mode A: Active Round Submission Mode**:
+    * Active when the central federation has a round in status `RUNNING`.
+    * Button: **`EXECUTE & SUBMIT TO ACTIVE ROUND R-X`** (Play icon).
+    * Submits the resulting SafeTensors differential update into the active consensus round.
+  * **Mode B: Enclave Pre-Flight Mode**:
+    * Active when no round is currently running (`IDLE` / `COMPLETED`).
+    * Banner: `Enclave Pre-Flight Mode: Run local training, compute loss & verify SafeTensors weights before admin starts round.`
+    * Button: **`RUN LOCAL ENCLAVE TRAINING & PRE-FLIGHT AUDIT`** (Zap icon).
+    * Pulls the latest verified global model checkpoint, trains on the active local dataset, computes loss and differential weights, and tests L0-L5 gate readiness without submitting to an open round.
+* **Dynamic Classifier Dimension Alignment**:
+  * Automatically detects global model class dimensions (e.g. 10 output classes) and harmonizes local dataset label counts (e.g., 2 classes for diabetes cohort), ensuring seamless PyTorch state loading and mathematical gradient compatibility.
+* **12-Stage Visual Training Progression**:
+  * `01 Global Model Ingestion` → `02 Local Dataset Partitioning` → `03 PyTorch SGD Training` → `04 Weight Delta Extraction` → `05 SafeTensors Serialization` → `06 SHA-256 Checksum` → `07-12 L0-L5 Gate Evaluation & Routing Verdict`.
+* **Telemetry HUD**: Displays Local Training Loss, Processed Clinical Samples, Serialized Artifact Size (KB), SHA-256 Digest, and Security Routing Verdict (`AGGREGATION` vs `QUARANTINE`).
 
 ---
 
-### 5.9 Model Updates Ledger (`updates`)
+### 5.9 Model Updates & Contribution Value Register (`updates`)
 
-Audit history of all differential updates submitted by this enclave.
+Audit history and institutional contribution value ledger of all differential updates submitted by this enclave.
 
-* **Updates History Table**:
-  * Columns: Update ID, Round Number, SHA-256 Hash, File Size, Ingested Timestamp, Gate Outcome (`ACCEPTED` / `QUARANTINED`).
-* **Row Actions**:
-  * **`INSPECT RECEIPT` button**: Displays submission receipt with server timestamp and defense gate breakdown.
-  * **`DOWNLOAD LOCAL UPDATE (.safetensors)` button**: Downloads local update package from enclave storage.
-
----
-
-### 5.10 Global Consensus Model (`global-model`)
-
-View and download the current global consensus model for clinical diagnostic use.
-
-* **Global Model Status Card**:
-  * Current Version, Consensus Accuracy, Total Training Rounds, Parameters Count (105,866).
+* **Institutional Value Summary Metrics**:
+  * *TOTAL CONTRIBUTIONS*: Total round updates submitted by this hospital enclave.
+  * *ACCEPTED INTO GLOBAL*: Count and percentage of updates that successfully passed L0-L5 gates and merged into the global model.
+  * *PATIENT EXAMPLES CONTRIBUTED*: Total count of patient clinical records trained in-situ with zero data egress.
+  * *SAFE DIFFERENTIAL WEIGHTS*: Total volume of zero-pickle SafeTensors gradient parameters securely transmitted.
+* **Contribution Value Register Table**:
+  * Columns:
+    * **UPDATE ID & HASH**: Monospaced unique update identifier and SHA-256 fingerprint.
+    * **ROUND**: Federation round callsign (`R-20`, `R-21`, etc.).
+    * **CONTRIBUTION VALUE**: Patient sample count, round contribution percentage share ($w_k = \frac{n_k}{\sum n_i}$), and differential gradient norm ($\|\Delta W\|$).
+    * **QUALITY TIER**: Automated data fidelity classification badge (`HIGH_FIDELITY` for $\ge 500$ records, or `STANDARD`).
+    * **AGGREGATION IMPACT**: Clear status badge: `AGGREGATED TO GLOBAL` (emerald), `QUARANTINED` (amber/red), or `REVIEW`.
+    * **L0 INTEGRITY**: Cryptographic zero-pickle check badge (`PASSED`).
+    * **SUBMITTED**: Formatted UTC submission timestamp.
 * **Action Buttons**:
-  * **`DOWNLOAD CONSENSUS MODEL (.safetensors)` button**: Downloads latest global model weights for on-premise clinical inference.
-  * **`VERIFY MODEL INTEGRITY` button**: Verifies SHA-256 digest against control plane attestation record.
+  * **`REFRESH` button**: Re-synchronizes update telemetry from `/api/v1/hospital/updates`.
+  * **`INSPECT` button**: Opens modal displaying full update metadata, cryptographic digest, parameter count, and audit trail.
+
+---
+
+### 5.10 Global Consensus Model Registry & Synchronization (`global-model`)
+
+View and verify the central server-verified global consensus model checkpoint and enclave synchronization state.
+
+* **Global Model Metric Cards**:
+  * *ACTIVE MODEL VERSION*: Latest consensus version tag (e.g. `v21` / `round-10`).
+  * *TOTAL TRAINABLE PARAMETERS*: 105,866 parameters across dual-layer Conv2D + Dense classifier.
+  * *GLOBAL CONVERGENCE*: Real-time convergence status (`CONVERGED` / `ACTIVE_TRAINING`).
+  * *ENCLAVE SYNCHRONIZATION*: Local alignment badge (`SYNCHRONIZED`).
+* **Neural Architecture Specification Panel**:
+  * Model Family: `FedSentinel-Clinical-CNN`.
+  * Architecture Spec: `FedSentinelCNN (Conv2d 16 -> Conv2d 32 -> Dense 64 -> Multi-Class Head)`.
+  * Input Dimensions: `[Batch, 1, 28, 28] / Clinical Biomarker Tensor`.
+  * Output Dimensions: `[Batch, 10] Differential Logits`.
+  * Weight Serialization: SafeTensors zero-pickle format.
+* **Provenance & Cryptographic Integrity Panel**:
+  * Active Federation Name and UUID.
+  * Latest Round Completed, Cumulative Accepted Updates, and Quarantined Anomaly Updates.
+  * SHA-256 Checkpoint Hash: Complete 64-character hexadecimal digest verifying model weights.
+* **Action Buttons**:
+  * **`VERIFY & SYNC GLOBAL MODEL` button**: Fetches live verified global model metadata from `/api/v1/hospital/global-model` and confirms local enclave synchronization.
 
 ---
 
@@ -907,6 +926,62 @@ Local configuration and preferences.
   * **Telemetry Refresh Interval dropdown**: `5s`, `10s`, `30s`, `Manual`.
   * **Email Alert Notification toggle**: Enable or disable automated emails for round start and security alerts.
 * **`SAVE ENCLAVE SETTINGS` button**: Saves local preferences.
+
+---
+
+---
+
+### 5.17 Disease Risk Prediction & Enclave Inference (`prediction`)
+
+In-situ clinical decision support and disease risk prediction powered by the consensus-trained federated global model.
+
+```
++----------------------------------------------------------------------------------+
+| CLINICAL INTELLIGENCE / FEDERATED IN SITU INFERENCE                              |
+| Disease Risk Prediction & Enclave Inference                                      |
+|                                                                                  |
+| [ QUICK CLINICAL CASE PRESETS ]                                                  |
+| [High-Risk Diabetic Patient]  [Borderline / Pre-Diabetic]  [Healthy Normal]      |
+|                                                                                  |
+| PATIENT CLINICAL BIOMARKERS (Form)        DIAGNOSTIC OUTCOME & ATTRIBUTION (HUD) |
+| Patient ID:        [ PT-CLINICAL-8821  ]  [ RISK TIER: CRITICAL        ] [99.9%] |
+| Condition:         [ Type-2 Diabetes   ]  POSITIVE (HIGH RISK OF T2D COMPLICATION)|
+| Fasting Glucose:   [----O-------------]   BIOMARKER ATTRIBUTION IMPACT:          |
+| Body Mass Index:   [-------O----------]   - Fasting Glucose: [===========] 50.7% |
+| Age:               [----O-------------]   - Body Mass Index: [=====      ] 19.5% |
+| Blood Pressure:    [----O-------------]   - Age Factor:      [===        ] 13.1% |
+| Serum Insulin:     [----O-------------]   - Genetic Pedigree:[==         ] 10.5% |
+| Genetic Pedigree:  [----O-------------]   CLINICAL ACTION PROTOCOL:              |
+| [ RUN FEDERATED ENCLAVE INFERENCE ]       Schedule confirmatory HbA1c test...    |
++----------------------------------------------------------------------------------+
+```
+
+* **Quick Clinical Case Presets**:
+  * **`High-Risk Diabetic Patient` button**: Populates vitals with elevated indicators (Fasting Glucose: 168 mg/dL, BMI: 36.2, Age: 52, Insulin: 180, Blood Pressure: 82).
+  * **`Borderline / Pre-Diabetic` button**: Populates vitals with pre-diabetic indicators (Fasting Glucose: 128 mg/dL, BMI: 28.4, Age: 42, Insulin: 95).
+  * **`Normal Healthy Control` button**: Populates vitals with optimal glycemic baseline (Fasting Glucose: 85 mg/dL, BMI: 21.8, Age: 26, Insulin: 60).
+* **Clinical Biomarker Sliders & Inputs**:
+  * **Patient Identifier**: Unique clinical record ID (e.g. `PT-CLINICAL-8821`).
+  * **Target Clinical Condition**: Dropdown (`Type-2 Diabetes & Metabolic Complications`, `Pulmonary Risk`, `Cardiometabolic Risk`).
+  * **Fasting Glucose ($mg/dL$)**: Interactive slider ($60 - 250$).
+  * **Body Mass Index (BMI, $kg/m^2$)**: Slider with clinical guidelines ($16 - 50$).
+  * **Age (Years)**: Slider ($18 - 90$).
+  * **Diastolic Blood Pressure ($mm\,Hg$)**: Slider ($50 - 140$).
+  * **Serum Insulin ($\mu U/mL$)**: Slider ($10 - 350$).
+  * **Diabetes Pedigree Function**: Slider ($0.05 - 2.0$).
+* **Action Buttons**:
+  * **`RUN FEDERATED ENCLAVE INFERENCE` button**:
+    * Dispatches inference payload to `POST /api/v1/hospital/predict`.
+    * Evaluates patient vitals directly against the verified federated global model.
+    * Computes diagnostic classification, probability, and risk tier.
+    * Records tamper-evident audit record `CLINICAL_INFERENCE_EXECUTED`.
+* **Diagnostic Outcome HUD**:
+  * **Risk Tier Badge**: Color-coded risk status (`CRITICAL` red, `HIGH` amber-red, `MODERATE` yellow, `LOW` green).
+  * **Diagnostic Classification**: Detailed clinical finding (e.g. `POSITIVE (HIGH RISK OF TYPE-2 DIABETES / METABOLIC COMPLICATION)`).
+  * **Confidence Score Meter**: Radial / numerical percentage probability (e.g., `99.89%`).
+  * **Biomarker Attribution Impact**: Dynamic horizontal progress bars illustrating the exact percentage contribution of each clinical vital to the risk verdict.
+  * **Clinical Action Protocol**: Actionable medical guidelines and next steps (e.g., confirmatory HbA1c testing, endocrinology consultation).
+  * **Zero-Leakage Privacy Guarantee**: Explicit verification card confirming patient vitals never left the local enclave boundary.
 
 ---
 

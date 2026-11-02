@@ -82,3 +82,61 @@ class HospitalStatusResponse(BaseModel):
     federation_member: bool
 
     membership_status: str | None
+
+
+# ============================================================================
+# DISEASE PREDICTION / INFERENCE SCHEMAS
+# ============================================================================
+
+class ClinicalFeatures(BaseModel):
+    pregnancies: float = 0.0
+    glucose: float = 120.0
+    blood_pressure: float = 70.0
+    skin_thickness: float = 20.0
+    insulin: float = 80.0
+    bmi: float = 25.0
+    diabetes_pedigree: float = 0.5
+    age: float = 35.0
+
+
+class DiseasePredictionRequest(BaseModel):
+    patient_id: str | None = None
+    condition: str = "DIABETES_METABOLIC"
+    features: ClinicalFeatures
+
+
+class DiseasePredictionResponse(BaseModel):
+    prediction_id: str
+    patient_id: str | None = None
+    condition: str
+    model_version: str
+    prediction: str
+    probability: float
+    risk_level: str
+    enclave_privacy: str
+    biomarker_importance: dict[str, float]
+    clinical_recommendation: str
+    executed_at: datetime
+
+
+# ============================================================================
+# GLOBAL MODEL STATUS SCHEMAS
+# ============================================================================
+
+class GlobalModelContextResponse(BaseModel):
+    federation_id: str
+    federation_name: str
+    model_name: str
+    version: str
+    model_hash: str
+    architecture: str
+    total_parameters: int
+    input_shape: str
+    output_shape: str
+    convergence_status: str
+    synchronization_status: str
+    last_updated_at: datetime | None = None
+    round_number: int | None = None
+    total_rounds: int
+    accepted_updates_total: int
+    quarantined_updates_total: int

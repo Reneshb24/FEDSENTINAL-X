@@ -70,6 +70,89 @@ FedSentinel-X is designed for real-world enterprise healthcare AI defense:
 
 ## System Architecture
 
+```mermaid
+flowchart TD
+    subgraph CentralControlPlane ["Central Security Control Plane (SOC)"]
+        AdminUI["Admin Control Plane (React 19 / Vite / 3D Three.js)"]
+        API["FastAPI Security Gateway"]
+        Orchestrator["Round Orchestrator & State Engine"]
+        L0["L0: SafeTensors & Zero-Pickle Check"]
+        L1["L1: 128-D Privacy Projection & Float Filter"]
+        L2["L2: Robust Coordinate-wise MAD Outlier"]
+        L3["L3: Holdout Gradient Influence & Inversion"]
+        L4["L4: Counterfactual Shadow Simulation"]
+        L5["L5: Dynamic Bayesian Trust & Attribution"]
+        AggCore["Safe Aggregation Engine (FedAvg, Coord-Median)"]
+        Quarantine["Forensic Quarantine Vault"]
+        GlobalModel["Verified Global Model Registry"]
+    end
+
+    subgraph HospitalA ["Hospital Enclave H51 (Clinical Diabetes Cohort)"]
+        DataA[("Private Clinical Patient EHR (In Situ)")]
+        LocalTrainerA["PyTorch SGD Local Trainer"]
+        PredA["In Situ Disease Risk Prediction"]
+        SafeTensorsA["SafeTensors Parameter Delta ΔW"]
+    end
+
+    subgraph HospitalB ["Hospital Enclave H21 (Stanford Clinical AI)"]
+        DataB[("Private Imaging & Vitals (In Situ)")]
+        LocalTrainerB["PyTorch SGD Local Trainer"]
+        PredB["In Situ Clinical Inference"]
+        SafeTensorsB["SafeTensors Parameter Delta ΔW"]
+    end
+
+    GlobalModel -->|"Synchronize Global Weights (W_global)"| LocalTrainerA
+    GlobalModel -->|"Synchronize Global Weights (W_global)"| LocalTrainerB
+    GlobalModel -->|"Verified Checkpoint"| PredA
+    GlobalModel -->|"Verified Checkpoint"| PredB
+
+    DataA --> LocalTrainerA
+    DataB --> LocalTrainerB
+
+    LocalTrainerA -->|"Signed Parameter Delta (Zero Patient Data)"| SafeTensorsA
+    LocalTrainerB -->|"Signed Parameter Delta (Zero Patient Data)"| SafeTensorsB
+
+    SafeTensorsA --> API
+    SafeTensorsB --> API
+    API --> Orchestrator
+
+    Orchestrator --> L0 --> L1 --> L2 --> L3 --> L4 --> L5
+
+    L5 -->|Passed All Defense Gates| AggCore
+    L5 -->|Anomaly / Threat Detected| Quarantine
+
+    AggCore -->|"Updated Checkpoint (W_global + 1)"| GlobalModel
+    AdminUI <-->|"Real-Time WebSocket SSE & Telemetry"| API
+```
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Admin as Global Admin SOC
+    participant Orchestrator as Control Plane Orchestrator
+    participant Enclave as Hospital Enclave Node
+    participant Defense as L0-L5 Defense Pipeline
+    participant Aggregator as Safe Aggregator
+
+    Admin->>Orchestrator: Start Federation Round (HOSPITAL Mode)
+    Orchestrator->>Enclave: Dispatch Global Checkpoint & Training Config
+    Note over Enclave: In Situ Local PyTorch Training on Private Patient Vitals
+    Enclave->>Orchestrator: Submit SafeTensors Weight Delta (ΔW)
+    Admin->>Orchestrator: Ingest Enclaves / Finalize Round
+    Orchestrator->>Defense: Evaluate L0 Integrity & L1 Fingerprint
+    Orchestrator->>Defense: Evaluate L2 Peer Drift & L3 Gradient Influence
+    Orchestrator->>Defense: Evaluate L4 Counterfactual Harm & L5 Attribution
+    alt Passed All Defense Gates
+        Defense->>Aggregator: Route to Safe Consensus
+        Aggregator->>Orchestrator: Commit New Global Model Version
+    else Anomaly / Poisoning Detected
+        Defense->>Orchestrator: Route to Forensic Quarantine & Trigger Incident
+    end
+    Orchestrator->>Admin: Live Visual Telemetry & Stage Completion
+```
+
+
+
 ```text
                                   +---------------------------------------+
                                   |   Global Administrator SOC Plane      |
@@ -144,22 +227,29 @@ FedSentinel-X is designed for real-world enterprise healthcare AI defense:
 * **Attestation Dossiers**: Publication-grade compliance reports aligned with HIPAA Security Rule, FDA 21 CFR Part 11, EU AI Act, and NIST AI RMF with print-to-PDF export.
 
 ### 2. Hospital Clinical Enclave Portal
-* **Institutional Registration**: Self-service onboarding portal allowing hospitals to submit legal credentials, primary contacts, and clinical specialization.
-* **Application Status Monitoring**: Unapproved hospitals view application review status, submitted details, and administrative notes, with training strictly locked until approved.
-* **Hospital Command**: Enclave operational dashboard with health posture, active round status, enrolled dataset count, and trust tier indicator.
-* **My Hospital Enclave Profile**: Update institutional contact info, physical address, website, and clinical description, plus secure password change modal.
-* **Federation Membership**: Consortium details, participating peers, active federation parameters, and institutional join dates.
-* **Team & Access Management**: Enclave administrators manage local operators, invite staff members (`POST /api/v1/hospital/staff`), and toggle active account status.
-* **Dataset Management Hub**: Ingest datasets via multi-format file uploads (.zip image archives, .tar.gz, .csv, .parquet, .npz), verified external URLs (Hugging Face, GitHub, Zenodo, Kaggle) with strict SSRF protection, or built-in in situ clinical benchmark generation.
-* **Data Quality Register**: 5-point clinical data validation checklist (SafeTensors/Zero-Pickle, normalized $(1, 28, 28)$ tensor shape, 0% NaN/Inf finite values, class balance, minimum sample size) with one-click activation for federation training.
-* **Current Round Inspection**: Real-time round progress, hyperparameter specifications, and enclave eligibility status.
-* **In Situ Local Model Training**: Authentic PyTorch training running on private hospital hardware with 3D enclave pipeline visualizer (`HospitalEnclave3D`), live epoch-by-epoch loss tracking, differential delta extraction, and SafeTensors compilation with zero data egress.
-* **Model Updates Ledger**: History of submitted differential updates, cryptographic hashes, and L0–L5 gate verdicts (Accepted vs. Quarantined).
-* **Global Model Inspection**: Download consensus SafeTensors weights and verify model accuracy.
-* **Enclave Security Status & Self-Test**: Hardware boundary verification, zero data egress guarantee, and 6-layer defense gate checklist.
-* **Clinical Incidents**: Enclave-specific threat alerts, forensic explanations, and direct "Request Administrative Review" mechanism.
-* **Visual Trust Engine**: Circular SVG reputation dial, Bayesian scoring parameters ($\alpha, \beta, \lambda$), evaluation log, and clinical good faith guarantee.
-* **Reports & Local Audit**: Export local training logs, generate compliance summaries, and review local operator activity.
+* **In-Situ Clinical Disease Risk Prediction & Enclave Inference**:
+  * On-premise diagnostic inference powered directly by the latest consensus-trained global model.
+  * Rapid clinical case presets: *High-Risk Diabetic Patient (Glucose 168, BMI 36.2, Age 52)*, *Borderline / Pre-Diabetic (Glucose 128, BMI 28.4, Age 42)*, and *Normal Healthy Control (Glucose 85, BMI 21.8, Age 26)*.
+  * Interactive patient vital inputs: Fasting Glucose, Body Mass Index (BMI), Age, Diastolic Blood Pressure, Serum Insulin, Diabetes Pedigree, Pregnancies, and Skinfold Thickness.
+  * Diagnostic Risk HUD: Outcome verdict (`CRITICAL`, `HIGH`, `MODERATE`, `LOW`), Confidence Score %, Biomarker Attribution Impact breakdown, and Clinical Action Protocols.
+  * Zero-Leakage Privacy Guarantee: Raw patient vitals never depart the hospital network boundary.
+* **Global Consensus Model Registry & Synchronization**:
+  * Real-time global model topology HUD: 105,866 parameters, input/output tensors, and convergence status.
+  * SHA-256 Checkpoint Verification: Cryptographic hash verification against central federation records.
+  * Enclave Synchronization Engine: One-click `VERIFY & SYNC GLOBAL MODEL` action.
+* **Hospital Contribution Value & Update Register**:
+  * Institutional value metrics: Total contributions, Accepted into Global Model count & percentage, Patient training samples contributed, and Safe differential weights transmitted.
+  * Detailed update register: Update ID, Round number, Contribution share ($w_k = n_k / \sum n_i$), Quality Tier classification (`HIGH_FIDELITY` vs `STANDARD`), Aggregation Impact (`AGGREGATED TO GLOBAL` vs `QUARANTINED`), L0 Integrity badge, and interactive inspection modal.
+* **Local In-Situ Model Training Workstation**:
+  * Dual-mode execution: **Active Round Submission Mode** (`EXECUTE & SUBMIT TO ACTIVE ROUND R-X`) vs. **Enclave Pre-Flight Mode** (`RUN LOCAL ENCLAVE TRAINING & PRE-FLIGHT AUDIT`).
+  * Dynamic Classifier Dimension Alignment: Seamlessly harmonizes local dataset label counts (e.g. binary classification) with global model class dimensions without PyTorch parameter mismatch.
+  * 12-stage visual training pipeline HUD with live loss graphs and differential SafeTensors serialization.
+* **Clinical Dataset Management Hub**:
+  * High-assurance intake supporting local file archives (`.zip`, `.tar.gz`, `.csv`, `.parquet`, `.npz`) and public URL streams (GitHub, Hugging Face, Zenodo) with automated label remapping.
+  * Data Quality Register: Automated pre-flight data audits and one-click `ACTIVATE FOR FEDERATION TRAINING`.
+* **Institutional Application Status Gate**:
+  * Newly registered hospitals enter a sandboxed `SUBMITTED / PENDING` review status until vetted and activated by global administrators.
+* **Enclave Security Posture & Self-Test**: Cryptographic isolation test, tamper-evident audit logs, incident alerts, and staff management.
 
 ---
 

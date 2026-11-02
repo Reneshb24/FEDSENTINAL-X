@@ -45,6 +45,9 @@ from backend.schemas.hospital_portal import (
     HospitalDashboardResponse,
     HospitalProfileResponse,
     HospitalStatusResponse,
+    DiseasePredictionRequest,
+    DiseasePredictionResponse,
+    GlobalModelContextResponse,
 )
 from backend.services.hospital_portal_service import (
     HospitalPortalService,
@@ -688,3 +691,73 @@ def change_hospital_password(
         "message": "Password changed successfully.",
     }
 
+
+
+# ============================================================================
+# GLOBAL MODEL CONTEXT & VERIFICATION
+# ============================================================================
+
+@router.get(
+    "/global-model",
+    response_model=GlobalModelContextResponse,
+    summary="Get verified global model architecture, weights metadata and sync status",
+)
+def get_hospital_global_model(
+    current_user: User = Depends(require_hospital_access),
+    db: Session = Depends(get_db),
+):
+    hospital_id = current_user.hospital_id
+    if not hospital_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User is not associated with a hospital",
+        )
+    ensure_hospital_access(current_user, hospital_id)
+    return HospitalPortalService.get_global_model_context(db, hospital_id)
+
+
+# ============================================================================
+# CLINICAL DISEASE PREDICTION / INFERENCE
+# ============================================================================
+
+@router.post(
+    "/predict",
+    response_model=DiseasePredictionResponse,
+    summary="Execute in-situ clinical disease risk prediction using verified model",
+)
+def predict_disease_risk(
+    payload: DiseasePredictionRequest,
+    current_user: User = Depends(require_hospital_access),
+    db: Session = Depends(get_db),
+):
+    hospital_id = current_user.hospital_id
+    if not hospital_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User is not associated with a hospital",
+        )
+    ensure_hospital_access(current_user, hospital_id)
+
+    result = HospitalPortalService.predict_disease(
+        db,
+        hospital_id=hospital_id,
+        patient_id=payload.patient_id,
+        condition=payload.condition,
+        features=payload.features.model_dump(),
+    )
+
+    record_audit(
+        db,
+        actor_user_id=current_user.id,
+        action="CLINICAL_INFERENCE_EXECUTED",
+        resource_type="hospital_prediction",
+        resource_id=result["prediction_id"],
+        result="SUCCESS",
+        metadata={
+            "condition": payload.condition,
+            "risk_level": result["risk_level"],
+            "probability": result["probability"],
+        },
+    )
+
+    return result
