@@ -65,7 +65,7 @@ FedSentinel-X is designed for real-world enterprise healthcare AI defense:
   * **Hospital Clinical Enclave Pipeline** (`HospitalEnclave3D`): 3D in situ enclave training pipeline visualizing local patient data isolation, PyTorch SGD execution, differential delta extraction, and SafeTensors packaging with zero data egress.
 * **Multi-Modal In-Situ Clinical Disease Prediction & Diagnostic Enclave**: Member hospitals evaluate patient diagnostic risk profiles across multiple modalities without raw data ever departing the hospital perimeter:
   * **Medical Images (`IMAGE`), Anatomical Screening & Zero-False-Prediction Shield**: Evaluates radiographic and pathological scans (e.g., Chest X-Ray Infiltration, Cardiomegaly, Dermoscopy Melanoma, Normal Controls) through normalized tensor conversion and genuine `FedSentinelCNN` feature map analysis. Incorporates strict anatomical screening to detect non-thoracic scans (such as cranial/skull radiographs, head CTs, or musculoskeletal extremities) and automatically inhibits lung disease classifiers, returning an `INCONCLUSIVE (Non-Thoracic Anatomy Detected)` verdict to prevent dangerous false predictions.
-  * **Consortium-Wide Aggregated Disease Updates & Cross-Hospital Protection**: The platform stores and organizes aggregated global model updates for distinct disease domains (`PULMONARY_IMAGE`, `METABOLIC_DIABETES`, `CARDIOMETABOLIC`, `DERMATOLOGIC`, `CONSENSUS_MULTI`) trained collaboratively across member hospitals (H51, H21, H01, H25, H95).
+  * **Consortium-Wide Aggregated Disease Updates & Cross-Hospital Protection**: The platform stores and organizes aggregated global model updates for distinct disease domains (`PULMONARY_IMAGE`, `METABOLIC_DIABETES`, `CARDIOMETABOLIC`, `DERMATOLOGIC`, `CONSENSUS_MULTI`) trained collaboratively across member hospitals (Mount Sinai H101, Joslin Diabetes H102, Cleveland Clinic H103, MSK Derm H104, Johns Hopkins H105).
   * **FedSentinel Review & Poisoning Prevention**: When hospitals submit updates, FedSentinel's L0–L5 defense pipeline reviews each parameter delta. Malicious or compromised updates (such as scaled backdoor gradients or label-flipping) are isolated in quarantine, **preventing them from entering the aggregated global updates that other hospitals rely upon for clinical predictions**.
   * **Collaborative Multi-Hospital Learning Lineage**: Diagnostic inference dynamically leverages vetted consensus weights learned across member hospital updates, displaying contributing nodes, update counts, and FedSentinel defense audit records directly in the Diagnostic HUD.
   * **Clinical EHR Notes (`TEXT`)**: In-situ clinical NLP ontology parser extracting symptom entities and computing differential disease likelihoods across pulmonary, metabolic, cardiovascular, respiratory, and dermatologic conditions.
@@ -95,7 +95,7 @@ flowchart TD
         GlobalModel["Verified Global Model Registry"]
     end
 
-    subgraph HospitalA ["Hospital Enclave H51 (Clinical Diabetes Cohort)"]
+    subgraph HospitalA ["Hospital Enclave H101 (Mount Sinai Pulmonary)"]
         DataA[("Private Clinical Patient EHR (In Situ)")]
         LocalTrainerA["PyTorch SGD Local Trainer"]
         PredA["In Situ Disease Risk Prediction"]

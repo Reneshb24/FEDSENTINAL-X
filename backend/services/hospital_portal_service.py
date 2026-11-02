@@ -772,7 +772,7 @@ class HospitalPortalService:
 
                 is_blank_or_flat = variance < 10.0
                 is_extreme_aspect = (w / max(h, 1) < 0.25) or (w / max(h, 1) > 4.0)
-                is_valid_derm = (avg_lum < 95.0 and std_dev > 25.0 and avg_color_diff < 90.0 and avg_color_diff > 15.0)
+                is_valid_derm = (avg_color_diff > 12.0 and std_dev > 20.0 and avg_color_diff < 110.0 and (avg_lum < 165.0 or "DERM" in condition.upper()))
                 is_valid_radiology = (avg_color_diff <= 36.0 and variance >= 10.0)
 
                 is_extremity = (bg_ratio > 0.65 and lat_lum < 40.0)
@@ -924,7 +924,7 @@ class HospitalPortalService:
                         "Urgent cardiology evaluation recommended: Schedule transthoracic echocardiogram (TTE) for LVEF assessment; "
                         "measure serum NT-proBNP and high-sensitivity troponin; review volume status and antihypertensive regimen."
                     )
-                elif avg_lum < 95.0 and std_dev > 25.0:
+                elif avg_lum < 95.0 and std_dev > 25.0 and (avg_color_diff > 15.0 or "DERM" in condition.upper()):
                     pred_name = "Atypical Cutaneous / Cellular Lesion (High-Risk Dysplasia)"
                     conf = min(round(86.0 + (std_dev * 0.18), 2), 98.2)
                     risk_tier = "CRITICAL"

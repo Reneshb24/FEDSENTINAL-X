@@ -25,8 +25,16 @@ FedSentinel-X is an enterprise-grade cybersecurity control plane and distributed
 
 ### 2.2 Verified Access Accounts & Credentials
 
-| Persona / Scope | Portal URL | Username / Email | Default Password | Role Authority |
+| Persona / Scope | Portal URL | Username / Email | Default Password | Disease Specialization / Scope |
 | :--- | :--- | :--- | :--- | :--- |
+| **Global Super Administrator** | `http://localhost:5173/admin/login` | `admin@fedsentinel.local` | `Admin123!` | Platform Super Admin (Full SOC & Federation Security Authority) |
+| **Mount Sinai Pulmonary (H101)** | `http://localhost:5173/hospital/login` | `admin@h101-sinai.org` | `Hospital123!` | Pulmonary Infiltration, Lobar Pneumonia & Thoracic Radiology (`PULMONARY_IMAGE`) |
+| **Joslin Diabetes Center (H102)** | `http://localhost:5173/hospital/login` | `admin@h102-joslin.org` | `Hospital123!` | Type-2 Diabetes Mellitus, Glycemic Biomarkers & Insulin Resistance (`METABOLIC_DIABETES`) |
+| **Cleveland Clinic Cardiology (H103)** | `http://localhost:5173/hospital/login` | `admin@h103-cleveland.org` | `Hospital123!` | Cardiomegaly, Left Ventricular Enlargement & Acute Coronary Syndrome (`CARDIOMETABOLIC`) |
+| **MSK Dermatopathology (H104)** | `http://localhost:5173/hospital/login` | `admin@h104-msk.org` | `Hospital123!` | Dermatologic Dysplasia, Cutaneous Melanoma & Dermoscopy (`DERMATOLOGIC`) |
+| **Johns Hopkins Multi-Disease (H105)** | `http://localhost:5173/hospital/login` | `admin@h105-hopkins.org` | `Hospital123!` | Severe Sepsis, Infectious Disease & Multi-System Consensus (`CONSENSUS_MULTI`) |
+
+--- | :--- | :--- | :--- | :--- |
 | **Global Super Administrator** | `http://localhost:5173/admin/login` | `admin@fedsentinel.local` | `Admin123!` | Platform Super Admin (Full SOC & Federation Authority) |
 | **Hospital Enclave Admin (H21)** | `http://localhost:5173/hospital/login` | `admin@h21.local` | `Hospital123!` | Enclave Administrator (Stanford Clinical AI Enclave) |
 | **Hospital Enclave Admin (H01)** | `http://localhost:5173/hospital/login` | `admin@demohospital.local` | `Hospital123!` | Enclave Administrator (General Medical Center Enclave) |
@@ -937,11 +945,11 @@ In-situ clinical decision support, multi-disease identification, and **Consortiu
 
 #### Consortium Aggregated Global Disease Updates & FedSentinel Prevention
 The platform securely stores aggregated global model updates categorized across primary clinical domains:
-* **`PULMONARY_IMAGE`** (*Pulmonary Pneumonia & Respiratory Infiltration*): Aggregated via Coordinate-Median from H21 and H01.
-* **`METABOLIC_DIABETES`** (*Type-2 Diabetes & Endocrine Biomarkers*): Aggregated from H51 and H01. **Poisoning Prevented**: FedSentinel intercepted and quarantined 1 malicious scaling backdoor update (+25.0 scale gradient drift), preventing corrupted weights from compromising diabetes predictions across all other member hospitals.
-* **`CARDIOMETABOLIC`** (*Cardiometabolic & Acute Coronary Syndrome*): Aggregated via Coordinate-Median from H21 and H25.
-* **`DERMATOLOGIC`** (*Dermatologic Dysplastic & Melanoma Lesions*): Aggregated via Robust Trimmed-Mean from H95 and H21.
-* **`CONSENSUS_MULTI`** (*Unified Multi-Disease Federated Consensus*): Consortium-wide consensus model spanning 17 verified hospital updates.
+* **`PULMONARY_IMAGE`** (*Pulmonary Pneumonia & Respiratory Infiltration*): Aggregated via Coordinate-Median from Mount Sinai Pulmonary (H101) and Johns Hopkins (H105).
+* **`METABOLIC_DIABETES`** (*Type-2 Diabetes & Endocrine Biomarkers*): Aggregated from Joslin Diabetes Center (H102) and Johns Hopkins (H105). **Poisoning Prevented**: FedSentinel intercepted and quarantined 1 malicious scaling backdoor update (+25.0 scale gradient drift), preventing corrupted weights from compromising diabetes predictions across all other member hospitals.
+* **`CARDIOMETABOLIC`** (*Cardiometabolic & Acute Coronary Syndrome*): Aggregated via Coordinate-Median from Cleveland Clinic (H103) and Mount Sinai (H101).
+* **`DERMATOLOGIC`** (*Dermatologic Dysplastic & Melanoma Lesions*): Aggregated via Coordinate-Median from Memorial Sloan Kettering (H104) and Johns Hopkins (H105).
+* **`CONSENSUS_MULTI`** (*Unified Multi-Disease Federated Consensus*): Consortium-wide consensus model spanning 25 verified hospital updates across all 5 specialized member institutions (H101, H102, H103, H104, H105).
 
 In-situ clinical decision support and disease identification powered by the consensus-trained federated global neural model. Member hospitals can diagnose conditions using **Medical Images (Radiology / Scans)**, **Clinical EHR Notes (Text / Symptoms)**, or **Biomarker Vitals (Lab values)**.
 

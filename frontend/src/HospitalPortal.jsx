@@ -5105,9 +5105,9 @@ function DiseasePredictionPage({ token, hospital }) {
                       Diagnostic inference dynamically leverages model weights trained across active hospital updates:
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {result.contributing_hospitals.map((hosp) => (
+                      {result.contributing_hospitals.map((hosp, idx) => (
                         <span
-                          key={hosp.id}
+                          key={hosp.id || hosp.code || idx}
                           style={{
                             background: 'rgba(0, 229, 255, 0.06)',
                             border: '1px solid rgba(0, 229, 255, 0.2)',
