@@ -1,5 +1,38 @@
 import HospitalEnclave3D from './components/visualizations/HospitalEnclave3D'
-import { useEffect, useMemo, useState } from 'react'
+import React, { Component, useEffect, useMemo, useState } from 'react'
+
+class VisualErrorBoundary extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false }
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+  componentDidCatch(error, errorInfo) {
+    console.warn('Visual 3D Enclave caught renderer event:', error, errorInfo)
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          padding: 16,
+          background: 'rgba(0, 229, 255, 0.05)',
+          border: '1px solid rgba(0, 229, 255, 0.2)',
+          borderRadius: 8,
+          fontSize: 11,
+          color: '#00e5ff',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+        }}>
+          <span>Institutional Secure Enclave Active · Zero-Trust In Situ Execution Mode</span>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 import {
   Activity,
   AlertTriangle,
@@ -320,15 +353,17 @@ function HospitalCommand({
 
       {/* 3D Institutional Clinical Enclave & Security Boundary */}
       <div style={{ marginBottom: 20 }}>
-        <HospitalEnclave3D
-          jobStatus={status?.is_eligible ? 'ONLINE' : 'STANDBY'}
-          epoch={latestRound?.round_number || 1}
-          loss={dashboard?.latest_loss ?? null}
-          datasetName="Clinical EHR & Radiology Silo"
-          sampleCount={dashboard?.dataset_count ? dashboard.dataset_count * 200 : 850}
-          hash={hospital?.id ? hospital.id.slice(0, 16) : null}
-          height="220px"
-        />
+        <VisualErrorBoundary>
+          <HospitalEnclave3D
+            jobStatus={status?.is_eligible ? 'ONLINE' : 'STANDBY'}
+            epoch={latestRound?.round_number || 1}
+            loss={dashboard?.latest_loss ?? null}
+            datasetName="Clinical EHR & Radiology Silo"
+            sampleCount={dashboard?.dataset_count ? dashboard.dataset_count * 200 : 850}
+            hash={hospital?.id ? hospital.id.slice(0, 16) : null}
+            height="220px"
+          />
+        </VisualErrorBoundary>
       </div>
 
       <div className="hp-stat-grid">
@@ -3116,15 +3151,17 @@ function LocalTrainingPage({
 
       {/* 3D Institutional Secure Enclave Simulation */}
       <div style={{ marginBottom: 16 }}>
-        <HospitalEnclave3D
-          jobStatus={training ? 'TRAINING' : result ? 'COMPLETED' : 'IDLE'}
-          epoch={training ? Math.min(Math.floor(currentStageIndex / 3) + 1, 5) : result ? 5 : 0}
-          loss={result?.training_loss ?? (training ? (0.65 - (currentStageIndex * 0.03)).toFixed(4) : null)}
-          datasetName={selectedDatasetObj?.name || 'Local Clinical Shard'}
-          sampleCount={selectedDatasetObj?.sample_count ?? 1000}
-          hash={submittedUpdate?.artifact_hash || result?.artifact_hash || null}
-          height="240px"
-        />
+        <VisualErrorBoundary>
+          <HospitalEnclave3D
+            jobStatus={training ? 'TRAINING' : result ? 'COMPLETED' : 'IDLE'}
+            epoch={training ? Math.min(Math.floor(currentStageIndex / 3) + 1, 5) : result ? 5 : 0}
+            loss={result?.training_loss ?? (training ? (0.65 - (currentStageIndex * 0.03)).toFixed(4) : null)}
+            datasetName={selectedDatasetObj?.name || 'Local Clinical Shard'}
+            sampleCount={selectedDatasetObj?.sample_count ?? 1000}
+            hash={result?.artifact_hash || null}
+            height="240px"
+          />
+        </VisualErrorBoundary>
       </div>
 
       {/* Top Visual Cards: Enclave Dataset & Server Model Anchor */}
