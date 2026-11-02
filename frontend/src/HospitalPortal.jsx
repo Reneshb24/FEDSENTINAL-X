@@ -2993,7 +2993,6 @@ function LocalTrainingPage({
 
   async function runTraining(event) {
     if (event) event.preventDefault()
-    if (!isRoundAccepting) return
     if (!datasetId || !version) {
       setError('Select an active dataset and verified version.')
       return
@@ -3023,14 +3022,15 @@ function LocalTrainingPage({
       await delay(350)
       setCurrentStageIndex(2) // Local Training
 
-      // Fire actual backend training API
+      // Fire actual backend training API (active round submission or pre-flight verification)
+      const targetRoundId = (latestRound && latestRound.id) ? latestRound.id : 'PRE_FLIGHT'
       const responsePromise = hospitalFetch(
         '/api/v1/hospital/training',
         token,
         {
           method: 'POST',
           body: JSON.stringify({
-            round_id: latestRound.id,
+            round_id: targetRoundId,
             federation_id: HOSPITAL_FEDERATION_ID,
             dataset_id: datasetId,
             dataset_version: version,
@@ -3125,8 +3125,8 @@ function LocalTrainingPage({
           alignItems: 'flex-end',
           gap: 6,
           padding: '10px 16px',
-          background: isRoundAccepting ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)',
-          border: `1px solid ${isRoundAccepting ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+          background: isRoundAccepting ? 'rgba(16, 185, 129, 0.08)' : 'rgba(0, 229, 255, 0.08)',
+          border: `1px solid ${isRoundAccepting ? 'rgba(16, 185, 129, 0.3)' : 'rgba(0, 229, 255, 0.3)'}`,
           borderRadius: 8,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -3134,15 +3134,19 @@ function LocalTrainingPage({
               width: 8,
               height: 8,
               borderRadius: '50%',
-              background: isRoundAccepting ? '#10b981' : '#ef4444',
-              boxShadow: `0 0 10px ${isRoundAccepting ? '#10b981' : '#ef4444'}`,
+              background: isRoundAccepting ? '#10b981' : '#00e5ff',
+              boxShadow: `0 0 10px ${isRoundAccepting ? '#10b981' : '#00e5ff'}`,
             }} />
-            <strong style={{ fontSize: 12, letterSpacing: '0.06em', color: isRoundAccepting ? '#10b981' : '#ef4444' }}>
-              ROUND R-{latestRound?.round_number ?? '—'} · {latestRound?.status || 'NO ROUND'}
+            <strong style={{ fontSize: 12, letterSpacing: '0.06em', color: isRoundAccepting ? '#10b981' : '#00e5ff' }}>
+              {isRoundAccepting
+                ? `ACTIVE ROUND R-${latestRound?.round_number ?? '—'} · ACCEPTING SUBMISSIONS`
+                : `FEDERATION ROUND IDLE (PREVIOUS: R-${latestRound?.round_number ?? '19'}) · PRE-FLIGHT READY`}
             </strong>
           </div>
           <span style={{ fontSize: 10, color: '#94a3b8' }}>
-            {isRoundAccepting ? 'ACCEPTING HOSPITAL SUBMISSIONS' : 'SUBMISSIONS STRICTLY LOCKED'}
+            {isRoundAccepting
+              ? 'HOSPITAL SUBMISSIONS ROUTED DIRECTLY TO ACTIVE CONSENSUS'
+              : 'LOCAL IN SITU ENCLAVE TRAINING & DATASET AUDIT UNLOCKED'}
           </span>
         </div>
       </div>
@@ -3304,59 +3308,57 @@ function LocalTrainingPage({
             </div>
           </div>
 
-          {/* Trigger Action or Locked State */}
+          {/* Trigger Action: Active Round Submission or Standalone Enclave Pre-Flight */}
           <div style={{ marginTop: 14 }}>
-            {!isRoundAccepting ? (
+            <button
+              type="button"
+              className="hp-button hp-button-primary"
+              onClick={runTraining}
+              disabled={training || !datasetId || !version}
+              style={{
+                width: '100%',
+                justifyContent: 'center',
+                height: 42,
+                fontSize: 12,
+                fontWeight: 800,
+                letterSpacing: '0.06em',
+                background: training
+                  ? 'linear-gradient(90deg, #00e5ff, #3b82f6)'
+                  : isRoundAccepting
+                  ? 'linear-gradient(90deg, #10b981, #00e5ff)'
+                  : 'linear-gradient(90deg, #0284c7, #00e5ff)',
+                color: '#05080b',
+                border: 'none',
+                boxShadow: training ? '0 0 20px rgba(0, 229, 255, 0.4)' : 'none',
+              }}
+            >
+              {training ? (
+                <>
+                  <RefreshCw size={16} className="hp-spin" />
+                  EXECUTING ENCLAVE PIPELINE · STAGE {currentStageIndex + 1}/{pipelineStages.length}...
+                </>
+              ) : isRoundAccepting ? (
+                <>
+                  <Play size={16} />
+                  EXECUTE & SUBMIT TO ACTIVE ROUND R-{latestRound?.round_number}
+                </>
+              ) : (
+                <>
+                  <Zap size={16} />
+                  RUN LOCAL ENCLAVE TRAINING & PRE-FLIGHT AUDIT
+                </>
+              )}
+            </button>
+
+            {!isRoundAccepting && (
               <div style={{
-                padding: '12px 14px',
-                background: 'rgba(239, 68, 68, 0.05)',
-                border: '1px solid rgba(239, 68, 68, 0.25)',
-                borderRadius: 6,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
+                marginTop: 8,
+                fontSize: 10,
+                color: '#00e5ff',
+                textAlign: 'center',
               }}>
-                <Lock size={18} color="#ef4444" style={{ flexShrink: 0 }} />
-                <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.4 }}>
-                  <strong style={{ color: '#ef4444', display: 'block' }}>
-                    SUBMISSIONS CLOSED · ROUND {latestRound?.round_number ?? '10'} {latestRound?.status || 'INACTIVE'}
-                  </strong>
-                  Waiting for next round initiation by the Federation Administrator.
-                </div>
+                Enclave Pre-Flight Mode: Run local training, compute loss & verify SafeTensors weights before admin starts round.
               </div>
-            ) : (
-              <button
-                type="button"
-                className="hp-button hp-button-primary"
-                onClick={runTraining}
-                disabled={training || !datasetId || !version}
-                style={{
-                  width: '100%',
-                  justifyContent: 'center',
-                  height: 42,
-                  fontSize: 12,
-                  fontWeight: 800,
-                  letterSpacing: '0.06em',
-                  background: training
-                    ? 'linear-gradient(90deg, #00e5ff, #3b82f6)'
-                    : 'linear-gradient(90deg, #10b981, #00e5ff)',
-                  color: '#05080b',
-                  border: 'none',
-                  boxShadow: training ? '0 0 20px rgba(0, 229, 255, 0.4)' : 'none',
-                }}
-              >
-                {training ? (
-                  <>
-                    <RefreshCw size={16} className="hp-spin" />
-                    EXECUTING PIPELINE · STAGE {currentStageIndex + 1}/{pipelineStages.length}...
-                  </>
-                ) : (
-                  <>
-                    <Zap size={16} />
-                    START LOCAL TRAINING & CRYPTOGRAPHIC PIPELINE
-                  </>
-                )}
-              </button>
             )}
 
             {error && (
