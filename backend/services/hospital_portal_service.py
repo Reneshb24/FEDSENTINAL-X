@@ -745,7 +745,18 @@ class HospitalPortalService:
                 tensor = torch.tensor(list(img_resized.getdata()), dtype=torch.float32).view(1, 1, 28, 28) / 255.0
 
                 cnn_model = FedSentinelCNN(num_classes=10)
-                if global_state:
+                from pathlib import Path
+                from safetensors.torch import load_file
+                disease_weight_file = Path("data/models/disease_models") / target_domain.lower() / "model.safetensors"
+                loaded_disease_weights = False
+                if disease_weight_file.exists():
+                    try:
+                        d_weights = load_file(str(disease_weight_file))
+                        cnn_model.load_state_dict(d_weights, strict=False)
+                        loaded_disease_weights = True
+                    except Exception:
+                        pass
+                if not loaded_disease_weights and global_state:
                     try:
                         cnn_model.load_state_dict(global_state, strict=False)
                     except Exception:

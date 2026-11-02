@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+
+# Add project root to sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import base64
 import io
 import json
@@ -24,17 +30,27 @@ HOSPITALS = [
 
 tokens = {}
 
-print("\n--- 1. Testing Hospital Enclave Authentication ---")
+print("\n--- 1. Testing Hospital Enclave Authentication & Multiple Datasets ---")
 for h in HOSPITALS:
     resp = s.post(f"{BASE_URL}/api/v1/auth/login", json={"email": h["email"], "password": h["pwd"]})
     assert resp.status_code == 200, f"Login failed for {h['code']}: {resp.text}"
     token = resp.json()["access_token"]
     tokens[h["code"]] = token
+
     # Verify profile
     p_resp = s.get(f"{BASE_URL}/api/v1/hospital/me", headers={"Authorization": f"Bearer {token}"})
     assert p_resp.status_code == 200, f"Profile failed for {h['code']}: {p_resp.text}"
     p_data = p_resp.json()
-    print(f"  [PASS] {h['code']}: {p_data['name']} (Status: {p_data['status']}, Eligible: {p_data.get('is_eligible')})")
+
+    # Verify multiple datasets
+    d_resp = s.get(f"{BASE_URL}/api/v1/hospital/datasets", headers={"Authorization": f"Bearer {token}"})
+    assert d_resp.status_code == 200, f"Datasets failed for {h['code']}: {d_resp.text}"
+    ds_list = d_resp.json()
+    assert len(ds_list) >= 2, f"Expected at least 2 datasets for {h['code']}, found {len(ds_list)}"
+
+    print(f"  [PASS] {h['code']}: {p_data['name']} (Datasets: {len(ds_list)}, Eligible: {p_data.get('is_eligible')})")
+    for d in ds_list:
+        print(f"         - {d['name']} [{d['dataset_type']}]")
 
 # Login Super Admin
 admin_resp = s.post(f"{BASE_URL}/api/v1/auth/login", json={"email": "admin@fedsentinel.local", "password": "Admin123!"})
@@ -44,59 +60,49 @@ admin_headers = {"Authorization": f"Bearer {admin_token}"}
 print("  [PASS] Super Admin: Authenticated successfully.")
 
 # 2. Check Consortium Aggregated Global Updates for Different Diseases
-print("\n--- 2. Verifying Consortium Stored Aggregated Disease Updates ---")
+print("\n--- 2. Verifying Consortium Stored Aggregated Disease Updates & Weights ---")
 agg_resp = s.get(f"{BASE_URL}/api/v1/hospital/disease-updates", headers={"Authorization": f"Bearer {tokens['H101']}"})
 assert agg_resp.status_code == 200, f"Failed to get disease updates: {agg_resp.text}"
 agg_data = agg_resp.json()
+assert len(agg_data['updates']) == 5, f"Expected 5 disease models, found {len(agg_data['updates'])}"
 print(f"  Found {len(agg_data['updates'])} global disease models:")
 for upd in agg_data["updates"]:
-    print(f"    - Domain: {upd['disease_domain']} | Model: {upd['display_name']} ({upd['model_version']}) | Verdict: {upd['security_verdict']} | Accuracy: {upd['accuracy_score']}%")
+    assert upd['model_weights_hash'].startswith("sha256-"), f"Invalid hash: {upd['model_weights_hash']}"
+    print(f"    - Domain: {upd['disease_domain']} | Model: {upd['display_name']} ({upd['model_version']}) | Verdict: {upd['security_verdict']} | Hash: {upd['model_weights_hash'][:22]}...")
 
-# 3. Test Local Training Submission from Hospital Enclaves
-print("\n--- 3. Testing Hospital Local Training Execution ---")
-# Get active federation
+# 3. Test Local Training Execution Across Hospital Enclaves
+print("\n--- 3. Testing Hospital Local Training Execution (Multiple Hospitals) ---")
 fed_resp = s.get(f"{BASE_URL}/api/v1/federations", headers=admin_headers)
 assert fed_resp.status_code == 200, f"Failed to get federations: {fed_resp.text}"
 feds = fed_resp.json()
 target_fed = feds[0]
 fed_id = target_fed["id"]
 
-# Get real dataset for H101
-ds_resp = s.get(f"{BASE_URL}/api/v1/hospital/datasets", headers={"Authorization": f"Bearer {tokens['H101']}"})
-assert ds_resp.status_code == 200, f"Failed to get datasets: {ds_resp.text}"
-datasets = ds_resp.json()
-assert len(datasets) > 0, "No datasets found for H101"
-target_ds = datasets[0]
-ds_id = target_ds["id"]
-ds_ver = "1.0.0"
-print(f"  H101 Active Clinical Dataset: {target_ds['name']} (ID={ds_id[:8]}..., Type={target_ds['dataset_type']})")
-
-# Run training in pre-flight mode for H101
-train_payload = {
-    "federation_id": fed_id,
-    "round_id": "PRE_FLIGHT_TEST",
-    "dataset_id": ds_id,
-    "dataset_version": ds_ver,
-}
-t_resp = s.post(f"{BASE_URL}/api/v1/hospital/training", json=train_payload, headers={"Authorization": f"Bearer {tokens['H101']}"})
-assert t_resp.status_code == 201, f"Training failed: {t_resp.text}"
-t_data = t_resp.json()
-print(f"  [PASS] H101 Local In-Situ Training: UpdateID={t_data['update_id']}, SecurityStatus={t_data['security_status']}, Loss={t_data['training_loss']:.4f}, Hash={t_data['artifact_hash'][:16]}...")
+# Run training in pre-flight mode for H101 and H102
+for test_hosp in ["H101", "H102"]:
+    ds_resp = s.get(f"{BASE_URL}/api/v1/hospital/datasets", headers={"Authorization": f"Bearer {tokens[test_hosp]}"})
+    target_ds = ds_resp.json()[0]
+    train_payload = {
+        "federation_id": fed_id,
+        "round_id": f"PRE_FLIGHT_{test_hosp}",
+        "dataset_id": target_ds["id"],
+        "dataset_version": "1.0.0",
+    }
+    t_resp = s.post(f"{BASE_URL}/api/v1/hospital/training", json=train_payload, headers={"Authorization": f"Bearer {tokens[test_hosp]}"})
+    assert t_resp.status_code == 201, f"Training failed for {test_hosp}: {t_resp.text}"
+    t_data = t_resp.json()
+    print(f"  [PASS] {test_hosp} In-Situ Local Training: UpdateID={t_data['update_id']}, Status={t_data['security_status']}, Loss={t_data['training_loss']:.4f}, Hash={t_data['artifact_hash'][:16]}...")
 
 # 4. Multi-Modal Prediction Testing Across Hospitals
-print("\n--- 4. Testing Multi-Modal Clinical Diagnostic Predictions ---")
+print("\n--- 4. Testing Multi-Modal Clinical Diagnostic Predictions Across Enclaves ---")
 
 def create_chest_xray():
     img = Image.new("L", (256, 256), color=15)
     draw = ImageDraw.Draw(img)
-    # Thoracic silhouette
     draw.ellipse([20, 20, 236, 236], fill=100)
-    # Bilateral lung fields (radiolucent = darker)
     draw.ellipse([35, 40, 115, 200], fill=50)
     draw.ellipse([141, 40, 221, 200], fill=50)
-    # Infiltrate opacity in right lower quadrant (consolidation = bright)
     draw.ellipse([45, 120, 110, 190], fill=170)
-    # Spine and mediastinum (radiopaque = bright)
     draw.rectangle([115, 30, 141, 230], fill=180)
     buf = io.BytesIO()
     img.save(buf, format="PNG")
@@ -143,10 +149,10 @@ print(f"\n  [Test 4.1 - Chest X-Ray at H101]:")
 print(f"    Prediction: {res1['prediction']}")
 print(f"    Confidence: {res1['probability']}% | Risk Tier: {res1['risk_level']}")
 print(f"    Anatomy / Disease Domain: {res1['disease_domain']}")
-assert "Pneumonia" in res1["prediction"] or "Infiltration" in res1["prediction"], f"Expected pneumonia, got {res1['prediction']}"
-assert res1["probability"] > 80.0, f"Expected high confidence, got {res1['probability']}"
+assert "Pneumonia" in res1["prediction"] or "Infiltration" in res1["prediction"]
+assert res1["probability"] > 80.0
 
-# Test 4.2: Skull X-ray at H101 (Mount Sinai Pulmonary) - MUST NOT predict lung disease!
+# Test 4.2: Skull X-ray at H101 (Safety Screening: MUST NOT predict lung disease!)
 skull_b64 = create_skull_xray()
 p2 = s.post(f"{BASE_URL}/api/v1/hospital/predict", json={
     "modality": "IMAGE",
@@ -159,9 +165,9 @@ print(f"\n  [Test 4.2 - Skull / Cranial Radiograph at H101 (Safety Screening)]:"
 print(f"    Prediction: {res2['prediction']}")
 print(f"    Probability: {res2['probability']}% | Risk Tier: {res2['risk_level']}")
 print(f"    Out-of-Distribution / Non-Thoracic: {res2['is_out_of_distribution']}")
-assert "Cranial" in res2["prediction"] or "Skull" in res2["prediction"], f"Expected cranial scan recognition, got: {res2['prediction']}"
-assert res2["probability"] == 0.0, f"Expected 0.0% probability for lung match on skull, got {res2['probability']}"
-assert "Pneumonia" not in res2["prediction"], "FALSE PREDICTION: Predicted pneumonia on skull!"
+assert "Cranial" in res2["prediction"] or "Skull" in res2["prediction"]
+assert res2["probability"] == 0.0
+assert "Pneumonia" not in res2["prediction"], "SAFETY VIOLATION: Predicted lung disease on skull scan!"
 
 # Test 4.3: Dermoscopy Lesion at H104 (MSK Derm)
 derm_b64 = create_dermoscopy_lesion()
@@ -205,22 +211,59 @@ print(f"    Confidence: {res5['probability']}% | Risk Tier: {res5['risk_level']}
 assert "Coronary" in res5["prediction"] or "Cardiovascular" in res5["prediction"]
 assert res5["probability"] > 85.0
 
-# Test 4.6: Non-Medical Image (Sunset Beach)
-beach_b64 = create_non_medical_image()
+# Test 4.6: Infectious Disease & Sepsis at H105 (Johns Hopkins)
 p6 = s.post(f"{BASE_URL}/api/v1/hospital/predict", json={
+    "modality": "TEXT",
+    "condition": "CONSENSUS_MULTI",
+    "clinical_text": "Patient admitted with high fever 39.4C, severe chills, leukocytosis WBC 22000, elevated lactate 4.2 mmol/L, refractory hypotension, and acute septic shock.",
+}, headers={"Authorization": f"Bearer {tokens['H105']}"})
+assert p6.status_code == 200, f"Prediction 4.6 failed: {p6.text}"
+res6 = p6.json()
+print(f"\n  [Test 4.6 - Severe Sepsis / Infectious Disease at H105]:")
+print(f"    Prediction: {res6['prediction']}")
+print(f"    Confidence: {res6['probability']}% | Risk Tier: {res6['risk_level']}")
+assert "Sepsis" in res6["prediction"] or "Inflammatory" in res6["prediction"]
+
+# Test 4.7: Cross-Hospital Collaborative Prediction
+# H105 (Johns Hopkins) uses collaborative weights from H101 to predict pneumonia from a CXR
+p7 = s.post(f"{BASE_URL}/api/v1/hospital/predict", json={
+    "modality": "IMAGE",
+    "condition": "PULMONARY_IMAGE",
+    "image_data": cxr_b64,
+}, headers={"Authorization": f"Bearer {tokens['H105']}"})
+assert p7.status_code == 200, f"Cross-hospital prediction failed: {p7.text}"
+res7 = p7.json()
+print(f"\n  [Test 4.7 - Cross-Hospital Collaborative Prediction (H105 evaluating CXR using H101 consensus)]:")
+print(f"    Prediction: {res7['prediction']}")
+print(f"    Confidence: {res7['probability']}% | Contributing Enclaves: {len(res7['contributing_hospitals'])}")
+assert "Pneumonia" in res7["prediction"] or "Infiltration" in res7["prediction"]
+assert len(res7['contributing_hospitals']) > 0
+
+# Test 4.8: Non-Medical Image (Sunset Beach)
+beach_b64 = create_non_medical_image()
+p8 = s.post(f"{BASE_URL}/api/v1/hospital/predict", json={
     "modality": "IMAGE",
     "condition": "AUTO_DETECT",
     "image_data": beach_b64,
 }, headers={"Authorization": f"Bearer {tokens['H105']}"})
-assert p6.status_code == 200, f"Prediction 6 failed: {p6.text}"
-res6 = p6.json()
-print(f"\n  [Test 4.6 - Non-Medical Image at H105 (OOD Rejection)]:")
-print(f"    Prediction: {res6['prediction']}")
-print(f"    Risk Tier: {res6['risk_level']}")
-print(f"    Out-of-Distribution Detected: {res6['is_out_of_distribution']}")
-assert res6["is_out_of_distribution"] is True
-assert "Inconclusive" in res6["prediction"] or "Out-of-Distribution" in res6["prediction"]
+assert p8.status_code == 200, f"Prediction 8 failed: {p8.text}"
+res8 = p8.json()
+print(f"\n  [Test 4.8 - Non-Medical Image at H105 (OOD Rejection)]:")
+print(f"    Prediction: {res8['prediction']}")
+print(f"    Risk Tier: {res8['risk_level']}")
+print(f"    Out-of-Distribution Detected: {res8['is_out_of_distribution']}")
+assert res8["is_out_of_distribution"] is True
+assert "Inconclusive" in res8["prediction"] or "Out-of-Distribution" in res8["prediction"]
+
+# 5. Verify FedSentinel Security Control Plane Defense (Quarantine Prevention)
+print("\n--- 5. Verifying FedSentinel Defense Control Plane (Quarantine Prevention) ---")
+# Query incidents via admin control plane
+inc_resp = s.get(f"{BASE_URL}/api/v1/incidents", headers=admin_headers)
+assert inc_resp.status_code == 200, f"Failed to get incidents: {inc_resp.text}"
+inc_data = inc_resp.json()
+inc_list = inc_data.get("incidents", [])
+print(f"  [PASS] FedSentinel Security Telemetry: Active Security Incidents={len(inc_list)}")
 
 print("\n======================================================================")
-print("ALL MULTI-HOSPITAL & MULTI-DISEASE PREDICTION TESTS PASSED!")
+print("ALL MULTI-HOSPITAL, MULTI-DATASET & MULTI-DISEASE TESTS PASSED!")
 print("======================================================================")
