@@ -33,6 +33,8 @@ class HospitalUpdate(BaseModel):
     website: str | None = None
     institution_type: str | None = None
     description: str | None = None
+    security_status: str | None = None
+    security_tier: str | None = None
 
 
 class HospitalRegistrationRequest(BaseModel):
@@ -90,6 +92,7 @@ class HospitalResponse(BaseModel):
     status: str
     application_status: str = "APPROVED"
     security_status: str
+    security_tier: str | None = None
     is_eligible: bool
     is_simulation: bool = False
 

@@ -317,6 +317,8 @@ class HospitalService:
         contact_phone: str | None = None,
         location: str | None = None,
         description: str | None = None,
+        security_status: str | None = None,
+        security_tier: str | None = None,
     ) -> Hospital:
 
         if hospital.status == "REVOKED":
@@ -339,6 +341,21 @@ class HospitalService:
 
         if description is not None:
             hospital.description = description
+
+        tier = security_status or security_tier
+        if tier is not None:
+            clean_tier = tier.strip().upper()
+            valid_tiers = {"TRUSTED", "PROBATION", "HIGH_RISK", "QUARANTINED", "SUSPENDED"}
+            if clean_tier not in valid_tiers:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail=f"Invalid security tier '{clean_tier}'. Allowed tiers: {sorted(valid_tiers)}",
+                )
+            hospital.security_status = clean_tier
+            if clean_tier in {"SUSPENDED", "QUARANTINED"}:
+                hospital.is_eligible = False
+            else:
+                hospital.is_eligible = True
 
         db.commit()
         db.refresh(hospital)

@@ -135,6 +135,10 @@ class Hospital(Base):
         nullable=False,
     )
 
+    @property
+    def security_tier(self) -> str:
+        return self.security_status
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=utc_now,

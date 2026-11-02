@@ -32,8 +32,12 @@ export default function FederationMembershipPage({ data, token, onDataRefresh })
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [removeTarget, setRemoveTarget] = useState(null)
   const [removeReason, setRemoveReason] = useState('')
+  const [hospitalsList, setHospitalsList] = useState(Array.isArray(data?.hospitals) ? data.hospitals : [])
+  const [tierModalOpen, setTierModalOpen] = useState(false)
+  const [targetHospital, setTargetHospital] = useState(null)
+  const [selectedTier, setSelectedTier] = useState('TRUSTED')
 
-  const allHospitals = Array.isArray(data?.hospitals) ? data.hospitals : []
+  const allHospitals = hospitalsList.length > 0 ? hospitalsList : (Array.isArray(data?.hospitals) ? data.hospitals : [])
 
   async function loadFederationData() {
     setLoading(true)
@@ -49,6 +53,19 @@ export default function FederationMembershipPage({ data, token, onDataRefresh })
 
       const targetId = selectedFedId || list[0]?.id || ''
       setSelectedFedId(targetId)
+
+      // Always fetch fresh list of all hospitals to ensure dropdown is fully populated
+      try {
+        const hospResp = await fetch(`${API}/api/v1/hospitals`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (hospResp.ok) {
+          const hl = await hospResp.json()
+          if (Array.isArray(hl) && hl.length > 0) {
+            setHospitalsList(hl)
+          }
+        }
+      } catch (_) {}
 
       if (targetId) {
         const memResp = await fetch(`${API}/api/v1/federations/${targetId}/members`, {
@@ -155,8 +172,42 @@ export default function FederationMembershipPage({ data, token, onDataRefresh })
   )
 
   const unassignedEligible = allHospitals.filter(
-    (h) => !assignedHospitalIds.has(h.id) && h.status === 'ACTIVE',
+    (h) => !assignedHospitalIds.has(h.id) && h.status !== 'SUSPENDED' && h.status !== 'REVOKED',
   )
+
+  async function handleUpdateSecurityTier(e) {
+    e?.preventDefault()
+    if (!targetHospital?.id) return
+    setBusy(true)
+    setMessage('')
+    setError('')
+    try {
+      const resp = await fetch(`${API}/api/v1/hospitals/${targetHospital.id}`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          security_status: selectedTier,
+          security_tier: selectedTier,
+        }),
+      })
+      if (!resp.ok) {
+        const d = await resp.json().catch(() => null)
+        throw new Error(d?.detail || `Failed to update security tier: HTTP ${resp.status}`)
+      }
+      setMessage(`Security Tier for ${targetHospital.name || targetHospital.id} updated to ${selectedTier}.`)
+      setTierModalOpen(false)
+      setTargetHospital(null)
+      await loadFederationData()
+      onDataRefresh?.()
+    } catch (err) {
+      setError(err.message || 'Security tier update failed')
+    } finally {
+      setBusy(false)
+    }
+  }
 
   const filteredMembers = useMemo(() => {
     return members.filter((m) => {
@@ -341,28 +392,52 @@ export default function FederationMembershipPage({ data, token, onDataRefresh })
                       </div>
                     </td>
                     <td style={{ padding: '12px 16px' }}>
-                      <span
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 700,
-                          padding: '2px 6px',
-                          borderRadius: 4,
-                          background:
-                            hosp?.security_tier === 'HIGH_RISK'
-                              ? 'rgba(239, 68, 68, 0.15)'
-                              : hosp?.security_tier === 'PROBATION'
-                              ? 'rgba(245, 158, 11, 0.15)'
-                              : 'rgba(16, 185, 129, 0.15)',
-                          color:
-                            hosp?.security_tier === 'HIGH_RISK'
-                              ? '#ef4444'
-                              : hosp?.security_tier === 'PROBATION'
-                              ? '#f59e0b'
-                              : '#10b981',
-                        }}
-                      >
-                        {hosp?.security_tier || 'TRUSTED'}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 700,
+                            padding: '2px 6px',
+                            borderRadius: 4,
+                            background:
+                              (hosp?.security_tier || hosp?.security_status) === 'HIGH_RISK'
+                                ? 'rgba(239, 68, 68, 0.15)'
+                                : (hosp?.security_tier || hosp?.security_status) === 'PROBATION'
+                                ? 'rgba(245, 158, 11, 0.15)'
+                                : 'rgba(16, 185, 129, 0.15)',
+                            color:
+                              (hosp?.security_tier || hosp?.security_status) === 'HIGH_RISK'
+                                ? '#ef4444'
+                                : (hosp?.security_tier || hosp?.security_status) === 'PROBATION'
+                                ? '#f59e0b'
+                                : '#10b981',
+                          }}
+                        >
+                          {hosp?.security_tier || hosp?.security_status || 'TRUSTED'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const resolvedHosp = hosp || { id: m.hospital_id, name: m.hospital_name || 'Enclave', security_status: 'TRUSTED' }
+                            setTargetHospital(resolvedHosp)
+                            setSelectedTier(resolvedHosp.security_tier || resolvedHosp.security_status || 'TRUSTED')
+                            setTierModalOpen(true)
+                          }}
+                          style={{
+                            background: 'rgba(0, 229, 255, 0.1)',
+                            border: '1px solid rgba(0, 229, 255, 0.3)',
+                            color: '#00e5ff',
+                            fontSize: 9,
+                            fontWeight: 700,
+                            padding: '2px 6px',
+                            borderRadius: 3,
+                            cursor: 'pointer',
+                          }}
+                          title="Edit security tier & enclave boundaries"
+                        >
+                          Edit
+                        </button>
+                      </div>
                     </td>
                     <td style={{ padding: '12px 16px' }}>
                       <span
@@ -574,6 +649,140 @@ export default function FederationMembershipPage({ data, token, onDataRefresh })
                   }}
                 >
                   {busy ? 'Assigning...' : 'Enroll Hospital'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Security Tier Management Modal */}
+      {tierModalOpen && targetHospital && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.75)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+          }}
+        >
+          <div
+            style={{
+              background: '#0f172a',
+              border: '1px solid #334155',
+              borderRadius: 8,
+              maxWidth: 520,
+              width: '100%',
+              padding: 24,
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+              <div>
+                <div style={{ color: '#00e5ff', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em' }}>
+                  INSTITUTIONAL GOVERNANCE
+                </div>
+                <h3 style={{ margin: '2px 0 0', color: '#f8fafc', fontSize: 16 }}>
+                  Manage Security Tier: {targetHospital.name || targetHospital.code || targetHospital.id}
+                </h3>
+              </div>
+              <button
+                onClick={() => setTierModalOpen(false)}
+                style={{ background: 'none', border: 'none', color: '#64748b', fontSize: 18, cursor: 'pointer' }}
+              >
+                &times;
+              </button>
+            </div>
+
+            <p style={{ color: '#94a3b8', fontSize: 12, margin: '0 0 16px' }}>
+              Assign functional isolation boundaries, aggregation weighting, and defense scrutiny levels for this hospital.
+            </p>
+
+            <form onSubmit={handleUpdateSecurityTier}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
+                {[
+                  {
+                    tier: 'TRUSTED',
+                    color: '#10b981',
+                    title: 'Tier 1: TRUSTED (Standard Consensus)',
+                    desc: 'Full 1.0x aggregation weight. Normal L0-L5 defense gating. Direct eligibility for all federated rounds.',
+                  },
+                  {
+                    tier: 'PROBATION',
+                    color: '#f59e0b',
+                    title: 'Tier 2: PROBATION (Elevated Scrutiny)',
+                    desc: 'Capped aggregation weight (0.5x). Tightened L4 cosine anomaly threshold. Audited on each round.',
+                  },
+                  {
+                    tier: 'HIGH_RISK',
+                    color: '#ef4444',
+                    title: 'Tier 3: HIGH_RISK (Sandboxed Containment)',
+                    desc: 'Strict quarantine isolation. Model updates are quarantined by default for human security audit before aggregation.',
+                  },
+                ].map((t) => (
+                  <label
+                    key={t.tier}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 12,
+                      padding: '12px 14px',
+                      borderRadius: 6,
+                      background: selectedTier === t.tier ? 'rgba(0, 229, 255, 0.08)' : '#070c11',
+                      border: `1px solid ${selectedTier === t.tier ? '#00e5ff' : '#1e293b'}`,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="securityTier"
+                      value={t.tier}
+                      checked={selectedTier === t.tier}
+                      onChange={() => setSelectedTier(t.tier)}
+                      style={{ marginTop: 2 }}
+                    />
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: t.color }}>{t.title}</div>
+                      <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 3 }}>{t.desc}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={() => setTierModalOpen(false)}
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid #334155',
+                    color: '#94a3b8',
+                    padding: '8px 14px',
+                    borderRadius: 4,
+                    cursor: 'pointer',
+                    fontSize: 12,
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={busy}
+                  style={{
+                    background: '#0284c7',
+                    border: 'none',
+                    color: '#fff',
+                    padding: '8px 18px',
+                    borderRadius: 4,
+                    cursor: 'pointer',
+                    fontSize: 12,
+                    fontWeight: 700,
+                  }}
+                >
+                  {busy ? 'Updating...' : 'Save Security Tier'}
                 </button>
               </div>
             </form>

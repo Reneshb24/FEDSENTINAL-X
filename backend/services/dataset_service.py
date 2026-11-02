@@ -143,7 +143,14 @@ def _process_archive_or_file(
         with open(src_path, "r", encoding="utf-8", errors="ignore") as f:
             csv_text = f.read()
         return _parse_csv_text_to_npz(csv_text, target_npz, expected_num_classes)
-    except Exception as exc:
+    except (ValueError, HTTPException) as exc:
+        if isinstance(exc, HTTPException):
+            raise exc
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"CSV dataset processing failed: {exc}",
+        )
+    except Exception:
         pass
 
     raise HTTPException(
@@ -162,17 +169,25 @@ def _parse_csv_text_to_npz(
     if not lines:
         raise ValueError("CSV dataset is empty.")
 
+    first_line = lines[0]
+    delimiter = ","
+    if "\t" in first_line:
+        delimiter = "\t"
+    elif ";" in first_line and "," not in first_line:
+        delimiter = ";"
+
     start_row = 0
-    # Check for header
-    first_row_tokens = lines[0].split(",")
+    header_tokens = [t.strip().strip('"\'') for t in first_line.split(delimiter)]
+    is_header = False
     try:
-        float(first_row_tokens[0])
+        float(header_tokens[0])
     except ValueError:
-        start_row = 1  # Header present
+        is_header = True
+        start_row = 1
 
     parsed_rows = []
     for line in lines[start_row:]:
-        parts = [p.strip() for p in line.split(",") if p.strip()]
+        parts = [p.strip().strip('"\'') for p in line.split(delimiter)]
         if len(parts) >= 2:
             try:
                 nums = [float(p) for p in parts]
@@ -181,22 +196,64 @@ def _parse_csv_text_to_npz(
                 continue
 
     if len(parsed_rows) < 2:
-        raise ValueError("CSV contains fewer than 2 valid rows.")
+        raise ValueError("CSV contains fewer than 2 valid numeric rows.")
 
     data = np.array(parsed_rows, dtype=np.float32)
-    labels = data[:, 0].astype(np.int64)
-    features = data[:, 1:]
+    num_cols = data.shape[1]
+
+    # Auto-detect label column index
+    label_col_idx = None
+    if is_header:
+        target_names = {
+            "outcome", "target", "label", "class", "diagnosis",
+            "y", "status", "result", "diabetic", "presence", "condition"
+        }
+        for idx, col_name in enumerate(header_tokens):
+            if col_name.lower() in target_names:
+                label_col_idx = idx
+                break
+
+    if label_col_idx is None:
+        last_col = data[:, -1]
+        first_col = data[:, 0]
+        last_unique = len(np.unique(last_col))
+        first_unique = len(np.unique(first_col))
+        last_is_int = np.all(np.equal(last_col, np.floor(last_col)))
+        first_is_int = np.all(np.equal(first_col, np.floor(first_col)))
+
+        if last_is_int and last_col.max() < expected_num_classes and last_col.min() >= 0:
+            label_col_idx = num_cols - 1
+        elif first_is_int and first_col.max() < expected_num_classes and first_col.min() >= 0:
+            label_col_idx = 0
+        elif last_unique <= max(expected_num_classes, 10) and last_unique <= first_unique:
+            label_col_idx = num_cols - 1
+        else:
+            label_col_idx = 0
+
+    raw_labels = data[:, label_col_idx]
+    unique_vals = np.unique(raw_labels)
+
+    # Remap discrete class values to [0, K-1] if needed
+    if len(unique_vals) <= expected_num_classes and (raw_labels.min() < 0 or raw_labels.max() >= expected_num_classes):
+        val_map = {val: idx for idx, val in enumerate(np.sort(unique_vals))}
+        labels = np.array([val_map[v] for v in raw_labels], dtype=np.int64)
+    else:
+        labels = raw_labels.astype(np.int64)
+
+    # Feature columns are everything except the label column
+    feature_cols = [c for c in range(num_cols) if c != label_col_idx]
+    features = data[:, feature_cols]
 
     # Shape features into (N, 1, 28, 28)
     if features.shape[1] == 784:
         images = features.reshape(-1, 1, 28, 28)
     else:
-        # Pad or slice to 784
         padded = np.pad(features, ((0, 0), (0, max(0, 784 - features.shape[1]))))[:, :784]
         images = padded.reshape(-1, 1, 28, 28)
 
-    if images.max() > 1.0:
-        images = images / 255.0
+    max_feat = float(np.max(np.abs(images)))
+    if max_feat > 1.0:
+        images = images / max_feat
 
     np.savez_compressed(target_npz, images=images, labels=labels)
     return _validate_npz_dataset(target_npz, expected_num_classes=expected_num_classes)

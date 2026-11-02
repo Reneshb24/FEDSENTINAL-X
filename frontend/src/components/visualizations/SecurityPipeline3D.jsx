@@ -65,40 +65,70 @@ function UpdateParticle({ update }) {
   );
 }
 
-export default function SecurityPipeline3D() {
+export default function SecurityPipeline3D({ currentStep, activeUpdates, height = '260px' }) {
   const updatesMap = useAppStore(state => state.updates);
   const roundsMap = useAppStore(state => state.rounds);
-  const updates = useMemo(() => Object.values(updatesMap || {}), [updatesMap]);
-  const rounds = useMemo(() => Object.values(roundsMap || {}), [roundsMap]);
-  const activeRound = useMemo(() => rounds.find(r => r.status === 'RUNNING' || r.status === 'OPEN') || {}, [rounds]);
+  const storeUpdates = useMemo(() => Object.values(updatesMap || {}), [updatesMap]);
+  const updates = activeUpdates && activeUpdates.length > 0 ? activeUpdates : storeUpdates;
 
-  // Determine status for each stage (simple aggregation of updates at that stage)
-  const stageStatus = {};
-  updates.forEach(u => {
-    const s = u.status;
-    if (s && stagePositions[s]) {
-      stageStatus[s] = stageStatus[s] === 'PASSED' ? 'PASSED' : s;
-    }
-  });
+  const stageKeys = ['UPDATE_INTAKE', 'L0', 'L1', 'L2', 'L3', 'L4', 'L5', 'TRUST', 'AGGREGATION', 'GLOBAL'];
+
+  const stageStatus = useMemo(() => {
+    const s = {};
+    stageKeys.forEach((key, idx) => {
+      if (currentStep !== undefined && currentStep !== null) {
+        if (idx < currentStep - 1) {
+          s[key] = 'PASSED';
+        } else if (idx === currentStep - 1) {
+          s[key] = 'RUNNING';
+        } else {
+          s[key] = 'PENDING';
+        }
+      } else {
+        s[key] = 'PENDING';
+      }
+    });
+    return s;
+  }, [currentStep]);
 
   return (
-    <Canvas camera={{ position: [10, 6, 20], fov: 50 }} style={{ height: '100%', width: '100%' }}>
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[5, 10, 5]} intensity={1} />
-      <OrbitControls enableZoom={true} zoomSpeed={1.0} minDistance={2} maxDistance={35} enablePan={true} panSpeed={1.0} enableRotate={true} rotateSpeed={0.8} enableDamping={true} dampingFactor={0.05} autoRotate autoRotateSpeed={0.6} />
-      {/* Pipeline stages */}
-      {Object.entries(stagePositions).map(([stage, pos]) => (
-        <StageNode
-          key={stage}
-          label={stage.replace('_', ' ')}
-          position={pos}
-          status={stageStatus[stage] || 'PENDING'}
-        />
-      ))}
-      {/* Render a particle for each update */}
-      {updates.map(u => (
-        <UpdateParticle key={u.id} update={u} />
-      ))}
-    </Canvas>
+    <div style={{ height, width: '100%', position: 'relative', borderRadius: 8, overflow: 'hidden', background: '#070c11', border: '1px solid #1e293b', marginBottom: 16 }}>
+      <Canvas camera={{ position: [9, 5, 16], fov: 45 }} style={{ height: '100%', width: '100%' }}>
+        <ambientLight intensity={0.6} />
+        <directionalLight position={[5, 10, 5]} intensity={1.2} />
+        <OrbitControls enableZoom={true} zoomSpeed={1.0} minDistance={2} maxDistance={35} enablePan={true} panSpeed={1.0} enableRotate={true} rotateSpeed={0.8} enableDamping={true} dampingFactor={0.05} autoRotate autoRotateSpeed={0.4} />
+        {/* Pipeline stages */}
+        {Object.entries(stagePositions).map(([stage, pos]) => (
+          <StageNode
+            key={stage}
+            label={stage.replace('_', ' ')}
+            position={pos}
+            status={stageStatus[stage] || 'PENDING'}
+          />
+        ))}
+        {/* Render animated particles representing hospital model updates */}
+        {updates.slice(0, 15).map((u, i) => {
+          const isQuarantined = u.detection_status === 'QUARANTINED';
+          const stageIdx = currentStep ? Math.min(currentStep - 1, stageKeys.length - 1) : 0;
+          const stageName = stageKeys[stageIdx];
+          const basePos = stagePositions[stageName] || [0, 0, 0];
+          const offsetPos = [
+            basePos[0] + ((i % 5) - 2) * 0.35,
+            basePos[1] + (isQuarantined && stageIdx >= 4 ? -1.8 : ((Math.floor(i / 5) - 1) * 0.35)),
+            basePos[2] + ((i % 3) - 1) * 0.25,
+          ];
+          const color = isQuarantined && stageIdx >= 4 ? '#ef4444' : (stageIdx >= 8 ? '#10b981' : '#00e5ff');
+          return (
+            <mesh key={u.id || i} position={offsetPos}>
+              <sphereGeometry args={[0.22, 14, 14]} />
+              <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.8} />
+            </mesh>
+          );
+        })}
+      </Canvas>
+      <div style={{ position: 'absolute', bottom: 8, right: 12, fontSize: 10, color: '#64748b', pointerEvents: 'none', background: 'rgba(5,8,12,0.7)', padding: '2px 8px', borderRadius: 4 }}>
+        3D Zero-Trust Security Pipeline · Stage {currentStep || 1} of 10 · {updates.length} Updates Ingested
+      </div>
+    </div>
   );
 }

@@ -305,6 +305,9 @@ export default function RoundReplayPage({ data, token, onNavigate }) {
         context="Every stage of this replay uses real data persisted in SQLite/SQLAlchemy. Anomaly detection at Stage 4 is correlated with causal influence and counterfactual simulations before containment is committed."
       />
 
+      {/* 3D Security Pipeline Real-Time Flow Visualizer */}
+      <SecurityPipeline3D currentStep={currentStep} activeUpdates={updates} height="260px" />
+
       {/* Main Playback Scrubber Bar */}
       <div className="sec-panel" style={{ border: '1px solid #30363d', background: '#0d1117' }}>
         <div className="sec-panel-header" style={{ borderBottom: '1px solid #21262d', paddingBottom: 12 }}>
@@ -407,11 +410,33 @@ export default function RoundReplayPage({ data, token, onNavigate }) {
             </button>
             <button
               type="button"
+              className="security-btn security-btn-secondary"
+              onClick={() => {
+                setIsPlaying(false)
+                setCurrentStep(1)
+                setTimeout(() => setIsPlaying(true), 80)
+              }}
+              title="Restart replay from Stage 1"
+              style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700 }}
+            >
+              <RotateCcw size={14} />
+              <span>RESTART FROM FIRST</span>
+            </button>
+
+            <button
+              type="button"
               className={`security-btn ${isPlaying ? 'security-btn-secondary' : 'security-btn-primary'}`}
-              onClick={() => setIsPlaying(!isPlaying)}
+              onClick={() => {
+                if (currentStep >= REPLAY_STAGES.length) {
+                  setCurrentStep(1)
+                  setIsPlaying(true)
+                } else {
+                  setIsPlaying(!isPlaying)
+                }
+              }}
             >
               {isPlaying ? <Pause size={14} /> : <Play size={14} />}
-              <span>{isPlaying ? 'PAUSE' : 'REPLAY PIPELINE'}</span>
+              <span>{isPlaying ? 'PAUSE' : (currentStep >= REPLAY_STAGES.length ? 'REPLAY FROM FIRST' : 'REPLAY PIPELINE')}</span>
             </button>
             <button
               type="button"
