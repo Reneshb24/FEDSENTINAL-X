@@ -680,17 +680,28 @@ class HospitalPortalService:
         # Determine target disease domain for consortium aggregation lookup
         import json
         from backend.storage.models import AggregatedDiseaseUpdate
-        target_domain = "CONSENSUS_MULTI"
-        if eff_modality == "IMAGE":
-            target_domain = "DERMATOLOGIC" if "DERM" in condition.upper() else "PULMONARY_IMAGE"
-        elif eff_modality == "STRUCTURED_VITALS" or "DIABETES" in condition.upper() or "METABOLIC" in condition.upper():
-            target_domain = "METABOLIC_DIABETES"
-        elif "CARDIO" in condition.upper() or "ANGINA" in condition.upper():
-            target_domain = "CARDIOMETABOLIC"
 
-        disease_agg_rec = db.query(AggregatedDiseaseUpdate).filter(AggregatedDiseaseUpdate.disease_domain == target_domain).first()
-        if not disease_agg_rec:
-            disease_agg_rec = db.query(AggregatedDiseaseUpdate).first()
+        # Check direct domain match first (enabling any new disease models added by any hospital)
+        direct_match = db.query(AggregatedDiseaseUpdate).filter(
+            (AggregatedDiseaseUpdate.disease_domain == condition.upper()) |
+            (AggregatedDiseaseUpdate.display_name.ilike(f"%{condition}%"))
+        ).first()
+
+        if direct_match:
+            target_domain = direct_match.disease_domain
+            disease_agg_rec = direct_match
+        else:
+            target_domain = "CONSENSUS_MULTI"
+            if eff_modality == "IMAGE":
+                target_domain = "DERMATOLOGIC" if "DERM" in condition.upper() else "PULMONARY_IMAGE"
+            elif eff_modality == "STRUCTURED_VITALS" or "DIABETES" in condition.upper() or "METABOLIC" in condition.upper():
+                target_domain = "METABOLIC_DIABETES"
+            elif "CARDIO" in condition.upper() or "ANGINA" in condition.upper():
+                target_domain = "CARDIOMETABOLIC"
+
+            disease_agg_rec = db.query(AggregatedDiseaseUpdate).filter(AggregatedDiseaseUpdate.disease_domain == target_domain).first()
+            if not disease_agg_rec:
+                disease_agg_rec = db.query(AggregatedDiseaseUpdate).first()
 
         agg_verdict = disease_agg_rec.security_verdict if disease_agg_rec else "REVIEWED_AND_AGGREGATED"
         agg_prevention_summary = disease_agg_rec.prevention_summary if disease_agg_rec else "Aggregated via FedSentinel robust consensus."

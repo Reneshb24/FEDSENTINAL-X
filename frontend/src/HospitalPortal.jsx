@@ -4785,10 +4785,20 @@ function DiseasePredictionPage({ token, hospital }) {
                   style={{ width: '100%' }}
                 >
                   <option value="MULTI_DISEASE_AUTO">Automated Multi-Disease Consensus (Any Condition)</option>
-                  <option value="PULMONARY_RISK">Pulmonary Pneumonia & Respiratory Infiltration</option>
-                  <option value="CARDIOMETABOLIC">Cardiometabolic & Acute Coronary Syndrome</option>
-                  <option value="DIABETES_METABOLIC">Type-2 Diabetes & Endocrine Risk</option>
-                  <option value="DERMATOLOGIC">Dermatologic Dysplastic Lesions</option>
+                  {diseaseUpdatesData?.updates && diseaseUpdatesData.updates.length > 0 ? (
+                    diseaseUpdatesData.updates.map((u) => (
+                      <option key={u.disease_domain} value={u.disease_domain}>
+                        {u.display_name} ({u.model_version})
+                      </option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="PULMONARY_RISK">Pulmonary Pneumonia & Respiratory Infiltration</option>
+                      <option value="CARDIOMETABOLIC">Cardiometabolic & Acute Coronary Syndrome</option>
+                      <option value="DIABETES_METABOLIC">Type-2 Diabetes & Endocrine Risk</option>
+                      <option value="DERMATOLOGIC">Dermatologic Dysplastic Lesions</option>
+                    </>
+                  )}
                 </select>
               </div>
             </div>
