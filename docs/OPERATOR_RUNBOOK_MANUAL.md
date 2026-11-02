@@ -368,7 +368,7 @@ Structural and cryptographic integrity gate for incoming model updates.
   * Hover displays: Magic header string, parameter count, byte offset.
 * **Verification Checklist Cards**:
   1. *SafeTensors Format Compliance*: Verified zero-pickle serialization format.
-  2. *Header JSON Security Bounds*: Validated header byte length $< 1 \text{MB}$ preventing deserialization DOS.
+  2. *Header JSON Security Bounds*: Validated header byte length < 1 MB preventing deserialization DOS.
   3. *Exact Tensor Geometry*: Validated tensor shapes match `FedSentinelCNN` (105,866 parameters).
   4. *Cryptographic Digest Integrity*: SHA-256 hash match against enclave submission signature.
 * **Candidate Updates Verification Table**:

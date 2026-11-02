@@ -116,14 +116,7 @@ Pre-configured credentials for immediate evaluation across both local and live c
 | **Hospital H103 (Cleveland Clinic)** | `/hospital/login` | `admin@h103-cleveland.org` | `Hospital123!` | Cardiovascular AI Enclave: train on Acute Myocardial Infarction manifolds, evaluate Acute Coronary Syndrome text, and perform cross-hospital inference using H101's pulmonary models. |
 | **Hospital H104 (Memorial Sloan Kettering)** | `/hospital/login` | `admin@h104-msk.org` | `Hospital123!` | Dermatopathology Enclave: train on Cutaneous Melanocytic & Dysplastic lesion cohorts, evaluate dermoscopy imaging, and verify global model synchronization. |
 | **Hospital H105 (Johns Hopkins)** | `/hospital/login` | `admin@h105-hopkins.org` | `Hospital123!` | Infectious Disease & Sepsis Center: train on Systemic Inflammatory Biomarkers, evaluate severe sepsis clinical notes, and test OOD non-medical image rejection. |
-| **New Hospital Self-Registration** | `/hospital/login` $	o$ **Register** | *User Defined* | *User Defined* | Any healthcare provider can self-register. Newly registered institutions enter a `SUBMITTED / PENDING` review state until verified by global administrators. |
-
---- | :--- | :--- | :--- | :--- |
-| **Platform Super Admin** | `/` | `admin@fedsentinel.local` | `Admin123!` | Complete SOC control: initiate rounds, inspect L0-L5 evidence gates, trigger node quarantine, execute overrides, replay rounds, and generate compliance reports. |
-| **Hospital Administrator (H21)** | `/hospital/login` | `admin@h21.local` | `Hospital123!` | Demo Research Hospital: view cohort membership, upload local .NPZ datasets, link external record URLs, run local PyTorch training, and submit weights. |
-| **Hospital Administrator (H01)** | `/hospital/login` | `admin@demohospital.local` | `Hospital123!` | Demo General Hospital: manage clinical imaging hub, inspect local dataset tensors, execute model updates, and monitor enclave telemetry. |
-| **Hospital Administrator (H30)** | `/hospital/login` | `admin@apollo.local` | `Hospital123!` | Apollo Health Network: real-time dataset linking, enclave training, and model update submission. |
-| **New Hospital Self-Registration** | `/` $\to$ **Register Hospital** | *User Defined* | *User Defined* | Any healthcare provider can self-register. Auto-provisions hospital ID, active enrollment, and default clinical imaging dataset. |
+| **New Hospital Self-Registration** | `/hospital/login` $\to$ **Register** | *User Defined* | *User Defined* | Any healthcare provider can self-register. Newly registered institutions enter a `SUBMITTED / PENDING` review state until verified by global administrators. |
 
 ---
 
@@ -318,36 +311,67 @@ CANDIDATE MODEL UPDATE
 ### L0: Artifact & Structural Verification
 * Inspects binary structure of uploaded tensors (`.safetensors` / `.npz`).
 * Verifies parameter count matches `FedSentinelCNN` architecture ($105,866$ floats).
-* Checks all floating-point numbers: $\forall w \in W, \text{isfinite}(w) \land \neg \text{isnan}(w)$.
-* Validates update norm against baseline bounds ($||W||_2 \le \tau_{\text{norm}}$).
+* Checks all floating-point numbers: $\forall w \in W, \; \operatorname{isfinite}(w) \land \neg \operatorname{isnan}(w)$.
+* Validates update norm against baseline bounds ($\|W\|_2 \le \tau_{\text{norm}}$).
 
 ### L1: Privacy-Preserving 128-Dim Fingerprint
 To prevent leaking proprietary hospital gradients while enabling cohort comparison:
-$$\mathbf{P} \in \mathbb{R}^{128 \times 105866} \sim \mathcal{N}(0, 1) \quad (\text{seed}=42)$$
-$$\mathbf{f}_k = \frac{\mathbf{P} \cdot \mathbf{w}_k}{||\mathbf{P} \cdot \mathbf{w}_k||_2}$$
+
+$$
+\mathbf{P} \in \mathbb{R}^{128 \times 105866} \sim \mathcal{N}(0, 1) \quad (\text{seed}=42)
+$$
+
+$$
+\mathbf{f}_k = \frac{\mathbf{P} \cdot \mathbf{w}_k}{\|\mathbf{P} \cdot \mathbf{w}_k\|_2}
+$$
+
 The 128-dimensional vector $\mathbf{f}_k$ provides an immutable, privacy-safe fingerprint for pairwise cosine similarity comparisons.
 
 ### L2: Robust Anomaly Detection (Median + MAD)
 Traditional mean-and-standard-deviation detectors fail under Byzantine attacks because malicious updates corrupt both the mean and variance. FedSentinel-X computes the **Coordinate-Wise Median** and **Median Absolute Deviation ($\text{MAD}$)**:
-$$\text{Baseline} = \text{median}(\{ \mathbf{w}_1, \dots, \mathbf{w}_K \})$$
-$$\text{MAD}_i = \text{median}_j ( | w_{j,i} - \text{median}_k(w_{k,i}) | )$$
-$$\text{Score}_k = \frac{||\mathbf{w}_k - \text{Baseline}||_2}{1.4826 \cdot \text{median}(\text{MAD})}$$
+
+$$
+\text{Baseline} = \operatorname{median}(\{ \mathbf{w}_1, \dots, \mathbf{w}_K \})
+$$
+
+$$
+\text{MAD}_i = \operatorname{median}_j \left( \left| w_{j,i} - \operatorname{median}_k(w_{k,i}) \right| \right)
+$$
+
+$$
+\text{Score}_k = \frac{\|\mathbf{w}_k - \text{Baseline}\|_2}{1.4826 \cdot \operatorname{median}(\text{MAD})}
+$$
+
 Updates exceeding threshold $\tau = 3.0$ trigger an L2 anomaly signal.
 
 ### L3: Holdout Trajectory & Influence Profiling
 Evaluates how candidate update $\mathbf{w}_k$ alters the validation loss surface $\mathcal{L}_{\text{val}}$ on a curated consensus benchmark:
-$$\text{Influence}_k = \nabla \mathcal{L}_{\text{val}}(\theta_{\text{prev}}) \cdot \mathbf{w}_k$$
+
+$$
+\text{Influence}_k = \nabla \mathcal{L}_{\text{val}}(\theta_{\text{prev}}) \cdot \mathbf{w}_k
+$$
+
 Positive gradient alignment indicates constructive convergence; severe orthogonal or opposing alignment indicates poisoning.
 
 ### L4: Counterfactual Harm Simulation
 Directly measures real-world impact by evaluating two candidate global aggregates:
-$$\theta_{\text{with}} = \text{Aggregate}(\mathcal{U}), \quad \theta_{\text{without}} = \text{Aggregate}(\mathcal{U} \setminus \{ \mathbf{w}_k \})$$
-$$\Delta \text{Acc}_k = \text{Acc}_{\text{val}}(\theta_{\text{with}}) - \text{Acc}_{\text{val}}(\theta_{\text{without}})$$
+
+$$
+\theta_{\text{with}} = \operatorname{Aggregate}(\mathcal{U}), \quad \theta_{\text{without}} = \operatorname{Aggregate}(\mathcal{U} \setminus \{ \mathbf{w}_k \})
+$$
+
+$$
+\Delta \text{Acc}_k = \text{Acc}_{\text{val}}(\theta_{\text{with}}) - \text{Acc}_{\text{val}}(\theta_{\text{without}})
+$$
+
 A drop $\Delta \text{Acc}_k < -1.5\%$ demonstrates tangible harm to the consortium model.
 
 ### L5: Bayesian Evidence Attribution Matrix
 Synthesizes all empirical evidence into a composite threat index:
-$$\text{Threat}_k = 0.30 \cdot S_{\text{L2}} + 0.25 \cdot S_{\text{L3}} + 0.30 \cdot S_{\text{L4}} + 0.10 \cdot S_{\text{L0}} + 0.05 \cdot S_{\text{history}}$$
+
+$$
+\text{Threat}_k = 0.30 \cdot S_{\text{L2}} + 0.25 \cdot S_{\text{L3}} + 0.30 \cdot S_{\text{L4}} + 0.10 \cdot S_{\text{L0}} + 0.05 \cdot S_{\text{history}}
+$$
 
 ### Trust Engine & Containment Decision Engine
 * **QUARANTINE**: $\ge 3$ adverse signals OR critical L0 integrity breach. Model update is quarantined and excluded from aggregation.
