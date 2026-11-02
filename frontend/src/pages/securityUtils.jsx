@@ -16,8 +16,8 @@ import {
   Cpu,
 } from 'lucide-react'
 
-const rawApi = (import.meta.env && import.meta.env.VITE_API_BASE_URL) || 'http://127.0.0.1:8000'
-export const API = rawApi.replace(/\/+$/, '')
+import { getApiBaseUrl } from '../apiConfig'
+export const API = getApiBaseUrl()
 export const FEDERATION_ID = (import.meta.env && import.meta.env.VITE_FEDERATION_ID) || '413ef0b3-a947-4a02-a652-d963ef14b8da'
 
 export async function apiFetch(path, token, options = {}) {

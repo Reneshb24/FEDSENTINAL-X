@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { SlidersHorizontal, ShieldAlert, CheckCircle2, XCircle, AlertTriangle, RefreshCw, FileText } from 'lucide-react'
 
-const rawApi = (import.meta.env && import.meta.env.VITE_API_BASE_URL) || 'http://127.0.0.1:8000'
-const API = rawApi.replace(/\/+$/, '')
+import { getApiBaseUrl } from '../apiConfig'
+const API = getApiBaseUrl()
 
 export default function HumanOverridesPage({ data, token, onDataRefresh }) {
   const [selectedIncident, setSelectedIncident] = useState(null)

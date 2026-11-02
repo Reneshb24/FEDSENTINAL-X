@@ -59,8 +59,8 @@ import FederationOrbit3D from './components/visualizations/FederationOrbit3D'
 import SyntheticLab3D from './components/visualizations/SyntheticLab3D'
 import { ClipboardCheck } from 'lucide-react'
 
-const rawApi = (import.meta.env && import.meta.env.VITE_API_BASE_URL) || 'http://127.0.0.1:8000'
-const API = rawApi.replace(/\/+$/, '')
+import { getApiBaseUrl } from './apiConfig'
+const API = getApiBaseUrl()
 const FEDERATION_ID = (import.meta.env && import.meta.env.VITE_FEDERATION_ID) || '413ef0b3-a947-4a02-a652-d963ef14b8da'
 
 const navGroups = [
@@ -239,7 +239,11 @@ function Login({ onLogin, portal = 'admin' }) {
       onLogin(data.access_token)
       goTo(isHospital ? '/hospital' : '/admin')
     } catch (err) {
-      setError(err.message)
+      if (err && (err.message === 'Failed to fetch' || err.name === 'TypeError')) {
+        setError(`Failed to connect to API backend (${API}). If using the live cloud server, Render's free tier may be waking up from idle (takes ~45-60s). Please wait a moment and try again.`)
+      } else {
+        setError(err.message || 'Authentication error')
+      }
     } finally {
       setLoading(false)
     }
@@ -306,7 +310,11 @@ function Login({ onLogin, portal = 'admin' }) {
         goTo('/hospital')
       }, 500)
     } catch (err) {
-      setError(err.message)
+      if (err && (err.message === 'Failed to fetch' || err.name === 'TypeError')) {
+        setError(`Failed to connect to API backend (${API}). If using the live cloud server, Render's free tier may be waking up from idle (takes ~45-60s). Please wait a moment and try again.`)
+      } else {
+        setError(err.message || 'Authentication error')
+      }
     } finally {
       setLoading(false)
     }

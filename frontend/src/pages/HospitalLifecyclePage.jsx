@@ -14,8 +14,8 @@ import {
   RefreshCw
 } from 'lucide-react'
 
-const rawApi = (import.meta.env && import.meta.env.VITE_API_BASE_URL) || 'http://127.0.0.1:8000'
-const API = rawApi.replace(/\/+$/, '')
+import { getApiBaseUrl } from '../apiConfig'
+const API = getApiBaseUrl()
 
 export default function HospitalLifecyclePage({ data, token, onDataRefresh }) {
   const [hospitals, setHospitals] = useState([])
