@@ -25,8 +25,16 @@ FedSentinel-X is an enterprise-grade cybersecurity control plane and distributed
 
 ### 2.2 Verified Access Accounts & Credentials
 
-| Persona / Scope | Portal URL | Username / Email | Default Password | Role Authority |
+| Persona / Scope | Portal URL | Username / Email | Default Password | Role Authority & Clinical Focus |
 | :--- | :--- | :--- | :--- | :--- |
+| **Global Super Administrator** | `https://fedsentinal-x.vercel.app/admin/login` | `admin@fedsentinel.local` | `Admin123!` | Platform Super Admin (Full SOC & Federation Authority) |
+| **Hospital Enclave Admin (H101)** | `https://fedsentinal-x.vercel.app/hospital/login` | `admin@h101-sinai.org` | `Hospital123!` | Mount Sinai Pulmonary & Respiratory Center (Thoracic Radiology & Pneumonia) |
+| **Hospital Enclave Admin (H102)** | `https://fedsentinal-x.vercel.app/hospital/login` | `admin@h102-joslin.org` | `Hospital123!` | Joslin Diabetes Center & Metabolic Institute (Endocrine Biomarkers & Nephropathy) |
+| **Hospital Enclave Admin (H103)** | `https://fedsentinal-x.vercel.app/hospital/login` | `admin@h103-cleveland.org` | `Hospital123!` | Cleveland Clinic Cardiovascular AI Enclave (Cardiometabolic & Acute Coronary Syndrome) |
+| **Hospital Enclave Admin (H104)** | `https://fedsentinal-x.vercel.app/hospital/login` | `admin@h104-msk.org` | `Hospital123!` | Memorial Sloan Kettering Dermatopathology Enclave (Melanocytic Lesions & Dysplasia) |
+| **Hospital Enclave Admin (H105)** | `https://fedsentinal-x.vercel.app/hospital/login` | `admin@h105-hopkins.org` | `Hospital123!` | Johns Hopkins Clinical AI & Infectious Disease Center (Severe Sepsis & Systemic Infection) |
+
+--- | :--- | :--- | :--- | :--- |
 | **Global Super Administrator** | `http://localhost:5173/admin/login` | `admin@fedsentinel.local` | `Admin123!` | Platform Super Admin (Full SOC & Federation Authority) |
 | **Hospital Enclave Admin (H21)** | `http://localhost:5173/hospital/login` | `admin@h21.local` | `Hospital123!` | Enclave Administrator (Stanford Clinical AI Enclave) |
 | **Hospital Enclave Admin (H01)** | `http://localhost:5173/hospital/login` | `admin@demohospital.local` | `Hospital123!` | Enclave Administrator (General Medical Center Enclave) |
@@ -933,55 +941,44 @@ Local configuration and preferences.
 
 ### 5.17 Disease Risk Prediction & Enclave Inference (`prediction`)
 
-In-situ clinical decision support and disease risk prediction powered by the consensus-trained federated global model.
+In-situ clinical decision support and multi-modal disease risk prediction powered by the consensus-trained federated global models with strict Zero-False-Prediction Shield.
 
 ```
 +----------------------------------------------------------------------------------+
-| CLINICAL INTELLIGENCE / FEDERATED IN SITU INFERENCE                              |
-| Disease Risk Prediction & Enclave Inference                                      |
+| CLINICAL INTELLIGENCE / FEDERATED MULTI-MODAL IN SITU INFERENCE                  |
+| Multi-Disease Risk Prediction & Zero-False-Prediction Shield                     |
 |                                                                                  |
-| [ QUICK CLINICAL CASE PRESETS ]                                                  |
-| [High-Risk Diabetic Patient]  [Borderline / Pre-Diabetic]  [Healthy Normal]      |
+| [ MODALITY SELECTOR ]                                                            |
+| [ Medical Image (IMAGE) ]  [ Clinical Notes (TEXT) ]  [ Vitals (STRUCTURED) ]    |
 |                                                                                  |
-| PATIENT CLINICAL BIOMARKERS (Form)        DIAGNOSTIC OUTCOME & ATTRIBUTION (HUD) |
-| Patient ID:        [ PT-CLINICAL-8821  ]  [ RISK TIER: CRITICAL        ] [99.9%] |
-| Condition:         [ Type-2 Diabetes   ]  POSITIVE (HIGH RISK OF T2D COMPLICATION)|
-| Fasting Glucose:   [----O-------------]   BIOMARKER ATTRIBUTION IMPACT:          |
-| Body Mass Index:   [-------O----------]   - Fasting Glucose: [===========] 50.7% |
-| Age:               [----O-------------]   - Body Mass Index: [=====      ] 19.5% |
-| Blood Pressure:    [----O-------------]   - Age Factor:      [===        ] 13.1% |
-| Serum Insulin:     [----O-------------]   - Genetic Pedigree:[==         ] 10.5% |
-| Genetic Pedigree:  [----O-------------]   CLINICAL ACTION PROTOCOL:              |
-| [ RUN FEDERATED ENCLAVE INFERENCE ]       Schedule confirmatory HbA1c test...    |
+| INPUT PAYLOAD & SCREENING              DIAGNOSTIC OUTCOME & HUD                  |
+| Target Condition:  [ Pulmonary CXR  ]  [ VERDICT: HIGH RISK / PNEUMONIA ] [92.0%]|
+| Image Ingestion:   [ Upload Scan / Drop]  DIFFERENTIAL DIAGNOSES:                 |
+| Anatomical Shield: [ THORACIC CONFIRMED]  - Lobar Pneumonia:       [========] 92%|
+|                                           - Interstitial Edema:    [===     ] 24%|
+| [ RUN ENCLAVE INFERENCE ]                 CONTRIBUTING HOSPITALS: H101, H103, H105|
 +----------------------------------------------------------------------------------+
 ```
 
-* **Quick Clinical Case Presets**:
-  * **`High-Risk Diabetic Patient` button**: Populates vitals with elevated indicators (Fasting Glucose: 168 mg/dL, BMI: 36.2, Age: 52, Insulin: 180, Blood Pressure: 82).
-  * **`Borderline / Pre-Diabetic` button**: Populates vitals with pre-diabetic indicators (Fasting Glucose: 128 mg/dL, BMI: 28.4, Age: 42, Insulin: 95).
-  * **`Normal Healthy Control` button**: Populates vitals with optimal glycemic baseline (Fasting Glucose: 85 mg/dL, BMI: 21.8, Age: 26, Insulin: 60).
-* **Clinical Biomarker Sliders & Inputs**:
-  * **Patient Identifier**: Unique clinical record ID (e.g. `PT-CLINICAL-8821`).
-  * **Target Clinical Condition**: Dropdown (`Type-2 Diabetes & Metabolic Complications`, `Pulmonary Risk`, `Cardiometabolic Risk`).
-  * **Fasting Glucose ($mg/dL$)**: Interactive slider ($60 - 250$).
-  * **Body Mass Index (BMI, $kg/m^2$)**: Slider with clinical guidelines ($16 - 50$).
-  * **Age (Years)**: Slider ($18 - 90$).
-  * **Diastolic Blood Pressure ($mm\,Hg$)**: Slider ($50 - 140$).
-  * **Serum Insulin ($\mu U/mL$)**: Slider ($10 - 350$).
-  * **Diabetes Pedigree Function**: Slider ($0.05 - 2.0$).
-* **Action Buttons**:
-  * **`RUN FEDERATED ENCLAVE INFERENCE` button**:
-    * Dispatches inference payload to `POST /api/v1/hospital/predict`.
-    * Evaluates patient vitals directly against the verified federated global model.
-    * Computes diagnostic classification, probability, and risk tier.
-    * Records tamper-evident audit record `CLINICAL_INFERENCE_EXECUTED`.
-* **Diagnostic Outcome HUD**:
-  * **Risk Tier Badge**: Color-coded risk status (`CRITICAL` red, `HIGH` amber-red, `MODERATE` yellow, `LOW` green).
-  * **Diagnostic Classification**: Detailed clinical finding (e.g. `POSITIVE (HIGH RISK OF TYPE-2 DIABETES / METABOLIC COMPLICATION)`).
-  * **Confidence Score Meter**: Radial / numerical percentage probability (e.g., `99.89%`).
-  * **Biomarker Attribution Impact**: Dynamic horizontal progress bars illustrating the exact percentage contribution of each clinical vital to the risk verdict.
-  * **Clinical Action Protocol**: Actionable medical guidelines and next steps (e.g., confirmatory HbA1c testing, endocrinology consultation).
-  * **Zero-Leakage Privacy Guarantee**: Explicit verification card confirming patient vitals never left the local enclave boundary.
+* **Multi-Modal Diagnostic Support**:
+  * **Medical Image Modality (`IMAGE`)**: Ingests radiological radiographs and dermoscopic photographs. Evaluates feature tensors using `FedSentinelCNN`.
+  * **Anatomical Screening Engine & Zero-False-Prediction Shield**:
+    * Automatically analyzes morphological pixel density and aspect ratio before feeding images into thoracic classifiers.
+    * If a non-thoracic scan (such as a cranial skull radiograph or musculoskeletal extremity) is uploaded to a pulmonary classifier, the system inhibits the disease model and immediately returns:
+      `UNSUPPORTED INPUT: Cranial / Skull Radiograph (Non-Thoracic)` (0.0% probability, INCONCLUSIVE risk tier).
+    * Never presents unreliable guesses or out-of-distribution inputs as confirmed diagnoses.
+  * **Clinical Narrative Modality (`TEXT`)**:
+    * Tokenizes clinical EHR notes using `ClinicalTextClassifier` (128-dimensional vocabulary).
+    * Maps clinical presentations to differential disease likelihoods across: Pneumonia, Type-2 Diabetes, Acute Coronary Syndrome, Severe Sepsis, and Acute Asthma.
+    * Corrupted/short syntax returns `UNSUPPORTED INPUT: Insufficient or Corrupted Clinical Narrative`.
+    * Unfamiliar disease narratives return `INCONCLUSIVE: Unfamiliar Clinical Presentation (Untrained Disease Description)` with 0.0% probability.
+  * **Biomarker Vitals Modality (`STRUCTURED_VITALS`)**: Interactive sliders for fasting glucose, BMI, blood pressure, insulin, and pedigree.
+* **Consortium Aggregated Disease Models**:
+  * Displays active disease domain models (`PULMONARY_IMAGE`, `METABOLIC_DIABETES`, `CARDIOMETABOLIC`, `DERMATOLOGIC`, `CONSENSUS_MULTI`).
+  * Displays contributing hospital enclaves, model versions, and cryptographic SHA-256 hashes.
+* **Audit & Privacy Verification**:
+  * Records `CLINICAL_INFERENCE_EXECUTED` in the immutable audit ledger.
+  * Guarantees zero patient data egress from the hospital enclave perimeter.
 
 ---
 
@@ -1013,13 +1010,17 @@ To execute a complete operational federation cycle from start to finish:
 ## 7. Verification & Production Build Commands
 
 ```powershell
-# 1. Run full backend pytest test suite (67 unit tests)
+# 1. Run full backend pytest regression suite (67 unit tests)
 .\.venv\Scripts\pytest.exe tests/unit -q
 
-# 2. Compile and verify frontend production build (Vite 8)
+# 2. Run full multi-hospital federation, defense & prediction E2E test
+.\.venv\Scripts\python.exe scripts/test_live_federation_quarantine_round.py
+
+# 3. Compile and verify frontend production build (Vite 8)
 npm --prefix frontend run build
 ```
 
 Expected Output:
-* Pytest: `67 passed in ~3s` (100% pass rate)
-* Vite: `✓ built in ~2.5s` (0 errors, 0 broken imports)
+* Pytest: `67 passed in ~13s` (100% pass rate)
+* Live Federation Round Test: `ALL TESTS PASSED WITH ZERO ERRORS!` (L0–L5 defense verified, quarantine confirmed, and cross-hospital diagnostic inference operational)
+* Vite: `✓ built in ~2s` (0 errors, 0 broken imports)

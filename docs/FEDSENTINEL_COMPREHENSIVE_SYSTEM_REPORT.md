@@ -60,6 +60,7 @@ FedSentinel-X introduces an autonomous **6-Layer Defense-in-Depth Pipeline (L0 t
 | Service / Component | Cloud Platform | Live Production URL | Operational Status |
 | :--- | :--- | :--- | :--- |
 | **SOC Control Plane** | Vercel Edge CDN | [https://fedsentinal-x.vercel.app](https://fedsentinal-x.vercel.app) | 🟢 Live / Protected |
+| **Admin Login Portal** | Vercel Edge CDN | [https://fedsentinal-x.vercel.app/admin/login](https://fedsentinal-x.vercel.app/admin/login) | 🟢 Live / Protected |
 | **Hospital Clinical Enclave** | Vercel Edge CDN | [https://fedsentinal-x.vercel.app/hospital/login](https://fedsentinal-x.vercel.app/hospital/login) | 🟢 Live / Active |
 | **Interactive Round Replay** | Vercel Edge CDN | [https://fedsentinal-x.vercel.app/replay](https://fedsentinal-x.vercel.app/replay) | 🟢 Live / Operational |
 | **Executive Attestation Dossier** | Vercel Edge CDN | [https://fedsentinal-x.vercel.app/reports](https://fedsentinal-x.vercel.app/reports) | 🟢 Live / Certified |
@@ -109,6 +110,15 @@ Pre-configured credentials for immediate evaluation across both local and live c
 
 | Role / Experience | Portal Path | Email / Username | Password | Operational Capabilities |
 | :--- | :--- | :--- | :--- | :--- |
+| **Platform Super Admin** | `/admin/login` | `admin@fedsentinel.local` | `Admin123!` | Complete SOC control: initiate rounds (Simulation vs. Hospital Mode), inspect L0–L5 evidence gates, trigger node quarantine, execute overrides, replay rounds, manage disease models, and generate compliance reports. |
+| **Hospital H101 (Mount Sinai)** | `/hospital/login` | `admin@h101-sinai.org` | `Hospital123!` | Pulmonary & Thoracic Radiology: train locally on Chest X-Ray Pneumonia & Infiltration datasets, evaluate CXRs vs. skull scans, and submit SafeTensors parameter deltas. |
+| **Hospital H102 (Joslin Diabetes)** | `/hospital/login` | `admin@h102-joslin.org` | `Hospital123!` | Metabolic & Endocrine Enclave: train locally on Glycemic & Diabetic Nephropathy records, evaluate clinical EHR narratives, and track local contribution history. |
+| **Hospital H103 (Cleveland Clinic)** | `/hospital/login` | `admin@h103-cleveland.org` | `Hospital123!` | Cardiovascular AI Enclave: train on Acute Myocardial Infarction manifolds, evaluate Acute Coronary Syndrome text, and perform cross-hospital inference using H101's pulmonary models. |
+| **Hospital H104 (Memorial Sloan Kettering)** | `/hospital/login` | `admin@h104-msk.org` | `Hospital123!` | Dermatopathology Enclave: train on Cutaneous Melanocytic & Dysplastic lesion cohorts, evaluate dermoscopy imaging, and verify global model synchronization. |
+| **Hospital H105 (Johns Hopkins)** | `/hospital/login` | `admin@h105-hopkins.org` | `Hospital123!` | Infectious Disease & Sepsis Center: train on Systemic Inflammatory Biomarkers, evaluate severe sepsis clinical notes, and test OOD non-medical image rejection. |
+| **New Hospital Self-Registration** | `/hospital/login` $	o$ **Register** | *User Defined* | *User Defined* | Any healthcare provider can self-register. Newly registered institutions enter a `SUBMITTED / PENDING` review state until verified by global administrators. |
+
+--- | :--- | :--- | :--- | :--- |
 | **Platform Super Admin** | `/` | `admin@fedsentinel.local` | `Admin123!` | Complete SOC control: initiate rounds, inspect L0-L5 evidence gates, trigger node quarantine, execute overrides, replay rounds, and generate compliance reports. |
 | **Hospital Administrator (H21)** | `/hospital/login` | `admin@h21.local` | `Hospital123!` | Demo Research Hospital: view cohort membership, upload local .NPZ datasets, link external record URLs, run local PyTorch training, and submit weights. |
 | **Hospital Administrator (H01)** | `/hospital/login` | `admin@demohospital.local` | `Hospital123!` | Demo General Hospital: manage clinical imaging hub, inspect local dataset tensors, execute model updates, and monitor enclave telemetry. |
@@ -365,13 +375,19 @@ $$\text{Threat}_k = 0.30 \cdot S_{\text{L2}} + 0.25 \cdot S_{\text{L3}} + 0.30 \
 7. **Tamper-Evident Audit Trail (`/audit`)**: Append-only ledger recording all administrator actions and system events.
 
 ### Hospital Clinical Enclave Portal
-1. **Clinical Authentication & Registration (`/hospital/login`)**: Secure login and self-registration tab with automatic enclave provisioning.
+1. **Clinical Authentication & Registration (`/hospital/login`)**: Secure login and institutional onboarding registration with automatic tenant-isolated enclave provisioning.
 2. **Local Cohort Status (`/hospital/federation`)**: Enclave view of consortium membership, current round, and eligibility.
 3. **Dataset Hub (`/hospital/datasets`)**:
-   - Direct file upload for local `.NPZ` arrays.
-   - External record linking for remote HTTP or local paths with streaming validation.
-4. **Enclave Model Trainer (`/hospital/training`)**: Executes real PyTorch training iterations on local datasets.
+   - Direct file upload for local `.NPZ`, `.zip`, `.tar.gz`, `.csv`, `.parquet` cohorts.
+   - Remote online dataset streams (Hugging Face, GitHub, Zenodo, Kaggle, Mendeley) with strict SSRF protection.
+4. **Enclave Model Trainer (`/hospital/training`)**: Executes authentic PyTorch training iterations on local datasets (dual mode: Active Round vs. Enclave Pre-flight audit).
 5. **Model Registry & Telemetry (`/hospital/models`)**: Local performance history, parameter norms, and submission receipts.
+6. **Multi-Modal In-Situ Clinical Disease Prediction (`POST /api/v1/hospital/predict`)**:
+   - **Medical Image Modality (`IMAGE`)**: Real-time evaluation of thoracic radiographs and dermoscopy scans through `FedSentinelCNN`.
+   - **Zero-False-Prediction Shield & Anatomical Screening**: Explicitly analyzes morphological density to identify non-thoracic scans (such as cranial skull radiographs or musculoskeletal extremities), returning `UNSUPPORTED INPUT: Cranial / Skull Radiograph (Non-Thoracic)` (0.0% probability, avoiding dangerous lung misdiagnoses).
+   - **Clinical Text Modality (`TEXT`)**: Real-time natural language processing via `ClinicalTextClassifier` (128-D vocabulary tokenization) mapping clinical EHR narratives to differential disease likelihoods (Pneumonia, Diabetes, Acute Coronary Syndrome, Severe Sepsis, Asthma).
+   - **Out-of-Distribution (OOD) Protection**: Explicitly flags non-medical images as `INCONCLUSIVE: Out-of-Distribution / Non-Medical Image` and unfamiliar text as `INCONCLUSIVE: Unfamiliar Clinical Presentation (Untrained Disease Description)`.
+7. **Consortium Aggregated Disease Registry**: Persistent multi-disease SafeTensors repository (`data/models/disease_models/<domain>/model.safetensors` and `config.json`) with cryptographic SHA-256 hashes, accessible for cross-hospital clinical inference.
 
 ---
 
@@ -412,6 +428,17 @@ $$\text{Threat}_k = 0.30 \cdot S_{\text{L2}} + 0.25 \cdot S_{\text{L3}} + 0.30 \
 3. Use the **10-stage timeline scrubber** to scrub across:
    `Round Initialized` $\to$ `Updates Ingested` $\to$ `L0-L2 Evaluated` $\to$ `L3-L5 Scored` $\to$ `Containment Gate` $\to$ `Safe Aggregation` $\to$ `Global Model Deployed`.
 4. Click on any hospital node in the orbital topology to open the **Gate Inspector Drawer** and examine forensic evidence.
+
+### Scenario G: Multi-Modal In-Situ Clinical Disease Prediction & Safety Screening
+1. In the Hospital Portal, navigate to **Diagnostic Prediction HUD**.
+2. **Supported Thoracic Scan**: Select Modality = `IMAGE`, Condition = `PULMONARY_IMAGE`, and upload a chest radiograph.
+   * System outputs: `Community-Acquired Pneumonia (Lobar Pulmonary Infiltration)` (Confidence >90%, HIGH risk tier) along with contributing hospital lineage.
+3. **Non-Thoracic Anatomical Screening**: Upload a cranial skull radiograph to the same classifier.
+   * System evaluates anatomical geometry and inhibits the pulmonary model.
+   * System outputs: `UNSUPPORTED INPUT: Cranial / Skull Radiograph (Non-Thoracic)` (0.0% probability, INCONCLUSIVE risk tier). Zero false pneumonia prediction.
+4. **Clinical Text Diagnosis**: Select Modality = `TEXT`, Condition = `CONSENSUS_MULTI`, and enter a clinical narrative (e.g. *"Emergency admission with acute crushing chest pressure radiating to left arm, diaphoresis, dyspnea, and elevated troponin"*).
+   * System outputs: `Acute Coronary Syndrome (Myocardial Ischemia)` (Confidence >95%, CRITICAL risk tier).
+5. **Cross-Hospital Collaborative Inference**: Clinicians at Hospital H103 (Cleveland Clinic) evaluate a chest radiograph using the verified global weights aggregated from Hospital H101 (Mount Sinai).
 
 ### Scenario F: Generating & Printing the Executive Attestation Dossier
 1. In the Admin sidebar, click **Reports**.
