@@ -548,6 +548,55 @@ class HospitalPortalService:
         }
 
     # ========================================================================
+    # CONSORTIUM AGGREGATED GLOBAL DISEASE UPDATES
+    # ========================================================================
+
+    @staticmethod
+    def get_aggregated_disease_updates(db: Session) -> dict:
+        import json
+        from backend.storage.models import AggregatedDiseaseUpdate
+
+        records = (
+            db.query(AggregatedDiseaseUpdate)
+            .order_by(AggregatedDiseaseUpdate.round_number.desc(), AggregatedDiseaseUpdate.updated_at.desc())
+            .all()
+        )
+
+        items = []
+        for r in records:
+            try:
+                hosps = json.loads(r.contributing_hospitals_json) if r.contributing_hospitals_json else []
+            except Exception:
+                hosps = []
+            items.append({
+                "id": r.id,
+                "disease_domain": r.disease_domain,
+                "display_name": r.display_name,
+                "model_version": r.model_version,
+                "round_number": r.round_number,
+                "aggregation_algorithm": r.aggregation_algorithm,
+                "contributing_hospitals": hosps,
+                "total_updates_reviewed": r.total_updates_reviewed,
+                "accepted_updates_count": r.accepted_updates_count,
+                "quarantined_prevented_count": r.quarantined_prevented_count,
+                "security_verdict": r.security_verdict,
+                "prevention_summary": r.prevention_summary,
+                "accuracy_score": r.accuracy_score,
+                "loss_score": r.loss_score,
+                "model_weights_hash": r.model_weights_hash,
+                "updated_at": r.updated_at,
+            })
+
+        return {
+            "total_domains": len(records),
+            "total_updates_reviewed": sum(r.total_updates_reviewed for r in records),
+            "total_accepted": sum(r.accepted_updates_count for r in records),
+            "total_quarantined_prevented": sum(r.quarantined_prevented_count for r in records),
+            "active_federation_model": "FedSentinel-Clinical-Consensus-CNN",
+            "updates": items,
+        }
+
+    # ========================================================================
     # CLINICAL DISEASE PREDICTION / INFERENCE
     # ========================================================================
 
@@ -626,6 +675,31 @@ class HospitalPortalService:
                 eff_modality = "TEXT"
             else:
                 eff_modality = "STRUCTURED_VITALS"
+
+        # Determine target disease domain for consortium aggregation lookup
+        import json
+        from backend.storage.models import AggregatedDiseaseUpdate
+        target_domain = "CONSENSUS_MULTI"
+        if eff_modality == "IMAGE":
+            target_domain = "DERMATOLOGIC" if "DERM" in condition.upper() else "PULMONARY_IMAGE"
+        elif eff_modality == "STRUCTURED_VITALS" or "DIABETES" in condition.upper() or "METABOLIC" in condition.upper():
+            target_domain = "METABOLIC_DIABETES"
+        elif "CARDIO" in condition.upper() or "ANGINA" in condition.upper():
+            target_domain = "CARDIOMETABOLIC"
+
+        disease_agg_rec = db.query(AggregatedDiseaseUpdate).filter(AggregatedDiseaseUpdate.disease_domain == target_domain).first()
+        if not disease_agg_rec:
+            disease_agg_rec = db.query(AggregatedDiseaseUpdate).first()
+
+        agg_verdict = disease_agg_rec.security_verdict if disease_agg_rec else "REVIEWED_AND_AGGREGATED"
+        agg_prevention_summary = disease_agg_rec.prevention_summary if disease_agg_rec else "Aggregated via FedSentinel robust consensus."
+        if disease_agg_rec and disease_agg_rec.contributing_hospitals_json:
+            try:
+                parsed_hosps = json.loads(disease_agg_rec.contributing_hospitals_json)
+                if parsed_hosps:
+                    contributing_hosp_list = parsed_hosps
+            except Exception:
+                pass
 
         # ====================================================================
         # 1. IMAGE MODALITY (Radiology X-Rays, Scans, Pathology, Dermoscopy)
@@ -830,6 +904,9 @@ class HospitalPortalService:
                     "biomarker_importance": attribution,
                     "clinical_recommendation": recommendation,
                     "is_out_of_distribution": is_out_of_distribution,
+                    "disease_domain": target_domain,
+                    "security_verdict": agg_verdict,
+                    "prevention_summary": agg_prevention_summary,
                     "contributing_hospitals": contributing_hosp_list,
                     "executed_at": datetime.now(timezone.utc),
                 }
@@ -969,6 +1046,9 @@ class HospitalPortalService:
                 "biomarker_importance": attribution,
                 "clinical_recommendation": recommendation,
                 "is_out_of_distribution": False,
+                "disease_domain": target_domain,
+                "security_verdict": agg_verdict,
+                "prevention_summary": agg_prevention_summary,
                 "contributing_hospitals": contributing_hosp_list,
                 "executed_at": datetime.now(timezone.utc),
             }
@@ -1072,6 +1152,9 @@ class HospitalPortalService:
             "biomarker_importance": biomarker_importance,
             "clinical_recommendation": recommendation,
             "is_out_of_distribution": False,
+            "disease_domain": target_domain,
+            "security_verdict": agg_verdict,
+            "prevention_summary": agg_prevention_summary,
             "contributing_hospitals": contributing_hosp_list,
             "executed_at": datetime.now(timezone.utc),
         }

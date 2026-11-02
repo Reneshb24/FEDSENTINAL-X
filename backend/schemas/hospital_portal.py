@@ -130,6 +130,9 @@ class DiseasePredictionResponse(BaseModel):
     biomarker_importance: dict[str, float]
     clinical_recommendation: str
     is_out_of_distribution: bool = False
+    disease_domain: str | None = None
+    security_verdict: str | None = None
+    prevention_summary: str | None = None
     contributing_hospitals: list[dict[str, str | int]] | None = None
     executed_at: datetime
 
@@ -155,3 +158,35 @@ class GlobalModelContextResponse(BaseModel):
     total_rounds: int
     accepted_updates_total: int
     quarantined_updates_total: int
+
+
+# ============================================================================
+# AGGREGATED DISEASE GLOBAL UPDATES SCHEMAS
+# ============================================================================
+
+class AggregatedDiseaseUpdateItem(BaseModel):
+    id: str
+    disease_domain: str
+    display_name: str
+    model_version: str
+    round_number: int
+    aggregation_algorithm: str
+    contributing_hospitals: list[dict[str, str | int]]
+    total_updates_reviewed: int
+    accepted_updates_count: int
+    quarantined_prevented_count: int
+    security_verdict: str
+    prevention_summary: str | None = None
+    accuracy_score: float
+    loss_score: float
+    model_weights_hash: str | None = None
+    updated_at: datetime
+
+
+class AggregatedDiseaseUpdatesResponse(BaseModel):
+    total_domains: int
+    total_updates_reviewed: int
+    total_accepted: int
+    total_quarantined_prevented: int
+    active_federation_model: str
+    updates: list[AggregatedDiseaseUpdateItem]

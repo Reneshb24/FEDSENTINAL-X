@@ -1193,3 +1193,111 @@ class AuditEvent(Base):
         nullable=False,
         index=True,
     )
+
+# ============================================================
+# AGGREGATED DISEASE GLOBAL UPDATES
+# ============================================================
+
+class AggregatedDiseaseUpdate(Base):
+    __tablename__ = "aggregated_disease_updates"
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=generate_id,
+    )
+
+    disease_domain: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+        index=True,
+    )
+
+    display_name: Mapped[str] = mapped_column(
+        String(150),
+        nullable=False,
+    )
+
+    model_version: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        default="v1.0",
+    )
+
+    round_number: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=1,
+    )
+
+    aggregation_algorithm: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        default="Coordinate-Median",
+    )
+
+    contributing_hospitals_json: Mapped[str] = mapped_column(
+        Text,
+        default="[]",
+        nullable=False,
+    )
+
+    total_updates_reviewed: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        nullable=False,
+    )
+
+    accepted_updates_count: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        nullable=False,
+    )
+
+    quarantined_prevented_count: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        nullable=False,
+    )
+
+    security_verdict: Mapped[str] = mapped_column(
+        String(50),
+        default="REVIEWED_AND_AGGREGATED",
+        nullable=False,
+    )
+
+    prevention_summary: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    accuracy_score: Mapped[float] = mapped_column(
+        Float,
+        default=92.5,
+        nullable=False,
+    )
+
+    loss_score: Mapped[float] = mapped_column(
+        Float,
+        default=0.18,
+        nullable=False,
+    )
+
+    model_weights_hash: Mapped[str | None] = mapped_column(
+        String(128),
+        nullable=True,
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=utc_now,
+        nullable=False,
+        index=True,
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
+        nullable=False,
+    )

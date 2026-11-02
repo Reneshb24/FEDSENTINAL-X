@@ -48,6 +48,7 @@ from backend.schemas.hospital_portal import (
     DiseasePredictionRequest,
     DiseasePredictionResponse,
     GlobalModelContextResponse,
+    AggregatedDiseaseUpdatesResponse,
 )
 from backend.services.hospital_portal_service import (
     HospitalPortalService,
@@ -792,3 +793,15 @@ def predict_disease_risk(
     )
 
     return result
+
+
+@router.get(
+    "/disease-updates",
+    response_model=AggregatedDiseaseUpdatesResponse,
+    summary="Retrieve consortium-wide aggregated disease global updates and FedSentinel defense review telemetry",
+)
+def get_consortium_disease_updates(
+    current_user: User = Depends(require_hospital_access),
+    db: Session = Depends(get_db),
+):
+    return HospitalPortalService.get_aggregated_disease_updates(db)

@@ -4182,6 +4182,17 @@ function DiseasePredictionPage({ token, hospital }) {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
+  const [diseaseUpdatesData, setDiseaseUpdatesData] = useState(null)
+
+  useEffect(() => {
+    let mounted = true
+    hospitalFetch('/api/v1/hospital/disease-updates', token)
+      .then((data) => {
+        if (mounted) setDiseaseUpdatesData(data)
+      })
+      .catch((err) => console.warn('Could not load consortium disease updates:', err))
+    return () => { mounted = false }
+  }, [token])
 
   // Initialize sample scan on mount
   useEffect(() => {
@@ -4380,6 +4391,160 @@ function DiseasePredictionPage({ token, hospital }) {
           </p>
         </div>
       </div>
+
+      {/* Consortium Aggregated Global Disease Updates & FedSentinel Defense Control */}
+      {diseaseUpdatesData && (
+        <div style={{
+          marginBottom: 24,
+          background: 'rgba(8, 13, 20, 0.85)',
+          border: '1px solid rgba(0, 229, 255, 0.25)',
+          borderRadius: 12,
+          padding: 18,
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 10 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#00e5ff', letterSpacing: '.08em', marginBottom: 2 }}>
+                CONSORTIUM GLOBAL REPOSITORY · FEDSENTINEL MULTI-DISEASE AGGREGATION
+              </div>
+              <div style={{ fontSize: 13, color: '#94a3b8' }}>
+                Stored aggregated global model updates for specific diseases from member hospitals. FedSentinel reviews each update to prevent poisoned parameters from affecting predictions.
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <div style={{ background: '#0d1522', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 6, padding: '6px 12px', textAlign: 'center' }}>
+                <div style={{ fontSize: 10, color: '#94a3b8' }}>DOMAINS</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#00e5ff' }}>{diseaseUpdatesData.total_domains}</div>
+              </div>
+              <div style={{ background: '#0d1522', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 6, padding: '6px 12px', textAlign: 'center' }}>
+                <div style={{ fontSize: 10, color: '#94a3b8' }}>UPDATES REVIEWED</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#38bdf8' }}>{diseaseUpdatesData.total_updates_reviewed}</div>
+              </div>
+              <div style={{ background: '#0d1522', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: 6, padding: '6px 12px', textAlign: 'center' }}>
+                <div style={{ fontSize: 10, color: '#34d399' }}>SAFE AGGREGATED</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#10b981' }}>{diseaseUpdatesData.total_accepted}</div>
+              </div>
+              <div style={{ background: '#0d1522', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: 6, padding: '6px 12px', textAlign: 'center' }}>
+                <div style={{ fontSize: 10, color: '#f87171' }}>POISONING PREVENTED</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#ef4444' }}>{diseaseUpdatesData.total_quarantined_prevented} QUARANTINED</div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
+            {diseaseUpdatesData.updates.map((upd) => {
+              const isPoisonPrevented = upd.security_verdict === 'POISONING_ATTEMPT_PREVENTED'
+              return (
+                <div
+                  key={upd.id}
+                  style={{
+                    background: '#04070c',
+                    border: `1px solid ${isPoisonPrevented ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255, 255, 255, 0.08)'}`,
+                    borderRadius: 8,
+                    padding: 14,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    gap: 10,
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#f8fafc' }}>
+                          {upd.display_name}
+                        </div>
+                        <div style={{ fontSize: 10, color: '#94a3b8' }}>
+                          {upd.model_version} · Round R-{upd.round_number} · {upd.aggregation_algorithm}
+                        </div>
+                      </div>
+
+                      <span style={{
+                        fontSize: 9,
+                        fontWeight: 800,
+                        padding: '2px 6px',
+                        borderRadius: 4,
+                        background: isPoisonPrevented ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.15)',
+                        color: isPoisonPrevented ? '#f87171' : '#34d399',
+                        border: `1px solid ${isPoisonPrevented ? 'rgba(239, 68, 68, 0.4)' : 'rgba(16, 185, 129, 0.3)'}`,
+                      }}>
+                        {isPoisonPrevented ? 'POISONING PREVENTED' : 'SAFE AGGREGATED'}
+                      </span>
+                    </div>
+
+                    <div style={{
+                      fontSize: 11,
+                      color: isPoisonPrevented ? '#fca5a5' : '#cbd5e1',
+                      background: isPoisonPrevented ? 'rgba(239, 68, 68, 0.05)' : 'rgba(255, 255, 255, 0.02)',
+                      padding: 8,
+                      borderRadius: 6,
+                      lineHeight: 1.35,
+                      marginBottom: 8,
+                      border: `1px solid ${isPoisonPrevented ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.04)'}`,
+                    }}>
+                      {upd.prevention_summary}
+                    </div>
+
+                    <div style={{ fontSize: 10, color: '#94a3b8', marginBottom: 4 }}>
+                      Contributing Hospital Enclaves:
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                      {upd.contributing_hospitals.map((hosp, i) => (
+                        <span
+                          key={i}
+                          style={{
+                            fontSize: 9,
+                            padding: '2px 6px',
+                            borderRadius: 3,
+                            background: '#0d1522',
+                            color: '#00e5ff',
+                            border: '1px solid rgba(0, 229, 255, 0.2)',
+                          }}
+                        >
+                          {hosp.code || hosp.name} {hosp.accepted_updates ? `(${hosp.accepted_updates} updates)` : ''}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTop: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                    <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                      Accuracy: <strong style={{ color: '#10b981' }}>{upd.accuracy_score}%</strong>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (upd.disease_domain === 'PULMONARY_IMAGE') {
+                          setModality('IMAGE')
+                          setCondition('PULMONARY_RISK')
+                        } else if (upd.disease_domain === 'METABOLIC_DIABETES') {
+                          setModality('STRUCTURED_VITALS')
+                          setCondition('DIABETES_METABOLIC')
+                        } else if (upd.disease_domain === 'CARDIOMETABOLIC') {
+                          setModality('TEXT')
+                          setCondition('CARDIOMETABOLIC')
+                        } else if (upd.disease_domain === 'DERMATOLOGIC') {
+                          setModality('IMAGE')
+                          setCondition('DERMATOLOGIC')
+                        } else {
+                          setCondition('MULTI_DISEASE_AUTO')
+                        }
+                        setResult(null)
+                        setError('')
+                      }}
+                      className="hp-button hp-button-secondary"
+                      style={{ padding: '4px 8px', fontSize: 10 }}
+                    >
+                      Use This Model
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Modality Selector Tabs */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
@@ -4924,6 +5089,37 @@ function DiseasePredictionPage({ token, hospital }) {
                           {hosp.accepted_updates ? ` (${hosp.accepted_updates} updates)` : ''}
                         </span>
                       ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* FedSentinel Security & Poisoning Prevention Status */}
+                {result.prevention_summary && (
+                  <div style={{
+                    background: result.security_verdict === 'POISONING_ATTEMPT_PREVENTED'
+                      ? 'rgba(239, 68, 68, 0.08)'
+                      : 'rgba(16, 185, 129, 0.08)',
+                    border: `1px solid ${
+                      result.security_verdict === 'POISONING_ATTEMPT_PREVENTED'
+                        ? 'rgba(239, 68, 68, 0.35)'
+                        : 'rgba(16, 185, 129, 0.35)'
+                    }`,
+                    borderRadius: 8,
+                    padding: 12,
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <ShieldCheck size={16} style={{ color: result.security_verdict === 'POISONING_ATTEMPT_PREVENTED' ? '#f87171' : '#34d399' }} />
+                      <span style={{
+                        fontSize: 11,
+                        fontWeight: 800,
+                        color: result.security_verdict === 'POISONING_ATTEMPT_PREVENTED' ? '#f87171' : '#34d399',
+                        letterSpacing: '.04em',
+                      }}>
+                        FEDSENTINEL SECURITY POSTURE: {result.security_verdict}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 11, color: '#cbd5e1', lineHeight: 1.4 }}>
+                      {result.prevention_summary}
                     </div>
                   </div>
                 )}

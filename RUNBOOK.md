@@ -931,7 +931,17 @@ Local configuration and preferences.
 
 ---
 
-### 5.17 Multi-Modal Disease Risk Prediction & Enclave Diagnostic HUD (`prediction`)
+### 5.17 Multi-Modal Disease Risk Prediction & Consortium Aggregated Updates (`prediction`)
+
+In-situ clinical decision support, multi-disease identification, and **Consortium Aggregated Global Disease Updates** powered by verified federated consensus.
+
+#### Consortium Aggregated Global Disease Updates & FedSentinel Prevention
+The platform securely stores aggregated global model updates categorized across primary clinical domains:
+* **`PULMONARY_IMAGE`** (*Pulmonary Pneumonia & Respiratory Infiltration*): Aggregated via Coordinate-Median from H21 and H01.
+* **`METABOLIC_DIABETES`** (*Type-2 Diabetes & Endocrine Biomarkers*): Aggregated from H51 and H01. **Poisoning Prevented**: FedSentinel intercepted and quarantined 1 malicious scaling backdoor update (+25.0 scale gradient drift), preventing corrupted weights from compromising diabetes predictions across all other member hospitals.
+* **`CARDIOMETABOLIC`** (*Cardiometabolic & Acute Coronary Syndrome*): Aggregated via Coordinate-Median from H21 and H25.
+* **`DERMATOLOGIC`** (*Dermatologic Dysplastic & Melanoma Lesions*): Aggregated via Robust Trimmed-Mean from H95 and H21.
+* **`CONSENSUS_MULTI`** (*Unified Multi-Disease Federated Consensus*): Consortium-wide consensus model spanning 17 verified hospital updates.
 
 In-situ clinical decision support and disease identification powered by the consensus-trained federated global neural model. Member hospitals can diagnose conditions using **Medical Images (Radiology / Scans)**, **Clinical EHR Notes (Text / Symptoms)**, or **Biomarker Vitals (Lab values)**.
 
