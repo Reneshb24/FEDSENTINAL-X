@@ -52,6 +52,7 @@ import {
   GitBranch,
   Globe2,
   Hospital,
+  Image as ImageIcon,
   Info,
   Key,
   Layers,
@@ -4052,9 +4053,109 @@ function GlobalModelPage({ rounds, token }) {
   )
 }
 
+// Synthetic medical scan generator for presets
+function generateSyntheticScan(type) {
+  if (typeof document === 'undefined') return ''
+  const canvas = document.createElement('canvas')
+  canvas.width = 160
+  canvas.height = 160
+  const ctx = canvas.getContext('2d')
+
+  // Background
+  const bgGrad = ctx.createRadialGradient(80, 80, 10, 80, 80, 90)
+  bgGrad.addColorStop(0, '#1a202c')
+  bgGrad.addColorStop(1, '#090d16')
+  ctx.fillStyle = bgGrad
+  ctx.fillRect(0, 0, 160, 160)
+
+  if (type === 'pneumonia') {
+    // Bilateral lung fields with right lower lobe dense consolidation opacity
+    ctx.fillStyle = '#2d3748'
+    ctx.beginPath()
+    ctx.ellipse(55, 80, 24, 45, -0.1, 0, Math.PI * 2)
+    ctx.ellipse(105, 80, 24, 45, 0.1, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Focal consolidation patch (infiltrate) in right lower lobe
+    const opGrad = ctx.createRadialGradient(108, 98, 2, 108, 98, 22)
+    opGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)')
+    opGrad.addColorStop(0.5, 'rgba(226, 232, 240, 0.75)')
+    opGrad.addColorStop(1, 'rgba(148, 163, 184, 0.0)')
+    ctx.fillStyle = opGrad
+    ctx.beginPath()
+    ctx.arc(108, 98, 22, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Mediastinal cardiac silhouette
+    ctx.fillStyle = 'rgba(203, 213, 225, 0.4)'
+    ctx.beginPath()
+    ctx.ellipse(78, 85, 14, 30, -0.2, 0, Math.PI * 2)
+    ctx.fill()
+  } else if (type === 'cardiomegaly') {
+    // Bilateral lung fields
+    ctx.fillStyle = '#2d3748'
+    ctx.beginPath()
+    ctx.ellipse(50, 78, 22, 45, -0.15, 0, Math.PI * 2)
+    ctx.ellipse(110, 78, 22, 45, 0.15, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Markedly enlarged cardiac silhouette (>60% thoracic ratio)
+    const cardGrad = ctx.createRadialGradient(76, 92, 5, 76, 92, 42)
+    cardGrad.addColorStop(0, 'rgba(241, 245, 249, 0.92)')
+    cardGrad.addColorStop(0.7, 'rgba(203, 213, 225, 0.65)')
+    cardGrad.addColorStop(1, 'rgba(148, 163, 184, 0.1)')
+    ctx.fillStyle = cardGrad
+    ctx.beginPath()
+    ctx.ellipse(76, 92, 38, 32, -0.25, 0, Math.PI * 2)
+    ctx.fill()
+  } else if (type === 'melanoma') {
+    // Skin field
+    ctx.fillStyle = '#9a3412'
+    ctx.fillRect(0, 0, 160, 160)
+    // Irregular asymmetric pigmented macule
+    const lesGrad = ctx.createRadialGradient(80, 80, 5, 80, 80, 38)
+    lesGrad.addColorStop(0, '#09090b')
+    lesGrad.addColorStop(0.6, '#3f1515')
+    lesGrad.addColorStop(1, 'rgba(154, 52, 18, 0.0)')
+    ctx.fillStyle = lesGrad
+    ctx.beginPath()
+    ctx.ellipse(78, 82, 35, 28, 0.4, 0, Math.PI * 2)
+    ctx.fill()
+  } else {
+    // Normal clear chest radiograph
+    ctx.fillStyle = '#2d3748'
+    ctx.beginPath()
+    ctx.ellipse(54, 80, 24, 46, -0.1, 0, Math.PI * 2)
+    ctx.ellipse(106, 80, 24, 46, 0.1, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Normal sized cardiac silhouette (<50% ratio)
+    ctx.fillStyle = 'rgba(226, 232, 240, 0.55)'
+    ctx.beginPath()
+    ctx.ellipse(76, 86, 16, 28, -0.2, 0, Math.PI * 2)
+    ctx.fill()
+  }
+
+  return canvas.toDataURL('image/png')
+}
+
 function DiseasePredictionPage({ token, hospital }) {
   const [patientId, setPatientId] = useState('PT-CLINICAL-8821')
-  const [condition, setCondition] = useState('DIABETES_METABOLIC')
+  const [condition, setCondition] = useState('MULTI_DISEASE_AUTO')
+  const [modality, setModality] = useState('IMAGE') // 'IMAGE' | 'TEXT' | 'STRUCTURED_VITALS'
+
+  // Image modality state
+  const [imageData, setImageData] = useState('')
+  const [imageFileName, setImageFileName] = useState('')
+  const [activeImagePreset, setActiveImagePreset] = useState('pneumonia')
+
+  // Text modality state
+  const [clinicalText, setClinicalText] = useState(
+    'Patient presents with 4-day history of acute productive cough with purulent rust-colored sputum, fever of 39.2C, chills, pleuritic chest pain on inspiration, and dyspnea. SpO2 is 91% on room air.'
+  )
+  const [activeTextPreset, setActiveTextPreset] = useState('pneumonia_text')
+
+  // Vitals modality state
   const [features, setFeatures] = useState({
     pregnancies: 2,
     glucose: 148,
@@ -4070,7 +4171,86 @@ function DiseasePredictionPage({ token, hospital }) {
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
 
-  const presets = [
+  // Initialize sample scan on mount
+  useEffect(() => {
+    if (!imageData) {
+      const initialScan = generateSyntheticScan('pneumonia')
+      setImageData(initialScan)
+      setImageFileName('sample_chest_xray_consolidation.png')
+    }
+  }, [])
+
+  const imagePresets = [
+    {
+      id: 'pneumonia',
+      name: 'Chest X-Ray: Infiltration / Pneumonia',
+      desc: 'Lower lobe focal consolidation opacity with air bronchogram',
+      badge: 'PULMONARY',
+      color: '#ef4444',
+      type: 'pneumonia',
+    },
+    {
+      id: 'cardiomegaly',
+      name: 'Chest X-Ray: Cardiomegaly / Failure',
+      desc: 'Marked transverse cardiac enlargement (>60% cardiothoracic ratio)',
+      badge: 'CARDIAC',
+      color: '#f59e0b',
+      type: 'cardiomegaly',
+    },
+    {
+      id: 'melanoma',
+      name: 'Dermoscopy: Dysplastic Lesion',
+      desc: 'Asymmetric pigmented macule with irregular borders',
+      badge: 'DERM',
+      color: '#ec4899',
+      type: 'melanoma',
+    },
+    {
+      id: 'normal',
+      name: 'Normal Chest Radiograph',
+      desc: 'Clear bilateral lung fields, normal cardiothoracic ratio',
+      badge: 'CONTROL',
+      color: '#10b981',
+      type: 'normal',
+    },
+  ]
+
+  const textPresets = [
+    {
+      id: 'pneumonia_text',
+      name: 'Acute Pulmonary Infection',
+      desc: 'Productive purulent cough, 39.2C fever, dyspnea, SpO2 91%',
+      badge: 'PULMONARY',
+      color: '#ef4444',
+      text: 'Patient presents with 4-day history of acute productive cough with purulent rust-colored sputum, fever of 39.2C, chills, pleuritic chest pain on inspiration, and dyspnea. SpO2 is 91% on room air with dullness to percussion over right lower lung.',
+    },
+    {
+      id: 'diabetes_text',
+      name: 'Severe Glycemic / Type-2 Diabetes',
+      desc: 'Polydipsia, polyuria, fasting glucose 218 mg/dL, HbA1c 9.6%',
+      badge: 'METABOLIC',
+      color: '#f59e0b',
+      text: '56yo patient reporting persistent polydipsia, polyuria, nocturia x4, and progressive lethargy. Random plasma glucose 218 mg/dL, HbA1c 9.6%. Sensation to monofilament testing diminished across bilateral plantar surfaces.',
+    },
+    {
+      id: 'cardiac_text',
+      name: 'Acute Coronary Syndrome / Angina',
+      desc: 'Substernal crushing pressure radiating to left arm, diaphoresis',
+      badge: 'CARDIAC',
+      color: '#dc2626',
+      text: '62yo male presenting with acute retrosternal crushing chest pressure radiating into left arm and jaw. Accompanied by profuse diaphoresis, nausea, and shortness of breath upon minimal exertion. Blood pressure 168/102 mm Hg.',
+    },
+    {
+      id: 'asthma_text',
+      name: 'Severe Asthma / Bronchospasm',
+      desc: 'Expiratory wheezing, tachypnea, chest tightness, PEF 50%',
+      badge: 'RESPIRATORY',
+      color: '#06b6d4',
+      text: '31yo female with acute asthma exacerbation refractory to inhaled albuterol. Audible bilateral expiratory wheezes, tachypneic at 28 breaths/min, intercostal retraction, and peak expiratory flow measured at 52% of predicted baseline.',
+    },
+  ]
+
+  const vitalsPresets = [
     {
       name: 'High-Risk Diabetic Patient',
       desc: 'Elevated fasting glucose (168 mg/dL), high BMI (36.2), Age 52',
@@ -4091,10 +4271,40 @@ function DiseasePredictionPage({ token, hospital }) {
     },
   ]
 
-  const handleApplyPreset = (preset) => {
+  const handleSelectImagePreset = (preset) => {
+    setActiveImagePreset(preset.id)
+    const scan = generateSyntheticScan(preset.type)
+    setImageData(scan)
+    setImageFileName(`${preset.id}_scan.png`)
+    setResult(null)
+    setError('')
+  }
+
+  const handleSelectTextPreset = (preset) => {
+    setActiveTextPreset(preset.id)
+    setClinicalText(preset.text)
+    setResult(null)
+    setError('')
+  }
+
+  const handleApplyVitalsPreset = (preset) => {
     setFeatures({ ...preset.data })
     setResult(null)
     setError('')
+  }
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImageFileName(file.name)
+    const reader = new FileReader()
+    reader.onload = (uploadEvent) => {
+      setImageData(uploadEvent.target.result)
+      setActiveImagePreset('custom')
+      setResult(null)
+      setError('')
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleRunInference = async (e) => {
@@ -4104,13 +4314,29 @@ function DiseasePredictionPage({ token, hospital }) {
     setResult(null)
 
     try {
+      const payload = {
+        patient_id: patientId,
+        condition: condition,
+        modality: modality,
+      }
+
+      if (modality === 'IMAGE') {
+        if (!imageData) {
+          throw new Error('Please select an imaging scan preset or upload a medical image.')
+        }
+        payload.image_data = imageData
+      } else if (modality === 'TEXT') {
+        if (!clinicalText.trim()) {
+          throw new Error('Please enter clinical notes or choose a clinical preset.')
+        }
+        payload.clinical_text = clinicalText
+      } else {
+        payload.features = features
+      }
+
       const resp = await hospitalFetch('/api/v1/hospital/predict', token, {
         method: 'POST',
-        body: JSON.stringify({
-          patient_id: patientId,
-          condition: condition,
-          features: features,
-        }),
+        body: JSON.stringify(payload),
       })
       setResult(resp)
     } catch (err) {
@@ -4120,58 +4346,203 @@ function DiseasePredictionPage({ token, hospital }) {
     }
   }
 
-  const isPositive = result && result.probability >= 50.0
+  const isPositive = result && (result.probability >= 50.0 || result.risk_level === 'CRITICAL' || result.risk_level === 'HIGH')
 
   return (
     <>
       <div className="hp-page-head">
         <div>
-          <div className="hp-eyebrow">CLINICAL INTELLIGENCE / FEDERATED IN SITU INFERENCE</div>
-          <h1>Disease Risk Prediction & Enclave Inference</h1>
+          <div className="hp-eyebrow">CLINICAL INTELLIGENCE / FEDERATED MULTI-MODAL IN SITU INFERENCE</div>
+          <h1>Disease Risk Prediction & Diagnostic Enclave</h1>
           <p>
-            Evaluate patient diagnostic risk profiles using the consensus-trained global federated model. Raw clinical indicators never leave this hospital enclave.
+            Evaluate diagnostic findings from medical images (X-rays, dermoscopy), clinical notes (EHR narrative), or lab biomarkers using federated consensus models. Raw patient data never leaves this hospital enclave.
           </p>
         </div>
       </div>
 
-      {/* Preset Profiles */}
+      {/* Modality Selector Tabs */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+        <button
+          type="button"
+          onClick={() => { setModality('IMAGE'); setResult(null); setError(''); }}
+          style={{
+            flex: 1,
+            padding: '12px 16px',
+            borderRadius: 8,
+            border: modality === 'IMAGE' ? '1px solid #00e5ff' : '1px solid rgba(255, 255, 255, 0.08)',
+            background: modality === 'IMAGE' ? 'rgba(0, 229, 255, 0.12)' : '#080d14',
+            color: modality === 'IMAGE' ? '#00e5ff' : '#94a3b8',
+            fontWeight: 700,
+            fontSize: 13,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            transition: 'all 0.2s',
+          }}
+        >
+          <ImageIcon size={18} />
+          <span>Medical Images (Radiology / Scans)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => { setModality('TEXT'); setResult(null); setError(''); }}
+          style={{
+            flex: 1,
+            padding: '12px 16px',
+            borderRadius: 8,
+            border: modality === 'TEXT' ? '1px solid #00e5ff' : '1px solid rgba(255, 255, 255, 0.08)',
+            background: modality === 'TEXT' ? 'rgba(0, 229, 255, 0.12)' : '#080d14',
+            color: modality === 'TEXT' ? '#00e5ff' : '#94a3b8',
+            fontWeight: 700,
+            fontSize: 13,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            transition: 'all 0.2s',
+          }}
+        >
+          <FileText size={18} />
+          <span>Clinical EHR Notes & Symptoms</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => { setModality('STRUCTURED_VITALS'); setResult(null); setError(''); }}
+          style={{
+            flex: 1,
+            padding: '12px 16px',
+            borderRadius: 8,
+            border: modality === 'STRUCTURED_VITALS' ? '1px solid #00e5ff' : '1px solid rgba(255, 255, 255, 0.08)',
+            background: modality === 'STRUCTURED_VITALS' ? 'rgba(0, 229, 255, 0.12)' : '#080d14',
+            color: modality === 'STRUCTURED_VITALS' ? '#00e5ff' : '#94a3b8',
+            fontWeight: 700,
+            fontSize: 13,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            transition: 'all 0.2s',
+          }}
+        >
+          <Activity size={18} />
+          <span>Biomarkers & Lab Indicators</span>
+        </button>
+      </div>
+
+      {/* Preset Profiles based on Modality */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: '.08em', marginBottom: 8 }}>
-          QUICK CLINICAL CASE PRESETS
+          {modality === 'IMAGE' && '1-CLICK MEDICAL SCAN PRESETS'}
+          {modality === 'TEXT' && '1-CLICK CLINICAL CASE NARRATIVE PRESETS'}
+          {modality === 'STRUCTURED_VITALS' && '1-CLICK PATIENT BIOMARKER PRESETS'}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
-          {presets.map((preset) => (
-            <button
-              key={preset.name}
-              type="button"
-              onClick={() => handleApplyPreset(preset)}
-              style={{
-                background: '#080d14',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                borderRadius: 8,
-                padding: '12px 14px',
-                textAlign: 'left',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = preset.color)}
-              onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)')}
-            >
-              <div style={{ fontWeight: 600, fontSize: 13, color: preset.color, marginBottom: 4 }}>
-                {preset.name}
-              </div>
-              <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.4 }}>
-                {preset.desc}
-              </div>
-            </button>
-          ))}
-        </div>
+
+        {modality === 'IMAGE' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+            {imagePresets.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => handleSelectImagePreset(preset)}
+                style={{
+                  background: activeImagePreset === preset.id ? 'rgba(0, 229, 255, 0.06)' : '#080d14',
+                  border: `1px solid ${activeImagePreset === preset.id ? preset.color : 'rgba(255, 255, 255, 0.08)'}`,
+                  borderRadius: 8,
+                  padding: '12px 14px',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <span style={{ fontWeight: 600, fontSize: 12, color: preset.color }}>{preset.name}</span>
+                  <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: 'rgba(255,255,255,0.06)', color: '#94a3b8' }}>
+                    {preset.badge}
+                  </span>
+                </div>
+                <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.3 }}>{preset.desc}</div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {modality === 'TEXT' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+            {textPresets.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => handleSelectTextPreset(preset)}
+                style={{
+                  background: activeTextPreset === preset.id ? 'rgba(0, 229, 255, 0.06)' : '#080d14',
+                  border: `1px solid ${activeTextPreset === preset.id ? preset.color : 'rgba(255, 255, 255, 0.08)'}`,
+                  borderRadius: 8,
+                  padding: '12px 14px',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <span style={{ fontWeight: 600, fontSize: 12, color: preset.color }}>{preset.name}</span>
+                  <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 6px', borderRadius: 4, background: 'rgba(255,255,255,0.06)', color: '#94a3b8' }}>
+                    {preset.badge}
+                  </span>
+                </div>
+                <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.3 }}>{preset.desc}</div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {modality === 'STRUCTURED_VITALS' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
+            {vitalsPresets.map((preset) => (
+              <button
+                key={preset.name}
+                type="button"
+                onClick={() => handleApplyVitalsPreset(preset)}
+                style={{
+                  background: '#080d14',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: 8,
+                  padding: '12px 14px',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <div style={{ fontWeight: 600, fontSize: 13, color: preset.color, marginBottom: 4 }}>
+                  {preset.name}
+                </div>
+                <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.4 }}>
+                  {preset.desc}
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="hp-grid-2">
         {/* Input Form */}
         <section className="hp-card">
-          <SectionTitle eyebrow="PATIENT CLINICAL BIOMARKERS" title="In Situ Clinical Vitals" />
+          <SectionTitle
+            eyebrow={`IN SITU DATA INPUT [${modality}]`}
+            title={
+              modality === 'IMAGE'
+                ? 'Radiology & Pathology Scans'
+                : modality === 'TEXT'
+                ? 'Clinical EHR & Freeform Notes'
+                : 'In Situ Clinical Vitals'
+            }
+          />
 
           <form onSubmit={handleRunInference} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -4191,7 +4562,7 @@ function DiseasePredictionPage({ token, hospital }) {
 
               <div>
                 <label style={{ fontSize: 11, color: '#94a3b8', display: 'block', marginBottom: 4 }}>
-                  Target Clinical Condition
+                  Diagnostic Classifier Target
                 </label>
                 <select
                   className="hp-input"
@@ -4199,108 +4570,199 @@ function DiseasePredictionPage({ token, hospital }) {
                   onChange={(e) => setCondition(e.target.value)}
                   style={{ width: '100%' }}
                 >
-                  <option value="DIABETES_METABOLIC">Type-2 Diabetes & Metabolic Complications</option>
-                  <option value="PULMONARY_RISK">Pulmonary Pneumonia Imaging & Risk</option>
-                  <option value="CARDIOMETABOLIC">Cardiometabolic Risk Profile</option>
+                  <option value="MULTI_DISEASE_AUTO">Automated Multi-Disease Consensus (Any Condition)</option>
+                  <option value="PULMONARY_RISK">Pulmonary Pneumonia & Respiratory Infiltration</option>
+                  <option value="CARDIOMETABOLIC">Cardiometabolic & Acute Coronary Syndrome</option>
+                  <option value="DIABETES_METABOLIC">Type-2 Diabetes & Endocrine Risk</option>
+                  <option value="DERMATOLOGIC">Dermatologic Dysplastic Lesions</option>
                 </select>
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-                  <span style={{ color: '#e2e8f0' }}>Fasting Glucose</span>
-                  <strong style={{ color: '#00e5ff' }}>{features.glucose} mg/dL</strong>
+            {/* MODALITY: IMAGE INPUT */}
+            {modality === 'IMAGE' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div style={{
+                  border: '2px dashed rgba(0, 229, 255, 0.25)',
+                  borderRadius: 10,
+                  padding: 16,
+                  textAlign: 'center',
+                  background: 'rgba(0, 229, 255, 0.02)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 10,
+                }}>
+                  {imageData ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%' }}>
+                      <img
+                        src={imageData}
+                        alt="Medical Scan Preview"
+                        style={{
+                          width: 110,
+                          height: 110,
+                          borderRadius: 8,
+                          objectFit: 'cover',
+                          border: '1px solid #00e5ff',
+                          background: '#05080b',
+                        }}
+                      />
+                      <div style={{ textAlign: 'left', flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#f8fafc', marginBottom: 4 }}>
+                          {imageFileName || 'Radiology / Pathology Scan Loaded'}
+                        </div>
+                        <div style={{ fontSize: 11, color: '#00e5ff', marginBottom: 6 }}>
+                          Format: In-Memory Base64 Pixel Matrix · Local Tensor Normalized
+                        </div>
+                        <label className="hp-button hp-button-secondary" style={{ display: 'inline-flex', cursor: 'pointer', fontSize: 11 }}>
+                          <Upload size={14} /> Replace Medical Image
+                          <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
+                        </label>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload size={32} style={{ color: '#00e5ff', opacity: 0.8 }} />
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#f8fafc' }}>
+                          Upload Hospital Patient Scan
+                        </div>
+                        <div style={{ fontSize: 11, color: '#64748b' }}>
+                          PNG, JPEG, WebP, or DICOM-derived imaging
+                        </div>
+                      </div>
+                      <label className="hp-button hp-button-primary" style={{ cursor: 'pointer' }}>
+                        Browse Local Files
+                        <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
+                      </label>
+                    </>
+                  )}
                 </div>
-                <input
-                  type="range"
-                  min="60"
-                  max="250"
-                  value={features.glucose}
-                  onChange={(e) => setFeatures({ ...features, glucose: parseFloat(e.target.value) })}
-                  style={{ width: '100%', accentColor: '#00e5ff' }}
-                />
-                <small style={{ fontSize: 10, color: '#64748b' }}>Normal: 70–99 | Impaired: 100–125 | Diabetic: ≥126</small>
               </div>
+            )}
 
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-                  <span style={{ color: '#e2e8f0' }}>Body Mass Index (BMI)</span>
-                  <strong style={{ color: '#00e5ff' }}>{features.bmi} kg/m²</strong>
-                </div>
-                <input
-                  type="range"
-                  min="16"
-                  max="50"
-                  step="0.1"
-                  value={features.bmi}
-                  onChange={(e) => setFeatures({ ...features, bmi: parseFloat(e.target.value) })}
-                  style={{ width: '100%', accentColor: '#00e5ff' }}
+            {/* MODALITY: TEXT INPUT */}
+            {modality === 'TEXT' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <label style={{ fontSize: 11, color: '#94a3b8', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>EHR Clinical Notes & Physician Findings</span>
+                  <span style={{ color: '#64748b' }}>{clinicalText.length} characters</span>
+                </label>
+                <textarea
+                  className="hp-input"
+                  rows={6}
+                  value={clinicalText}
+                  onChange={(e) => setClinicalText(e.target.value)}
+                  placeholder="Paste or type patient EHR history, physical exam findings, or lab observations..."
+                  style={{
+                    width: '100%',
+                    resize: 'vertical',
+                    fontFamily: 'monospace',
+                    fontSize: 12,
+                    lineHeight: 1.5,
+                  }}
                 />
-                <small style={{ fontSize: 10, color: '#64748b' }}>Normal: 18.5–24.9 | Overweight: 25–29.9 | Obese: ≥30</small>
               </div>
+            )}
 
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-                  <span style={{ color: '#e2e8f0' }}>Age</span>
-                  <strong style={{ color: '#00e5ff' }}>{features.age} Years</strong>
+            {/* MODALITY: STRUCTURED VITALS */}
+            {modality === 'STRUCTURED_VITALS' && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
+                    <span style={{ color: '#e2e8f0' }}>Fasting Glucose</span>
+                    <strong style={{ color: '#00e5ff' }}>{features.glucose} mg/dL</strong>
+                  </div>
+                  <input
+                    type="range"
+                    min="60"
+                    max="250"
+                    value={features.glucose}
+                    onChange={(e) => setFeatures({ ...features, glucose: parseFloat(e.target.value) })}
+                    style={{ width: '100%', accentColor: '#00e5ff' }}
+                  />
+                  <small style={{ fontSize: 10, color: '#64748b' }}>Normal: 70–99 | Impaired: 100–125 | Diabetic: ≥126</small>
                 </div>
-                <input
-                  type="range"
-                  min="18"
-                  max="90"
-                  value={features.age}
-                  onChange={(e) => setFeatures({ ...features, age: parseInt(e.target.value, 10) })}
-                  style={{ width: '100%', accentColor: '#00e5ff' }}
-                />
-              </div>
 
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-                  <span style={{ color: '#e2e8f0' }}>Diastolic Blood Pressure</span>
-                  <strong style={{ color: '#00e5ff' }}>{features.blood_pressure} mm Hg</strong>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
+                    <span style={{ color: '#e2e8f0' }}>Body Mass Index (BMI)</span>
+                    <strong style={{ color: '#00e5ff' }}>{features.bmi} kg/m²</strong>
+                  </div>
+                  <input
+                    type="range"
+                    min="16"
+                    max="50"
+                    step="0.1"
+                    value={features.bmi}
+                    onChange={(e) => setFeatures({ ...features, bmi: parseFloat(e.target.value) })}
+                    style={{ width: '100%', accentColor: '#00e5ff' }}
+                  />
+                  <small style={{ fontSize: 10, color: '#64748b' }}>Normal: 18.5–24.9 | Overweight: 25–29.9 | Obese: ≥30</small>
                 </div>
-                <input
-                  type="range"
-                  min="50"
-                  max="140"
-                  value={features.blood_pressure}
-                  onChange={(e) => setFeatures({ ...features, blood_pressure: parseFloat(e.target.value) })}
-                  style={{ width: '100%', accentColor: '#00e5ff' }}
-                />
-              </div>
 
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-                  <span style={{ color: '#e2e8f0' }}>Serum Insulin</span>
-                  <strong style={{ color: '#00e5ff' }}>{features.insulin} μU/mL</strong>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
+                    <span style={{ color: '#e2e8f0' }}>Age</span>
+                    <strong style={{ color: '#00e5ff' }}>{features.age} Years</strong>
+                  </div>
+                  <input
+                    type="range"
+                    min="18"
+                    max="90"
+                    value={features.age}
+                    onChange={(e) => setFeatures({ ...features, age: parseInt(e.target.value, 10) })}
+                    style={{ width: '100%', accentColor: '#00e5ff' }}
+                  />
                 </div>
-                <input
-                  type="range"
-                  min="10"
-                  max="350"
-                  value={features.insulin}
-                  onChange={(e) => setFeatures({ ...features, insulin: parseFloat(e.target.value) })}
-                  style={{ width: '100%', accentColor: '#00e5ff' }}
-                />
-              </div>
 
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-                  <span style={{ color: '#e2e8f0' }}>Diabetes Pedigree Function</span>
-                  <strong style={{ color: '#00e5ff' }}>{features.diabetes_pedigree}</strong>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
+                    <span style={{ color: '#e2e8f0' }}>Diastolic Blood Pressure</span>
+                    <strong style={{ color: '#00e5ff' }}>{features.blood_pressure} mm Hg</strong>
+                  </div>
+                  <input
+                    type="range"
+                    min="50"
+                    max="140"
+                    value={features.blood_pressure}
+                    onChange={(e) => setFeatures({ ...features, blood_pressure: parseFloat(e.target.value) })}
+                    style={{ width: '100%', accentColor: '#00e5ff' }}
+                  />
                 </div>
-                <input
-                  type="range"
-                  min="0.05"
-                  max="2.0"
-                  step="0.01"
-                  value={features.diabetes_pedigree}
-                  onChange={(e) => setFeatures({ ...features, diabetes_pedigree: parseFloat(e.target.value) })}
-                  style={{ width: '100%', accentColor: '#00e5ff' }}
-                />
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
+                    <span style={{ color: '#e2e8f0' }}>Serum Insulin</span>
+                    <strong style={{ color: '#00e5ff' }}>{features.insulin} μU/mL</strong>
+                  </div>
+                  <input
+                    type="range"
+                    min="10"
+                    max="350"
+                    value={features.insulin}
+                    onChange={(e) => setFeatures({ ...features, insulin: parseFloat(e.target.value) })}
+                    style={{ width: '100%', accentColor: '#00e5ff' }}
+                  />
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
+                    <span style={{ color: '#e2e8f0' }}>Diabetes Pedigree Function</span>
+                    <strong style={{ color: '#00e5ff' }}>{features.diabetes_pedigree}</strong>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.05"
+                    max="2.0"
+                    step="0.01"
+                    value={features.diabetes_pedigree}
+                    onChange={(e) => setFeatures({ ...features, diabetes_pedigree: parseFloat(e.target.value) })}
+                    style={{ width: '100%', accentColor: '#00e5ff' }}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             <button
               type="submit"
@@ -4319,12 +4781,12 @@ function DiseasePredictionPage({ token, hospital }) {
               {loading ? (
                 <>
                   <RefreshCw size={16} className="hp-spin" />
-                  EVALUATING IN-SITU ENCLAVE INFERENCE...
+                  EVALUATING IN-SITU MULTI-MODAL INFERENCE...
                 </>
               ) : (
                 <>
                   <Sparkles size={16} />
-                  RUN FEDERATED ENCLAVE INFERENCE
+                  RUN MULTI-MODAL FEDERATED INFERENCE
                 </>
               )}
             </button>
@@ -4334,7 +4796,7 @@ function DiseasePredictionPage({ token, hospital }) {
         {/* Prediction Results HUD */}
         <section className="hp-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
-            <SectionTitle eyebrow="IN SITU PREDICTION OUTCOME" title="Diagnostic Risk & Biomarker Attribution" />
+            <SectionTitle eyebrow="IN SITU PREDICTION OUTCOME" title="Multi-Disease Findings & Differentials" />
 
             {error && (
               <div className="hp-notice hp-notice-danger" style={{ marginBottom: 16 }}>
@@ -4347,7 +4809,7 @@ function DiseasePredictionPage({ token, hospital }) {
               <EmptyModule
                 icon={Activity}
                 title="Awaiting Diagnostic Inference"
-                description="Select a clinical preset or customize patient parameters, then click Run Federated Enclave Inference."
+                description="Upload an image, enter clinical text, or set vitals, then click Run Multi-Modal Federated Inference."
               />
             )}
 
@@ -4371,13 +4833,13 @@ function DiseasePredictionPage({ token, hospital }) {
                       letterSpacing: '.06em',
                       marginBottom: 4,
                     }}>
-                      RISK TIER: {result.risk_level}
+                      MODALITY: {result.modality || modality} · RISK TIER: {result.risk_level}
                     </div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#f8fafc' }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: '#f8fafc' }}>
                       {result.prediction}
                     </div>
                     <small style={{ color: '#94a3b8', fontSize: 10 }}>
-                      Evaluated on model checkpoint: {result.model_version}
+                      Evaluated on federated consensus model checkpoint: {result.model_version}
                     </small>
                   </div>
 
@@ -4385,15 +4847,109 @@ function DiseasePredictionPage({ token, hospital }) {
                     <div style={{ fontSize: 28, fontWeight: 900, color: isPositive ? '#ef4444' : '#10b981' }}>
                       {result.probability}%
                     </div>
-                    <small style={{ color: '#94a3b8', fontSize: 10 }}>Confidence Score</small>
+                    <small style={{ color: '#94a3b8', fontSize: 10 }}>Primary Confidence</small>
                   </div>
                 </div>
 
-                {/* Biomarker Importance Breakdown */}
-                {result.biomarker_importance && (
+                {/* Findings Summary */}
+                {result.findings_summary && (
+                  <div style={{
+                    background: 'rgba(0, 229, 255, 0.05)',
+                    border: '1px solid rgba(0, 229, 255, 0.2)',
+                    borderRadius: 8,
+                    padding: 12,
+                  }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#00e5ff', marginBottom: 4, letterSpacing: '.04em' }}>
+                      OBJECTIVE CLINICAL FINDINGS
+                    </div>
+                    <div style={{ fontSize: 12, color: '#cbd5e1', lineHeight: 1.4 }}>
+                      {result.findings_summary}
+                    </div>
+                  </div>
+                )}
+
+                {/* Differential Diagnoses */}
+                {result.differentials && result.differentials.length > 0 && (
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: '.06em', marginBottom: 8 }}>
-                      BIOMARKER ATTRIBUTION IMPACT
+                      DIFFERENTIAL DIAGNOSIS SPECTRUM
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {result.differentials.map((diff, idx) => (
+                        <div
+                          key={diff.condition}
+                          style={{
+                            background: '#080d14',
+                            border: '1px solid rgba(255, 255, 255, 0.06)',
+                            borderRadius: 6,
+                            padding: '8px 12px',
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span style={{ fontSize: 11, fontWeight: 700, color: idx === 0 ? '#00e5ff' : '#94a3b8' }}>
+                                #{idx + 1} {diff.condition}
+                              </span>
+                              <span style={{
+                                fontSize: 9,
+                                fontWeight: 800,
+                                padding: '1px 5px',
+                                borderRadius: 3,
+                                background: diff.confidence_tier === 'CRITICAL' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255,255,255,0.05)',
+                                color: diff.confidence_tier === 'CRITICAL' ? '#f87171' : '#94a3b8',
+                              }}>
+                                {diff.confidence_tier}
+                              </span>
+                            </div>
+                            <strong style={{ fontSize: 12, color: idx === 0 ? '#00e5ff' : '#cbd5e1' }}>
+                              {diff.probability}%
+                            </strong>
+                          </div>
+                          <div style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: 3, height: 4, overflow: 'hidden' }}>
+                            <div style={{
+                              background: idx === 0 ? 'linear-gradient(90deg, #00e5ff, #0284c7)' : '#64748b',
+                              width: `${diff.probability}%`,
+                              height: '100%',
+                            }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Extracted Entities or Features */}
+                {result.extracted_features && Object.keys(result.extracted_features).length > 0 && (
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: '.06em', marginBottom: 6 }}>
+                      DETECTED CLINICAL ENTITIES & METRICS
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {Object.entries(result.extracted_features).map(([key, val]) => (
+                        <div
+                          key={key}
+                          style={{
+                            background: '#0d1522',
+                            border: '1px solid rgba(0, 229, 255, 0.2)',
+                            borderRadius: 6,
+                            padding: '4px 8px',
+                            fontSize: 11,
+                            color: '#94a3b8',
+                          }}
+                        >
+                          <span style={{ color: '#e2e8f0' }}>{key}: </span>
+                          <strong style={{ color: '#00e5ff' }}>{String(val)}</strong>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Biomarker / Feature Importance Breakdown */}
+                {result.biomarker_importance && Object.keys(result.biomarker_importance).length > 0 && (
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: '.06em', marginBottom: 8 }}>
+                      ATTRIBUTION & FEATURE IMPORTANCE
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {Object.entries(result.biomarker_importance).map(([factor, pct]) => (
@@ -4426,7 +4982,7 @@ function DiseasePredictionPage({ token, hospital }) {
                   lineHeight: 1.5,
                 }}>
                   <strong style={{ color: '#f8fafc', display: 'block', marginBottom: 4 }}>
-                    Clinical Action Protocol:
+                    Clinical Protocol & Recommendation:
                   </strong>
                   {result.clinical_recommendation}
                 </div>
@@ -4439,7 +4995,7 @@ function DiseasePredictionPage({ token, hospital }) {
             <div>
               <strong>Enclave Isolation Guaranteed</strong>
               <p style={{ margin: 0, fontSize: 11 }}>
-                Inference ran inside this hospital's memory boundary. Patient vitals never departed this network node.
+                Inference ran inside this hospital's memory boundary. Patient medical images, notes, and vitals never departed this network node.
               </p>
             </div>
           </div>

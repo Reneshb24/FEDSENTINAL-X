@@ -931,57 +931,84 @@ Local configuration and preferences.
 
 ---
 
-### 5.17 Disease Risk Prediction & Enclave Inference (`prediction`)
+### 5.17 Multi-Modal Disease Risk Prediction & Enclave Diagnostic HUD (`prediction`)
 
-In-situ clinical decision support and disease risk prediction powered by the consensus-trained federated global model.
+In-situ clinical decision support and disease identification powered by the consensus-trained federated global neural model. Member hospitals can diagnose conditions using **Medical Images (Radiology / Scans)**, **Clinical EHR Notes (Text / Symptoms)**, or **Biomarker Vitals (Lab values)**.
 
 ```
-+----------------------------------------------------------------------------------+
-| CLINICAL INTELLIGENCE / FEDERATED IN SITU INFERENCE                              |
-| Disease Risk Prediction & Enclave Inference                                      |
-|                                                                                  |
-| [ QUICK CLINICAL CASE PRESETS ]                                                  |
-| [High-Risk Diabetic Patient]  [Borderline / Pre-Diabetic]  [Healthy Normal]      |
-|                                                                                  |
-| PATIENT CLINICAL BIOMARKERS (Form)        DIAGNOSTIC OUTCOME & ATTRIBUTION (HUD) |
-| Patient ID:        [ PT-CLINICAL-8821  ]  [ RISK TIER: CRITICAL        ] [99.9%] |
-| Condition:         [ Type-2 Diabetes   ]  POSITIVE (HIGH RISK OF T2D COMPLICATION)|
-| Fasting Glucose:   [----O-------------]   BIOMARKER ATTRIBUTION IMPACT:          |
-| Body Mass Index:   [-------O----------]   - Fasting Glucose: [===========] 50.7% |
-| Age:               [----O-------------]   - Body Mass Index: [=====      ] 19.5% |
-| Blood Pressure:    [----O-------------]   - Age Factor:      [===        ] 13.1% |
-| Serum Insulin:     [----O-------------]   - Genetic Pedigree:[==         ] 10.5% |
-| Genetic Pedigree:  [----O-------------]   CLINICAL ACTION PROTOCOL:              |
-| [ RUN FEDERATED ENCLAVE INFERENCE ]       Schedule confirmatory HbA1c test...    |
-+----------------------------------------------------------------------------------+
++-------------------------------------------------------------------------------------------------------+
+| CLINICAL INTELLIGENCE / FEDERATED MULTI-MODAL IN SITU INFERENCE                                       |
+| Disease Risk Prediction & Diagnostic Enclave                                                          |
+|                                                                                                       |
+| [ MODALITY SELECTOR TABS ]                                                                            |
+| [ Medical Images (Radiology / Scans) ]  [ Clinical EHR Notes & Symptoms ]  [ Biomarkers & Vitals ]    |
+|                                                                                                       |
+| [ 1-CLICK MEDICAL SCAN PRESETS ]                                                                      |
+| [Chest X-Ray: Infiltration/Pneumonia]  [Chest X-Ray: Cardiomegaly]  [Dermoscopy: Dysplastic] [Normal] |
+|                                                                                                       |
+| IN SITU DATA INPUT [IMAGE]                          DIAGNOSTIC OUTCOME & DIFFERENTIALS (HUD)          |
+| Patient ID:        [ PT-CLINICAL-8821           ]   [ MODALITY: IMAGE  ·  RISK TIER: CRITICAL ] [92.5%|
+| Diagnostic Target: [ Automated Multi-Disease    ]   Community-Acquired Pneumonia (Lobar Infiltration) |
+| [ Medical Scan Image Dropzone / Preview        ]   OBJECTIVE CLINICAL FINDINGS:                       |
+|   - Base64 Pixel Matrix · Tensor [1, 1, 28, 28]     Focal radiopaque consolidation in lower parenchyma|
+|   - [Browse Local Files] / [Replace Medical Image]  DIFFERENTIAL DIAGNOSIS SPECTRUM:                  |
+|                                                     #1 Community-Acquired Pneumonia       [====] 92.5%|
+| [ RUN MULTI-MODAL FEDERATED INFERENCE (Button) ]    #2 Cardiomegaly / Cardiac Failure     [==  ] 18.2%|
+|                                                     #3 Viral Interstitial Infiltrate      [=   ]  9.4%|
+|                                                     DETECTED CLINICAL ENTITIES & METRICS:             |
+|                                                     - optical_density: 0.42  - lower_opacity: 0.51    |
+|                                                     CLINICAL ACTION PROTOCOL:                         |
+|                                                     Initiate empiric antimicrobial therapy...         |
++-------------------------------------------------------------------------------------------------------+
 ```
 
-* **Quick Clinical Case Presets**:
-  * **`High-Risk Diabetic Patient` button**: Populates vitals with elevated indicators (Fasting Glucose: 168 mg/dL, BMI: 36.2, Age: 52, Insulin: 180, Blood Pressure: 82).
-  * **`Borderline / Pre-Diabetic` button**: Populates vitals with pre-diabetic indicators (Fasting Glucose: 128 mg/dL, BMI: 28.4, Age: 42, Insulin: 95).
-  * **`Normal Healthy Control` button**: Populates vitals with optimal glycemic baseline (Fasting Glucose: 85 mg/dL, BMI: 21.8, Age: 26, Insulin: 60).
-* **Clinical Biomarker Sliders & Inputs**:
-  * **Patient Identifier**: Unique clinical record ID (e.g. `PT-CLINICAL-8821`).
-  * **Target Clinical Condition**: Dropdown (`Type-2 Diabetes & Metabolic Complications`, `Pulmonary Risk`, `Cardiometabolic Risk`).
-  * **Fasting Glucose ($mg/dL$)**: Interactive slider ($60 - 250$).
-  * **Body Mass Index (BMI, $kg/m^2$)**: Slider with clinical guidelines ($16 - 50$).
-  * **Age (Years)**: Slider ($18 - 90$).
-  * **Diastolic Blood Pressure ($mm\,Hg$)**: Slider ($50 - 140$).
-  * **Serum Insulin ($\mu U/mL$)**: Slider ($10 - 350$).
-  * **Diabetes Pedigree Function**: Slider ($0.05 - 2.0$).
-* **Action Buttons**:
-  * **`RUN FEDERATED ENCLAVE INFERENCE` button**:
-    * Dispatches inference payload to `POST /api/v1/hospital/predict`.
-    * Evaluates patient vitals directly against the verified federated global model.
-    * Computes diagnostic classification, probability, and risk tier.
-    * Records tamper-evident audit record `CLINICAL_INFERENCE_EXECUTED`.
-* **Diagnostic Outcome HUD**:
-  * **Risk Tier Badge**: Color-coded risk status (`CRITICAL` red, `HIGH` amber-red, `MODERATE` yellow, `LOW` green).
-  * **Diagnostic Classification**: Detailed clinical finding (e.g. `POSITIVE (HIGH RISK OF TYPE-2 DIABETES / METABOLIC COMPLICATION)`).
-  * **Confidence Score Meter**: Radial / numerical percentage probability (e.g., `99.89%`).
-  * **Biomarker Attribution Impact**: Dynamic horizontal progress bars illustrating the exact percentage contribution of each clinical vital to the risk verdict.
-  * **Clinical Action Protocol**: Actionable medical guidelines and next steps (e.g., confirmatory HbA1c testing, endocrinology consultation).
-  * **Zero-Leakage Privacy Guarantee**: Explicit verification card confirming patient vitals never left the local enclave boundary.
+#### Modality Selector Tabs
+* **`Medical Images (Radiology / Scans)` tab**: Activates computer vision inference on radiographic or pathological scans using the federated convolutional neural network (`FedSentinelCNN`).
+* **`Clinical EHR Notes & Symptoms` tab**: Activates natural language clinical ontology extraction on physician notes, nursing records, or symptom narratives.
+* **`Biomarkers & Lab Indicators` tab**: Activates multidimensional clinical risk regression on patient lab values (glucose, BMI, blood pressure, insulin, pedigree).
+
+#### 1-Click Diagnostic Presets
+* **Image Scan Presets**:
+  * **`Chest X-Ray: Infiltration / Pneumonia`**: Bilateral lung fields with right lower lobe focal consolidation opacity and air bronchograms.
+  * **`Chest X-Ray: Cardiomegaly / Failure`**: Markedly enlarged transverse cardiac silhouette (>60% cardiothoracic ratio).
+  * **`Dermoscopy: Dysplastic Lesion`**: Asymmetric pigmented cutaneous macule with border irregularity.
+  * **`Normal Chest Radiograph`**: Clear bilateral lung fields with crisp cardiophrenic angles and normal silhouette.
+* **Clinical Notes Narrative Presets**:
+  * **`Acute Pulmonary Infection`**: Productive purulent rust-colored sputum, 39.2°C fever, chills, pleuritic chest pain, dyspnea, and SpO2 91%.
+  * **`Severe Glycemic / Type-2 Diabetes`**: Persistent polydipsia, polyuria, nocturia x4, lethargy, fasting glucose 218 mg/dL, HbA1c 9.6%, and peripheral neuropathy.
+  * **`Acute Coronary Syndrome / Angina`**: Retrosternal crushing chest pressure radiating into left arm and jaw, diaphoresis, dyspnea, and BP 168/102 mm Hg.
+  * **`Severe Asthma / Bronchospasm`**: Refractory bronchospasm, bilateral expiratory wheezes, tachypnea at 28 breaths/min, and peak expiratory flow at 52%.
+* **Biomarker Lab Presets**:
+  * **`High-Risk Diabetic Patient`**: Glucose 168 mg/dL, BMI 36.2, Age 52, BP 82, Insulin 180.
+  * **`Borderline / Pre-Diabetic`**: Glucose 128 mg/dL, BMI 28.4, Age 42, BP 74, Insulin 95.
+  * **`Normal Healthy Control`**: Glucose 85 mg/dL, BMI 21.8, Age 26, BP 68, Insulin 60.
+
+#### Input Fields & Controls
+* **`Patient Identifier` input**: Clinical EHR patient tracking number (e.g. `PT-CLINICAL-8821`).
+* **`Diagnostic Classifier Target` dropdown**:
+  * `Automated Multi-Disease Consensus (Any Condition)`: System scans across pulmonary, metabolic, cardiovascular, respiratory, and dermatologic diagnostic spaces.
+  * `Pulmonary Pneumonia & Respiratory Infiltration`
+  * `Cardiometabolic & Acute Coronary Syndrome`
+  * `Type-2 Diabetes & Endocrine Risk`
+  * `Dermatologic Dysplastic Lesions`
+* **Image Upload Dropzone / File Picker**: Supports direct upload of local medical image files (`PNG`, `JPEG`, `DICOM`-derived bitmaps) with live in-memory base64 thumbnail rendering.
+* **Clinical Notes `<textarea>`**: Live text editor with character counter for inputting admission notes or physical exam findings.
+* **Biomarker Interactive Range Sliders**: Real-time sliders for Glucose, BMI, Age, Blood Pressure, Insulin, and Diabetes Pedigree Function with clinical normal/impaired guideline thresholds.
+
+#### Inference Execution & Diagnostic HUD
+* **`RUN MULTI-MODAL FEDERATED INFERENCE` button**:
+  * Dispatches multi-modal payload to `POST /api/v1/hospital/predict`.
+  * Runs genuine PyTorch CNN feature map extraction or clinical NLP ontology parsing in-situ inside the hospital memory space.
+  * Records tamper-evident audit trail `CLINICAL_INFERENCE_EXECUTED` with patient ID and condition.
+* **Risk Tier Badge**: Color-coded risk tier (`CRITICAL` vibrant red, `HIGH` amber-red, `MODERATE` warning yellow, `LOW` verified green).
+* **Primary Diagnostic Finding**: Concise clinical diagnosis (e.g., `Community-Acquired Pneumonia (Lobar Pulmonary Infiltration)`).
+* **Primary Confidence Meter**: High-precision statistical confidence percentage (e.g., `92.46%`).
+* **Objective Clinical Findings Summary**: Narrative synthesis of optical metrics (radiographic density, quadrant opacity ratios) or symptom entities extracted from the patient's records.
+* **Differential Diagnosis Spectrum**: Ranked list of top candidate conditions with confidence tier badges and probability progress bars.
+* **Detected Clinical Entities & Metrics**: Visual chip cloud displaying all extracted biomarkers, vitals, or optical metrics (e.g., `optical_density: 0.42`, `spo2: 91%`, `fever: 39.2C`).
+* **Attribution & Feature Importance Impact**: Ranked horizontal bar breakdown displaying factor contributions.
+* **Clinical Protocol & Recommendation**: Evidence-based medical directives (e.g., empiric antimicrobial coverage, urgent arterial blood gas, cardiology consult).
+* **Enclave Isolation Guarantee**: Explicit zero-trust assurance card certifying that raw images, notes, and vitals never departed this hospital node's network boundary.
 
 ---
 

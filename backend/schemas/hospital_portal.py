@@ -99,21 +99,34 @@ class ClinicalFeatures(BaseModel):
     age: float = 35.0
 
 
+class DifferentialDiagnosis(BaseModel):
+    condition: str
+    probability: float
+    confidence_tier: str
+
+
 class DiseasePredictionRequest(BaseModel):
     patient_id: str | None = None
-    condition: str = "DIABETES_METABOLIC"
-    features: ClinicalFeatures
+    modality: str = "AUTO"  # "IMAGE", "TEXT", "STRUCTURED_VITALS", "AUTO"
+    condition: str = "AUTO_DETECT"
+    image_data: str | None = None  # Base64 data URL
+    clinical_text: str | None = None  # Clinical notes / EHR text
+    features: ClinicalFeatures | None = None
 
 
 class DiseasePredictionResponse(BaseModel):
     prediction_id: str
     patient_id: str | None = None
+    modality: str
     condition: str
     model_version: str
     prediction: str
     probability: float
     risk_level: str
     enclave_privacy: str
+    findings_summary: str
+    extracted_features: dict[str, str | float] | None = None
+    differentials: list[DifferentialDiagnosis] | None = None
     biomarker_importance: dict[str, float]
     clinical_recommendation: str
     executed_at: datetime

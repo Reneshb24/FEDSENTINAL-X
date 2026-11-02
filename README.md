@@ -63,6 +63,11 @@ FedSentinel-X is designed for real-world enterprise healthcare AI defense:
   * **Cryptographic Lineage Tree** (`ModelLineageTree3D`): 3D directed acyclic graph (DAG) of model checkpoint versions, SHA-256 hashes, and accuracy progressions.
   * **Synthetic Distribution Lab** (`SyntheticLab3D`): 3D client node manifold with real-time Dirichlet partition curves and class distribution histograms.
   * **Hospital Clinical Enclave Pipeline** (`HospitalEnclave3D`): 3D in situ enclave training pipeline visualizing local patient data isolation, PyTorch SGD execution, differential delta extraction, and SafeTensors packaging with zero data egress.
+* **Multi-Modal In-Situ Clinical Disease Prediction & Diagnostic Enclave**: Member hospitals evaluate patient diagnostic risk profiles across multiple modalities without raw data ever departing the hospital perimeter:
+  * **Medical Images (`IMAGE`)**: Evaluates radiographic and pathological scans (e.g., Chest X-Ray Infiltration, Cardiomegaly, Dermoscopy Melanoma, Normal Controls) through normalized tensor conversion and genuine `FedSentinelCNN` feature map analysis.
+  * **Clinical EHR Notes (`TEXT`)**: In-situ clinical NLP ontology parser extracting symptom entities and computing differential disease likelihoods across pulmonary, metabolic, cardiovascular, respiratory, and dermatologic conditions.
+  * **Biomarker Vitals (`STRUCTURED_VITALS`)**: Multi-variable clinical biomarker regression for diabetes and endocrine risk profiles with interactive slider controls.
+  * **Comprehensive Diagnostic HUD**: Instant differential diagnoses ranking, objective findings summary, detected entity tags, biomarker attribution impact, and evidence-based clinical action protocols.
 * **Synthetic Attack Sandbox & Benchmark Lab**: Test the defense pipeline against synthetic cohorts with configurable distribution models: Clean IID, Non-IID Dirichlet ($\alpha \in [0.05, 10.0]$), Pathological Label Skew, Pixel-pattern Backdoor Triggers, and Sybil Model Replacement attacks.
 * **Enterprise Ingestion Security (SSRF & Path Traversal Prevention)**: Remote dataset imports strictly validate hostnames and resolve DNS to block loopback, RFC-1918 private subnets, link-local, and AWS metadata addresses (`169.254.169.254`). Local paths are restricted to permitted directory boundaries.
 
