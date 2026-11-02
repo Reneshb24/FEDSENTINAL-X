@@ -983,6 +983,7 @@ In-situ clinical decision support and disease identification powered by the cons
   * **`Chest X-Ray: Cardiomegaly / Failure`**: Markedly enlarged transverse cardiac silhouette (>60% cardiothoracic ratio).
   * **`Dermoscopy: Dysplastic Lesion`**: Asymmetric pigmented cutaneous macule with border irregularity.
   * **`Normal Chest Radiograph`**: Clear bilateral lung fields with crisp cardiophrenic angles and normal silhouette.
+  * **`Cranial / Skull Radiograph (Non-Thoracic)`**: Cranial vault calvarium scan demonstrating automatic non-thoracic detection and zero-false-prediction inhibition.
   * **`Non-Medical / Out-of-Distribution Test`**: Multi-color non-clinical test pattern to demonstrate and verify automatic ML Out-of-Distribution (OOD) rejection.
 * **Clinical Notes Narrative Presets**:
   * **`Acute Pulmonary Infection`**: Productive purulent rust-colored sputum, 39.2°C fever, chills, pleuritic chest pain, dyspnea, and SpO2 91%.

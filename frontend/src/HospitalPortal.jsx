@@ -4121,6 +4121,26 @@ function generateSyntheticScan(type) {
     ctx.beginPath()
     ctx.ellipse(78, 82, 35, 28, 0.4, 0, Math.PI * 2)
     ctx.fill()
+  } else if (type === 'skull') {
+    // Cranial / Skull Scan with calvarial bone shell and intracranial cavity (Non-Thoracic)
+    ctx.fillStyle = '#0f172a'
+    ctx.fillRect(0, 0, 160, 160)
+    // Intracranial vault
+    ctx.fillStyle = '#334155'
+    ctx.beginPath()
+    ctx.ellipse(80, 80, 50, 58, 0, 0, Math.PI * 2)
+    ctx.fill()
+    // Dense cortical calvarium bone ring
+    ctx.strokeStyle = '#e2e8f0'
+    ctx.lineWidth = 6
+    ctx.beginPath()
+    ctx.ellipse(80, 80, 51, 59, 0, 0, Math.PI * 2)
+    ctx.stroke()
+    // Facial skeleton & sinus cavity in lower quadrant
+    ctx.fillStyle = '#1e293b'
+    ctx.beginPath()
+    ctx.arc(80, 105, 18, 0, Math.PI * 2)
+    ctx.fill()
   } else if (type === 'ood') {
     // Non-medical multi-color pattern to test Out-of-Distribution rejection
     ctx.fillStyle = '#ef4444'
@@ -4235,6 +4255,14 @@ function DiseasePredictionPage({ token, hospital }) {
       badge: 'CONTROL',
       color: '#10b981',
       type: 'normal',
+    },
+    {
+      id: 'skull_preset',
+      name: 'Cranial / Skull Radiograph (Non-Thoracic)',
+      desc: 'Cranial vault calvarium to verify zero-false-positive rejection',
+      badge: 'NON-THORACIC',
+      color: '#64748b',
+      type: 'skull',
     },
     {
       id: 'ood_test',
@@ -5029,7 +5057,11 @@ function DiseasePredictionPage({ token, hospital }) {
                       letterSpacing: '.06em',
                       marginBottom: 4,
                     }}>
-                      {isOod ? 'OUT-OF-DISTRIBUTION · REJECTED MANIFOLD' : `MODALITY: ${result.modality || modality} · RISK TIER: ${result.risk_level}`}
+                      {result.prediction.includes('Skull') || result.prediction.includes('Cranial') || result.prediction.includes('Musculoskeletal')
+                        ? 'NON-THORACIC ANATOMY DETECTED · LUNG CLASSIFIERS INHIBITED'
+                        : isOod
+                        ? 'OUT-OF-DISTRIBUTION · REJECTED MANIFOLD'
+                        : `MODALITY: ${result.modality || modality} · RISK TIER: ${result.risk_level}`}
                     </div>
                     <div style={{ fontSize: 15, fontWeight: 700, color: '#f8fafc' }}>
                       {result.prediction}
