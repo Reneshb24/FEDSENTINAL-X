@@ -1,0 +1,70 @@
+{
+  "display_name": "Pulmonary Pneumonia & Respiratory Infiltration",
+  "modality": "IMAGE",
+  "model_architecture": "FedSentinelCNN",
+  "label_mapping": {
+    "0": "Normal Cardiopulmonary Examination",
+    "1": "Mild Interstitial Markings",
+    "2": "Atelectasis / Dependent Opacity",
+    "3": "Community-Acquired Lobar Pneumonia",
+    "8": "Cardiomegaly / Left Ventricular Enlargement"
+  },
+  "preprocessing_config": {
+    "image_size": [
+      28,
+      28
+    ],
+    "channels": 1,
+    "normalization": "min_max_0_1",
+    "anatomical_region": "THORACIC_CHEST",
+    "contrast_ratio_min": 1.08
+  },
+  "supported_conditions": [
+    "Pneumonia",
+    "Pulmonary Infiltration",
+    "Lobar Opacity"
+  ],
+  "unsupported_conditions": [
+    "Neurology",
+    "Craniomaxillofacial",
+    "Orthopedics",
+    "Extremities"
+  ],
+  "disease_domain": "PULMONARY_IMAGE",
+  "model_version": "v3.0-pulmonary-consortium",
+  "round_number": 10,
+  "accepted_updates_count": 5,
+  "quarantined_prevented_count": 1,
+  "total_updates_reviewed": 6,
+  "security_verdict": "POISONING_ATTEMPT_PREVENTED",
+  "contributing_hospitals": [
+    {
+      "code": "H101",
+      "name": "Mount Sinai Pulmonary & Respiratory Center",
+      "accepted_updates": 1
+    },
+    {
+      "code": "H102",
+      "name": "Joslin Diabetes Center & Metabolic Institute",
+      "accepted_updates": 1
+    },
+    {
+      "code": "H103",
+      "name": "Cleveland Clinic Cardiovascular AI Enclave",
+      "accepted_updates": 1
+    },
+    {
+      "code": "H104",
+      "name": "Memorial Sloan Kettering Dermatopathology Enclave",
+      "accepted_updates": 1
+    },
+    {
+      "code": "H105",
+      "name": "Johns Hopkins Clinical AI & Infectious Disease Center",
+      "accepted_updates": 1
+    }
+  ],
+  "aggregation_algorithm": "Robust-Coordinate-Median",
+  "model_weights_hash": "sha256-ca7e94a0f8f630b10a87ce1b79f89a8d9badb7a33f6b400f11ba527638877e6c",
+  "updated_at": "2026-11-02T16:34:42.465919+00:00"
+}

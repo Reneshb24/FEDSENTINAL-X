@@ -790,6 +790,67 @@ def start_federation_round(
         )
     )
 
+    # ------------------------------------------------------------
+    # Save & Publish Disease-Specific Aggregated Checkpoint
+    # ------------------------------------------------------------
+    if result.global_state is not None:
+        try:
+            from backend.services.disease_registry_service import DiseaseRegistryService
+            from backend.storage.models import AggregatedDiseaseUpdate
+            target_domain = configuration.get("disease_domain", "CONSENSUS_MULTI")
+
+            contributing = []
+            for u in result.accepted_updates:
+                h = db.query(Hospital).filter(Hospital.id == u.client_id).first()
+                if h:
+                    contributing.append({"code": h.code, "name": h.name, "accepted_updates": 1})
+
+            meta = {
+                "disease_domain": target_domain,
+                "model_version": global_model_version,
+                "round_number": federation_round.round_number,
+                "accepted_updates_count": accepted_count,
+                "quarantined_prevented_count": quarantined_count,
+                "total_updates_reviewed": len(runtime_updates),
+                "security_verdict": "POISONING_ATTEMPT_PREVENTED" if quarantined_count > 0 else "REVIEWED_AND_AGGREGATED",
+                "contributing_hospitals": contributing,
+                "aggregation_algorithm": configuration.get("aggregation_algorithm", "Coordinate-Median"),
+            }
+            ckpt_path, weights_hash = DiseaseRegistryService.save_checkpoint(
+                target_domain,
+                result.global_state,
+                meta,
+            )
+
+            dis_rec = db.query(AggregatedDiseaseUpdate).filter(
+                AggregatedDiseaseUpdate.disease_domain == target_domain
+            ).first()
+            if not dis_rec:
+                dis_rec = AggregatedDiseaseUpdate(
+                    disease_domain=target_domain,
+                    display_name=f"{target_domain.replace('_', ' ').title()}",
+                )
+                db.add(dis_rec)
+            dis_rec.model_version = global_model_version
+            dis_rec.round_number = federation_round.round_number
+            dis_rec.model_weights_hash = weights_hash
+            dis_rec.accepted_updates_count = accepted_count
+            dis_rec.quarantined_prevented_count = quarantined_count
+            dis_rec.total_updates_reviewed = len(runtime_updates)
+            dis_rec.security_verdict = meta["security_verdict"]
+            dis_rec.aggregation_algorithm = meta["aggregation_algorithm"]
+            dis_rec.prevention_summary = (
+                f"FedSentinel quarantined {quarantined_count} anomalous updates and safely aggregated {accepted_count} verified hospital updates."
+                if quarantined_count > 0 else
+                f"All {accepted_count} hospital updates passed L0-L5 defense and were safely aggregated."
+            )
+            if contributing:
+                dis_rec.contributing_hospitals_json = json.dumps(contributing)
+            db.commit()
+        except Exception as exc:
+            import logging
+            logging.getLogger(__name__).warning(f"Failed to update disease registry on round completion: {exc}")
+
     return round_to_response(
         federation_round
     )
@@ -1264,6 +1325,67 @@ def finalize_hospital_round(
             global_model_version=global_model_version,
         )
     )
+
+    # ------------------------------------------------------------
+    # Save & Publish Disease-Specific Aggregated Checkpoint
+    # ------------------------------------------------------------
+    if result.global_state is not None:
+        try:
+            from backend.services.disease_registry_service import DiseaseRegistryService
+            from backend.storage.models import AggregatedDiseaseUpdate
+            target_domain = configuration.get("disease_domain", "CONSENSUS_MULTI")
+
+            contributing = []
+            for u in result.accepted_updates:
+                h = db.query(Hospital).filter(Hospital.id == u.client_id).first()
+                if h:
+                    contributing.append({"code": h.code, "name": h.name, "accepted_updates": 1})
+
+            meta = {
+                "disease_domain": target_domain,
+                "model_version": global_model_version,
+                "round_number": federation_round.round_number,
+                "accepted_updates_count": accepted_count,
+                "quarantined_prevented_count": quarantined_count,
+                "total_updates_reviewed": len(runtime_updates),
+                "security_verdict": "POISONING_ATTEMPT_PREVENTED" if quarantined_count > 0 else "REVIEWED_AND_AGGREGATED",
+                "contributing_hospitals": contributing,
+                "aggregation_algorithm": configuration.get("aggregation_algorithm", "Coordinate-Median"),
+            }
+            ckpt_path, weights_hash = DiseaseRegistryService.save_checkpoint(
+                target_domain,
+                result.global_state,
+                meta,
+            )
+
+            dis_rec = db.query(AggregatedDiseaseUpdate).filter(
+                AggregatedDiseaseUpdate.disease_domain == target_domain
+            ).first()
+            if not dis_rec:
+                dis_rec = AggregatedDiseaseUpdate(
+                    disease_domain=target_domain,
+                    display_name=f"{target_domain.replace('_', ' ').title()}",
+                )
+                db.add(dis_rec)
+            dis_rec.model_version = global_model_version
+            dis_rec.round_number = federation_round.round_number
+            dis_rec.model_weights_hash = weights_hash
+            dis_rec.accepted_updates_count = accepted_count
+            dis_rec.quarantined_prevented_count = quarantined_count
+            dis_rec.total_updates_reviewed = len(runtime_updates)
+            dis_rec.security_verdict = meta["security_verdict"]
+            dis_rec.aggregation_algorithm = meta["aggregation_algorithm"]
+            dis_rec.prevention_summary = (
+                f"FedSentinel quarantined {quarantined_count} anomalous updates and safely aggregated {accepted_count} verified hospital updates."
+                if quarantined_count > 0 else
+                f"All {accepted_count} hospital updates passed L0-L5 defense and were safely aggregated."
+            )
+            if contributing:
+                dis_rec.contributing_hospitals_json = json.dumps(contributing)
+            db.commit()
+        except Exception as exc:
+            import logging
+            logging.getLogger(__name__).warning(f"Failed to update disease registry on round completion: {exc}")
 
     return round_to_response(
         federation_round

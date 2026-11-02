@@ -806,7 +806,7 @@ class HospitalPortalService:
 
                 if is_skull_cranial:
                     # CRANIAL / SKULL RADIOGRAPH DETECTED: Prevent false pulmonary predictions!
-                    pred_name = "Unrecognized Anatomical Scan: Cranial / Skull Radiograph (Non-Thoracic)"
+                    pred_name = "UNSUPPORTED INPUT: Cranial / Skull Radiograph (Non-Thoracic)"
                     conf = 0.0
                     risk_tier = "INCONCLUSIVE"
                     findings = (
@@ -831,7 +831,7 @@ class HospitalPortalService:
                     )
                 elif is_extremity:
                     # Extremity / isolated bone silhouette
-                    pred_name = "Unrecognized Anatomical Scan: Musculoskeletal / Extremity Radiograph (Non-Thoracic)"
+                    pred_name = "UNSUPPORTED INPUT: Musculoskeletal / Extremity Radiograph (Non-Thoracic)"
                     conf = 0.0
                     risk_tier = "INCONCLUSIVE"
                     findings = (
@@ -855,7 +855,7 @@ class HospitalPortalService:
                 elif is_generic_ood:
                     # Non-medical or unknown out-of-distribution image
                     match_score = round(min(max(probs) * 25.0 + (std_dev * 0.05), 32.5), 2)
-                    pred_name = "Inconclusive / Out-of-Distribution Image (No Known Clinical Signature)"
+                    pred_name = "INCONCLUSIVE: Out-of-Distribution / Non-Medical Image"
                     conf = match_score
                     risk_tier = "INCONCLUSIVE"
                     findings = (
@@ -1103,20 +1103,38 @@ class HospitalPortalService:
             sorted_cats = sorted(scores.items(), key=lambda x: x[1], reverse=True)
             top_condition, top_score = sorted_cats[0]
 
-            if top_score == 0.0:
-                top_condition = "Unspecified Clinical Presentation / General Medical Evaluation"
-                top_prob = 74.5
-                top_risk = "MODERATE"
-                findings = f"Clinical text reviewed: '{raw_text[:140]}...'. No acute life-threatening diagnostic keywords flagged."
+            # Check if input text is too short or corrupted
+            if len(raw_text) < 10 or len(raw_text.split()) < 2:
+                top_condition = "UNSUPPORTED INPUT: Insufficient or Corrupted Clinical Narrative"
+                top_prob = 0.0
+                top_risk = "INCONCLUSIVE"
+                findings = "The provided clinical narrative is too short, corrupted, or devoid of descriptive clinical syntax."
                 differentials = [
-                    {"condition": "General Viral Prodrome", "probability": 45.0, "confidence_tier": "CONSIDERATION"},
-                    {"condition": "Mild Dehydration / Fatigue", "probability": 38.2, "confidence_tier": "CONSIDERATION"},
+                    {"condition": "Corrupted or Insufficient Input", "probability": 100.0, "confidence_tier": "UNSUPPORTED_INPUT"}
                 ]
-                attribution = {"Symptom Non-Specificity": 60.0, "Clinical Keyword Baseline": 40.0}
-                recommendation = "Perform comprehensive baseline physical examination; obtain routine complete metabolic panel (CMP) and complete blood count (CBC)."
+                attribution = {"Syntax Length Deficit": 100.0}
+                recommendation = "Please provide an informative clinical narrative describing patient symptoms, vital signs, or physical findings."
+            elif top_score == 0.0:
+                top_condition = "INCONCLUSIVE: Unfamiliar Clinical Presentation (Untrained Disease Description)"
+                top_prob = 0.0
+                top_risk = "INCONCLUSIVE"
+                findings = f"Clinical narrative reviewed: '{raw_text[:140]}...'. Zero recognized clinical entities matching the consortium's active trained disease models. The model has not been trained for this disease."
+                differentials = [
+                    {"condition": "Untrained / Unfamiliar Clinical Condition", "probability": 100.0, "confidence_tier": "UNTRAINED_DISEASE"},
+                    {"condition": "General Medical Prodrome (Uncategorized)", "probability": 0.0, "confidence_tier": "LOW"}
+                ]
+                attribution = {"Out-of-Ontology Divergence": 75.0, "Unrecognized Clinical Syntax": 25.0}
+                recommendation = "This condition appears outside the active federated consortium's trained disease ontologies. Do not rely on algorithmic triage. Refer patient to appropriate medical specialist for direct diagnostic evaluation."
             else:
-                top_prob = min(round(82.0 + (top_score * 3.2), 2), 99.2)
-                top_risk = "CRITICAL" if top_prob > 92.0 or "Coronary" in top_condition or "Sepsis" in top_condition else "HIGH"
+                raw_prob = min(round(82.0 + (top_score * 3.2), 2), 99.2)
+                if raw_prob < 70.0:
+                    top_condition = f"POSSIBLE MATCH — LOW CONFIDENCE: {top_condition}"
+                    top_prob = raw_prob
+                    top_risk = "MODERATE"
+                    findings = f"Clinical keywords suggest possible {top_condition}, but diagnostic confidence is below reliable certainty threshold (< 70%). Output represents exploratory consideration, not a confirmed diagnosis."
+                else:
+                    top_prob = raw_prob
+                    top_risk = "CRITICAL" if top_prob > 92.0 or "Coronary" in top_condition or "Sepsis" in top_condition else "HIGH"
 
                 differentials = []
                 for cond_name, s in sorted_cats[:3]:

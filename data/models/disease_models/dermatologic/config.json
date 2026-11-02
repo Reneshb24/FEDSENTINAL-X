@@ -1,0 +1,31 @@
+{
+  "display_name": "Dermatologic Dysplastic & Melanoma Lesions",
+  "modality": "IMAGE",
+  "model_architecture": "FedSentinelCNN",
+  "label_mapping": {
+    "0": "Benign Melanocytic Nevus",
+    "1": "Seborrheic Keratosis",
+    "2": "Atypical Dysplastic Nevus",
+    "5": "Cutaneous Malignant Melanoma",
+    "6": "Pigmented Basal Cell Carcinoma"
+  },
+  "preprocessing_config": {
+    "image_size": [
+      28,
+      28
+    ],
+    "channels": 3,
+    "normalization": "min_max_0_1",
+    "chromatic_difference_min": 12.0
+  },
+  "supported_conditions": [
+    "Malignant Melanoma",
+    "Dysplastic Nevus",
+    "Atypical Lesion"
+  ],
+  "unsupported_conditions": [
+    "Psoriasis",
+    "Alopecia",
+    "Eczema / Atopic Dermatitis"
+  ]
+}

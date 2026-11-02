@@ -1,0 +1,33 @@
+{
+  "display_name": "Unified Multi-Disease Federated Consensus",
+  "modality": "TEXT",
+  "model_architecture": "ClinicalTextClassifier",
+  "label_mapping": {
+    "0": "Community-Acquired Pneumonia / Acute Pulmonary Infection",
+    "1": "Type-2 Diabetes Mellitus with Hyperglycemia",
+    "2": "Acute Coronary Syndrome (Myocardial Ischemia)",
+    "3": "Systemic Inflammatory Response / Severe Sepsis",
+    "4": "Cutaneous Melanoma / Atypical Dysplastic Lesion",
+    "5": "Acute Asthma Exacerbation / Bronchospasm",
+    "6": "Chronic Kidney Disease / Renal Impairment",
+    "7": "Acute Cerebrovascular Event / Transient Ischemic Attack"
+  },
+  "preprocessing_config": {
+    "vectorizer": "clinical_keyword_tfidf",
+    "vocab_size": 128,
+    "lowercase": true
+  },
+  "supported_conditions": [
+    "Pneumonia",
+    "Diabetes",
+    "Coronary Syndrome",
+    "Sepsis",
+    "Melanoma",
+    "Asthma"
+  ],
+  "unsupported_conditions": [
+    "Rare Genetic Syndromes",
+    "Tropical Parasitology",
+    "Psychiatric Disorders"
+  ]
+}
